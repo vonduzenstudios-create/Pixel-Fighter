@@ -369,7 +369,10 @@ export class Fight {
       g.animT++;
       g.t++;
     }
-    if (t >= intro.dur && (!speaking() || t >= intro.dur + 90)) {
+    // Hold the entrance until the line has finished, so the next voice never cuts it off. The
+    // speech synth can report "not speaking" for a moment after speak(), hence the grace frames.
+    const talking = t < intro.speakAt + 20 || speaking();
+    if (t >= intro.dur && (!talking || t >= intro.dur + 240)) {
       this.settle(E.who);
       E.caption = '';
       if (E.who === 0) {

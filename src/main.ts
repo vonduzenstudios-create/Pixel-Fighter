@@ -1,6 +1,7 @@
 import { H, W } from './core/consts';
 import { onKey } from './core/input';
 import { initAudio } from './audio/audio';
+import { loadVoiceLines } from './audio/voicelines';
 import { Stage } from './game/stage';
 import { App, Settings, TitleScene, FightScene, bonesParts } from './scenes/menus';
 import { AICtrl } from './game/ai';
@@ -37,7 +38,10 @@ const app: App = {
 };
 scene = new TitleScene(app);
 
-const unlock = () => initAudio();
+const unlock = () => {
+  initAudio();
+  loadVoiceLines();
+};
 window.addEventListener('pointerdown', unlock);
 onKey((code) => {
   unlock();

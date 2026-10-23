@@ -1,4 +1,5 @@
 import { ac, noise, tone, voice } from './audio';
+import { linePlaying, playLine, stopLine } from './voicelines';
 
 /** Small random pitch drift so repeated hits never sound identical. */
 const vary = (amt = 0.08) => 1 + (Math.random() * 2 - 1) * amt;
@@ -235,7 +236,8 @@ function speakHigh(text: string) {
   }
 }
 
-// Speech uses the browser's built-in synthesiser; every caller must cope with it being missing.
+// Lines play from their pre-rendered Kokoro clip (voicelines.ts) when there is one, and from the
+// browser's speech synthesiser otherwise; every caller must cope with both being missing.
 export interface SpeechOpts {
   /** 0..2, 1 is the voice's normal pitch. */
   pitch: number;
@@ -259,12 +261,13 @@ function pickVoice(ss: SpeechSynthesis, female: boolean) {
   return v;
 }
 
-/** Speak a line. Returns false when speech synthesis is unavailable. */
+/** Speak a line, cutting off any line in progress. Returns false when nothing can speak it. */
 export function say(text: string, o: SpeechOpts): boolean {
+  hush();
+  if (playLine(text)) return true;
   const ss = window.speechSynthesis;
   if (!ss) return false;
   try {
-    ss.cancel();
     const u = new SpeechSynthesisUtterance(text);
     const v = pickVoice(ss, !!o.female);
     if (v) u.voice = v;
@@ -279,6 +282,7 @@ export function say(text: string, o: SpeechOpts): boolean {
 }
 
 export function speaking() {
+  if (linePlaying()) return true;
   try {
     return !!window.speechSynthesis?.speaking;
   } catch {
@@ -287,6 +291,7 @@ export function speaking() {
 }
 
 export function hush() {
+  stopLine();
   try {
     window.speechSynthesis?.cancel();
   } catch {

@@ -7,12 +7,15 @@ import type { Fighter } from './fighter';
 // Round 1 entrances. Each character can supply an Intro on its CharDef; fighters without
 // one use DEFAULT_INTRO. The fight runs player 1's entrance, then player 2's, then ROUND 1.
 export interface Intro {
-  /** Voice line, spoken by the speech synth and shown as a subtitle. Write original lines. */
+  /**
+   * Voice line, shown as a subtitle and played from its Kokoro clip (src/audio/voicelines.json,
+   * scripts/gen_voices.py) or the speech synth when it has none. Write original lines.
+   */
   line: string;
   speech: SpeechOpts;
   /** Frame on which the line is spoken. */
   speakAt: number;
-  /** Length in frames. The fight also waits for the line to finish (up to 1.5 s extra). */
+  /** Length in frames. The fight also waits for the line to finish (up to 4 s extra). */
   dur: number;
   /**
    * Called every frame from t = 0. Move the fighter (x, y), pose it (setAnim, poseOverride,
@@ -43,7 +46,7 @@ export function walkIn(self: Fighter, fight: Fight, t: number, home: number, fra
 }
 
 export const DEFAULT_INTRO: Intro = {
-  line: 'Lets settle this.',
+  line: "Let's settle this.",
   speech: { pitch: 0.8, rate: 0.9 },
   speakAt: 60,
   dur: 120,
