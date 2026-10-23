@@ -820,9 +820,11 @@ export class Fight {
             D.vy += 0.22;
             D.y += D.vy;
             D.rot = (D.rot ?? 0) - 6;
-            if (D.y >= 150) {
+            const rest = this.stage.pitLanding?.rest ?? 150;
+            this.stage.pitLanding?.fall?.(this, Math.min(D.y, rest));
+            if (D.y >= rest) {
               D.impaled = true;
-              D.y = 150;
+              D.y = rest;
               sfx.scream();
               this.shake(10);
               if (this.stage.pitLanding) this.stage.pitLanding.land(this);
@@ -846,7 +848,7 @@ export class Fight {
               if (D.it % 10 === 0) this.pitParticles.sparks(128 + rand(-20, 20), H - 152, 2, '#ffe070');
               if (D.it % 30 === 0) sfx.fire();
             } else if (D.it % 6 === 0) this.pitParticles.blood(128 + rand(-8, 8), H - 152, rand(-1, 1), 2, 0.6);
-            if (D.it > 150) done();
+            if (D.it > (this.stage.pitLanding?.length ?? 150)) done();
           }
         }
         break;
@@ -1076,6 +1078,7 @@ export class Fight {
     if (vat) ctx.drawImage(vat, 0, 0);
     if (landing) {
       if (D.impaled) landing.draw(ctx, D.it ?? 0);
+      else landing.drawFall?.(ctx);
     } else if (!vat && D.impaled) {
       ctx.fillStyle = this.stage.stakeColor ?? '#8a8290';
       ctx.fillRect(127, D.y - 22, 2, 14);

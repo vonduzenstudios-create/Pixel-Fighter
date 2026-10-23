@@ -7,12 +7,13 @@ import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
+import { drawTinRobot } from '../chars/buster';
 import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
 import { drawBasketball } from '../chars/shaq';
 import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'bball';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -42,6 +43,8 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   drumstick: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.4 },
   // lobbed in an arc (vy set by the thrower), then burns on the floor where it lands
   grease: { dmg: 75, level: 'mid', effect: 'heavy', r: 7, speed: 2.6 },
+  // wind-up toy that waddles along the floor: block low
+  robot: { dmg: 80, level: 'low', effect: 'sweep', r: 8, speed: 1.9 },
   // a buzzing swarm that weaves as it flies
   scarab: { dmg: 80, level: 'high', effect: 'heavy', r: 9, speed: 3.4 },
   // drops out of the sky onto the opponent: block it standing
@@ -153,6 +156,15 @@ export class Projectile {
         break;
       case 'paint':
         if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x, y: this.y - 2, vx: -this.vx * 0.1, vy: 0.3, life: 18, max: 18, color: PAINTS[this.hue], grav: 0.15, floor: false });
+        break;
+      case 'robot':
+        this.y = 9;
+        if (this.t % 9 === 0) p.smoke(this.x - Math.sign(this.vx) * 6, 1, 1, '#8a8478');
+        if (this.t > 150) {
+          this.dead = true;
+          p.smoke(this.x, 8, 6, '#c8c0b0');
+          p.sparks(this.x, 10, 6, '#f0c828');
+        }
         break;
       case 'drumstick':
         if (this.t % 4 === 0)
@@ -288,6 +300,9 @@ export class Projectile {
       }
       case 'hole':
         drawMiniHole(ctx, this.t);
+        break;
+      case 'robot':
+        drawTinRobot(ctx, this.t, Math.sign(this.vx) || 1);
         break;
       case 'gift':
         drawGift(ctx, this.t, Math.sign(this.vx) || 1);
