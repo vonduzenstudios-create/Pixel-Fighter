@@ -14,11 +14,11 @@ import { rand } from '../core/rng';
 let IMG: { bill: HTMLCanvasElement; note: HTMLCanvasElement; noteR: HTMLCanvasElement } | null = null;
 const img = () => (IMG ??= { bill: bill(), note: musicNote(), noteR: musicNote('#ff9a80') });
 
-function floatNote(f: Fight, x: number, y: number, red = false) {
+export function floatNote(f: Fight, x: number, y: number, red = false) {
   f.particles.add({ kind: 'img', img: red ? img().noteR : img().note, ix: 3, iy: 4, x, y, vx: rand(-0.4, 0.4), vy: rand(0.5, 0.9), grav: 0, rot: 0, life: 45, max: 45, floor: false });
 }
 
-function cashRain(f: Fight, x: number, n: number) {
+export function cashRain(f: Fight, x: number, n: number) {
   for (let i = 0; i < n; i++)
     f.particles.add({ kind: 'img', img: img().bill, ix: 3, iy: 2, x: x + rand(-40, 40), y: rand(150, 190), vx: rand(-0.3, 0.3), vy: rand(-0.6, -0.2), grav: 0.015, rot: rand(0, 6), vrot: rand(-0.15, 0.15), life: 220, max: 220 });
 }

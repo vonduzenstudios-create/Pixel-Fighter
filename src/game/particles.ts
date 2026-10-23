@@ -26,6 +26,7 @@ export class Particles {
   list: Particle[] = [];
   decals: Decal[] = [];
   floorY = 0; // height of the deck (0 for the bridge)
+  gravScale = 1; // stage gravity relative to normal
 
   add(p: Partial<Particle> & { x: number; y: number }) {
     if (this.list.length > 900) this.list.shift();
@@ -115,7 +116,7 @@ export class Particles {
   update() {
     for (const p of this.list) {
       p.life--;
-      p.vy -= p.grav;
+      p.vy -= p.grav * this.gravScale;
       p.x += p.vx;
       p.y += p.vy;
       if (p.rot !== undefined) p.rot += p.vrot ?? 0;

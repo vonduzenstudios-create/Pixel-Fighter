@@ -237,7 +237,7 @@ export class Fighter {
     this.x += this.vx;
     if (this.airborne) {
       this.y += this.vy;
-      this.vy -= GRAV;
+      this.vy -= f.stage.gravity ?? GRAV;
       if (this.y <= 0) {
         this.y = 0;
         this.vy = 0;
