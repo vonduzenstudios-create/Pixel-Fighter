@@ -106,6 +106,7 @@ export class NetLink {
     if (this.status === 'closed') return;
     this.status = 'closed';
     this.reason = reason;
+    console.info(`[online] disconnected: ${reason.toLowerCase()}`);
     clearInterval(this.hb);
     try {
       this.dc?.close();
