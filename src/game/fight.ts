@@ -888,6 +888,9 @@ export class Fight {
   drawArena(ctx: CanvasRenderingContext2D) {
     const cam = Math.round(this.camX);
     this.stage.draw(ctx, cam, this.t);
+    // a rocking stage moves its floor, and everything standing on it moves too
+    ctx.save();
+    ctx.translate(0, this.stage.bob?.(this.t) ?? 0);
     if (this.phase === 'entrance') {
       const f = this.f[this.entrance.who];
       this.introOf(f).draw?.(ctx, f, this, this.entrance.t, cam);
@@ -938,6 +941,7 @@ export class Fight {
       ctx.fillRect(0, 0, W, H);
     }
     this.particles.draw(ctx, cam);
+    ctx.restore();
     this.stage.drawFront(ctx, cam, this.t);
   }
 
