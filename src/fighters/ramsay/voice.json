@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "ramsay": { "voice": "bm_fable", "speed": 1.12, "pitch": 0.88, "gain": 1.05 }
+  },
+  "lines": [
+    { "file": "ramsay-intro", "who": "ramsay", "text": "Right! Let's turn up the heat." },
+    { "file": "ramsay-finisher", "who": "ramsay", "text": "Plated, seasoned, and served." },
+    { "file": "ann-wins-ramsay", "who": "announcer", "text": "Gordon Ramsay wins" }
+  ]
+}

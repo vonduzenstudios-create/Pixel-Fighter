@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "blackbeard": { "voice": "bm_george", "speed": 0.85, "pitch": 0.9 }
+  },
+  "lines": [
+    { "file": "blackbeard-intro", "who": "blackbeard", "text": "Har har! Yer gold and yer teeth be mine!", "spoken": "Harr harr! Yer gold, and yer teeth, be mine!" },
+    { "file": "ann-wins-blackbeard", "who": "announcer", "text": "Blackbeard wins" }
+  ]
+}

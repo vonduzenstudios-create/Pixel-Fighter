@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "tesla": { "voice": "bm_lewis", "speed": 1.0 }
+  },
+  "lines": [
+    { "file": "tesla-intro", "who": "tesla", "text": "Stand back. Science is about to happen." },
+    { "file": "ann-wins-tesla", "who": "announcer", "text": "Nikola Tesla wins" }
+  ]
+}

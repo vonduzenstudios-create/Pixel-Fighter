@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "brucelee": { "voice": "am_liam", "speed": 1.08 }
+  },
+  "lines": [
+    { "file": "brucelee-intro", "who": "brucelee", "text": "Your guard is a door. I brought the key." },
+    { "file": "ann-wins-brucelee", "who": "announcer", "text": "Bruce Lee wins" }
+  ]
+}

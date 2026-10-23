@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "lincoln": { "voice": "am_adam", "speed": 0.88, "pitch": 0.94 }
+  },
+  "lines": [
+    { "file": "lincoln-intro", "who": "lincoln", "text": "Honest Abe never pulls a punch." },
+    { "file": "ann-wins-lincoln", "who": "announcer", "text": "Abe Lincoln wins" }
+  ]
+}

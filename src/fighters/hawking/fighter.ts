@@ -1,3 +1,4 @@
+import type { CharDef } from '../../game/fighter';
 import type { Look } from '../../chars/build';
 import { A, P, STANCE, LAUNCHED, VICTORY } from '../../game/anims';
 import type { Move, Special, Finisher } from '../../game/types';
@@ -291,3 +292,11 @@ export const HAWKING_PORTRAIT: PortraitStyle = {
     if (c.beaten) p.line(bx - 4, by - 3, bx + 3, by + 3, '#e8f4ff');
   },
 };
+
+export function hawking(): CharDef {
+  return {
+    id: 'hawking', name: 'Stephen Hawking', short: 'HAWKING', title: 'Spacetime Bender', look: HAWKING_LOOK, alt: HAWKING_ALT,
+    specials: hawkingSpecials, voice: 120, props: {}, finisher: HAWKING_FINISHER, intro: HAWKING_INTRO, portrait: HAWKING_PORTRAIT,
+    quotes: HAWKING_QUOTES, quotesVs: HAWKING_QUOTES_VS,
+  };
+}

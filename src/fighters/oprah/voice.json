@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "oprah": { "voice": "af_heart", "speed": 0.95, "pitch": 0.94 }
+  },
+  "lines": [
+    { "file": "oprah-intro", "who": "oprah", "text": "Welcome to the show! Today's topic: your defeat.", "spoken": "Welcome to the show! Today's topic... your defeat." },
+    { "file": "oprah-finisher", "who": "oprah", "text": "You get a car! And you get a car! And you get a car!" },
+    { "file": "ann-wins-oprah", "who": "announcer", "text": "Oprah Winfrey wins" }
+  ]
+}

@@ -6,7 +6,7 @@ import { pxLine } from '../gfx/painter';
 import { keg as kegSprite, skull } from '../gfx/props';
 import { PartSet, Part } from '../gfx/rig';
 import { announce, bark, hush, say, sfx, speaking, strengthOf } from '../audio/sfx';
-import { moveSounds, playCue, PROJ_SOUNDS } from '../audio/specials';
+import { moveSounds, playCue } from '../audio/specials';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
 import { Fighter, tickPoseClock } from './fighter';
@@ -14,7 +14,6 @@ import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
 import { jacksonFatality } from '../fighters/jackson/fighter';
-import { confetti } from '../fighters/oprah/fighter';
 import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
@@ -487,23 +486,19 @@ export class Fight {
           if (!q.sturdy) q.dead = true;
           this.particles.sparks((p.x + q.x) / 2, p.y, 16, '#ffffff');
           sfx.block(true);
-          playCue(PROJ_SOUNDS[p.kind]?.clash);
-          playCue(PROJ_SOUNDS[q.kind]?.clash);
+          playCue(p.def.sounds?.clash);
+          playCue(q.def.sounds?.clash);
         }
       if (p.dead || p.spent || d.invulnerable) continue;
       if (circleRect(p.x, p.y, p.r, d.hurtbox())) {
         // a sprouted tree stays standing after it hits, a car keeps driving; everything else breaks
-        if (p.kind === 'tree' || p.sturdy) p.spent = true;
+        if (p.def.keepAfterHit || p.sturdy) p.spent = true;
         else p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         const res = this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
-        const ps = PROJ_SOUNDS[p.kind];
+        const ps = p.def.sounds;
         playCue(res === 'block' ? ps?.blocked : ps?.impact);
-        if (p.kind === 'gift') confetti(this.particles, p.x, p.y, 16);
-        if (p.kind === 'cannon' || p.kind === 'keg') {
-          this.particles.smoke(p.x, p.y, 10);
-          this.particles.fire(p.x, p.y, 10, 6);
-        }
+        p.def.onHit?.(p, this);
       }
     }
   }

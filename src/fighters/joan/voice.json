@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "joan": { "voice": "ff_siwis", "speed": 0.95 }
+  },
+  "lines": [
+    { "file": "joan-intro", "who": "joan", "text": "Heaven sent me. You will not like the message." },
+    { "file": "ann-wins-joan", "who": "announcer", "text": "Joan of Arc wins" }
+  ]
+}

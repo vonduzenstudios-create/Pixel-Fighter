@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "colonel": { "voice": "am_santa", "speed": 0.82, "pitch": 0.94 }
+  },
+  "lines": [
+    { "file": "colonel-intro", "who": "colonel", "text": "Evening, friend. I'll have you golden brown by suppertime.", "spoken": "Evening, friend... I'll have you golden brown, by suppertime." },
+    { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" }
+  ]
+}

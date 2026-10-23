@@ -1,7 +1,7 @@
 // Every line the game speaks should have a rendered Kokoro clip (scripts/gen_voices.py).
 import { existsSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
-import manifest from '../src/audio/voicelines.json';
+import { manifest } from '../src/audio/voicemanifest';
 import { roster } from '../src/chars/roster';
 import { HAWKING_LINES } from '../src/fighters/hawking/fighter';
 import { IRWIN_LINES } from '../src/fighters/irwin/fighter';

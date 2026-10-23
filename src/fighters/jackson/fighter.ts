@@ -1,3 +1,4 @@
+import type { CharDef } from '../../game/fighter';
 import type { Look } from '../../chars/build';
 import { A, P, STANCE, CROUCH, TUCK, LAUNCHED, FALL } from '../../game/anims';
 import type { Move, Special } from '../../game/types';
@@ -196,4 +197,18 @@ export function jacksonFatality(fight: Fight, tt: number, w: Fighter, l: Fighter
   if (tt === 200) sfx.hee();
   if (tt < 140 && tt >= 72) l.poseOverride = P(LAUNCHED, { t: -10, h: 0, af: -40, ab: -30, lf: -10, kf: 15, lb: 10, kb: 10 });
   return tt >= 250;
+}
+
+export function jackson(): CharDef {
+  return {
+    id: 'jackson', name: 'Michael Jackson', short: 'JACKSON', title: 'The Gloved One', look: JACKSON_LOOK, alt: JACKSON_ALT,
+    specials: JACKSON_SPECIALS, voice: 230, props: {}, finisher: JACKSON_FINISHER, intro: JACKSON_INTRO,
+    quotes: [
+      'HEE HEE! YOU NEVER EVEN SAW MY FEET MOVE.',
+      'I WALKED BACKWARDS THE WHOLE TIME, {L}. STILL TOO FAST FOR YOU.',
+      'ONE GLOVE. THAT IS ALL IT TOOK.',
+      'DANCE LESSONS ARE CHEAPER THAN HOSPITAL BILLS.',
+    ],
+    quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
+  };
 }

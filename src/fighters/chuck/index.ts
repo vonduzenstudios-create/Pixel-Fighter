@@ -1,0 +1,14 @@
+import type { FighterModule } from '../kit';
+import { chuckNorris } from './fighter';
+import { PROJECTILES } from './projectiles';
+
+export default {
+  order: 60,
+  make: chuckNorris,
+  moveSounds: {
+    proj_gust: { frames: { 1: 'inhale' } },
+    tornado: { frames: { 0: 'heave' }, impact: 'boneCrack' },
+    flurry: { frames: { 1: 'heave' }, impact: 'bootThud' },
+  },
+  projectiles: PROJECTILES,
+} satisfies FighterModule;

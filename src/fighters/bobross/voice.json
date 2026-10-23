@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "bobross": { "voice": "am_michael", "speed": 0.82 }
+  },
+  "lines": [
+    { "file": "bobross-intro", "who": "bobross", "text": "Easy now. Nice, soft strokes." },
+    { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" }
+  ]
+}

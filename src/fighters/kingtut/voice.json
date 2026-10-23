@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "kingtut": { "voice": "bm_lewis", "speed": 0.92, "pitch": 1.12 }
+  },
+  "lines": [
+    { "file": "kingtut-intro", "who": "kingtut", "text": "The boy king wakes. Kneel, or be buried." },
+    { "file": "ann-wins-kingtut", "who": "announcer", "text": "King Tut wins" }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "chuck": { "voice": "am_fenrir", "speed": 0.85, "pitch": 0.9 }
+  },
+  "lines": [
+    { "file": "chuck-intro", "who": "chuck", "text": "I came here to finish. Fighting is optional." },
+    { "file": "ann-wins-chuck", "who": "announcer", "text": "Chuck Norris wins" }
+  ]
+}

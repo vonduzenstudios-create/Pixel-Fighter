@@ -1,0 +1,9 @@
+{
+  "speakers": {
+    "jackson": { "voice": "am_puck", "speed": 1.05, "pitch": 1.15 }
+  },
+  "lines": [
+    { "file": "jackson-intro", "who": "jackson", "text": "Hee hee! Try to keep up." },
+    { "file": "ann-wins-jackson", "who": "announcer", "text": "Michael Jackson wins" }
+  ]
+}
