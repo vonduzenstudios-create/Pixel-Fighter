@@ -4,7 +4,7 @@ import { ac, midi, musicOut, noise, tone } from './audio';
 // progressions that drive generated bass, string pads and percussion.
 // All compositions here are original.
 
-type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute' | 'synbrass' | 'tom' | 'crash';
+type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute' | 'synbrass' | 'tom' | 'crash' | 'guitar' | 'gtrlead';
 interface Note { step: number; inst: Inst; n: number; len: number; vol?: number }
 interface Song { bpm: number; steps: number; notes: Note[] }
 
@@ -549,6 +549,54 @@ function burgerSong(): Song {
   return { bpm: 118, steps: prog.length * 16, notes };
 }
 
+// "The Decibel Dome": the Chrome Howlers' arena anthem. Chugging E minor power chords,
+// a pounding rock beat and a soaring lead line. An original composition.
+function concertSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['E', 'E', 'C', 'D', 'E', 'E', 'G', 'D', 'A', 'A', 'C', 'D', 'E', 'G', 'D', 'B'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const root = NAMES[ch];
+    const low = (root - 4 + 12) % 12; // semitones above E
+    if (b < 8) {
+      // palm-muted chugs with an accent on the one
+      [0, 2, 3, 6, 8, 10, 11, 14].forEach((st) => notes.push({ step: s + st, inst: 'guitar', n: 40 + low, len: 1, vol: st === 0 ? 1 : 0.6 }));
+    } else {
+      // the chorus opens up into ringing chords
+      [[0, 6], [6, 2], [8, 6], [14, 2]].forEach(([st, len]) => notes.push({ step: s + st, inst: 'guitar', n: 40 + low, len, vol: 0.9 }));
+    }
+    for (let st = 0; st < 16; st += 2) notes.push({ step: s + st, inst: 'bass', n: 28 + low, len: 1 });
+    [0, 8, 10].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1 }));
+    for (let h = 0; h < 16; h += 2) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+    if (b % 4 === 0) notes.push({ step: s, inst: 'crash', n: 0, len: 1, vol: 0.8 });
+    if (b % 4 === 3) [12, 13, 14, 15].forEach((st, i) => notes.push({ step: s + st, inst: 'tom', n: 52 - i * 3, len: 1, vol: 0.7 }));
+  });
+  const lead = [
+    // verse (bars 1-8)
+    'E5 - - - G5 - A5 - B5 - - - A5 - G5 -',
+    'E5 - - - D5 - E5 - . . . . . . . .',
+    'G5 - - - E5 - G5 - C6 - - - B5 - A5 -',
+    'A5 - - - F#5 - - - D5 - - - . . . .',
+    'E5 - - - G5 - A5 - B5 - - - D6 - B5 -',
+    'E6 - - - D6 - B5 - A5 - G5 - E5 - - -',
+    'D5 - G5 - B5 - D6 - B5 - G5 - D6 - - -',
+    'F#5 - - - A5 - - - D6 - - - . . . .',
+    // chorus (bars 9-16)
+    'A5 - - - - - C6 - E6 - - - D6 - C6 -',
+    'A5 - - - E5 - - - A5 - B5 - C6 - - -',
+    'G5 - - - - - E5 - G5 - - - C6 - - -',
+    'D6 - - - C6 - B5 - A5 - - - F#5 - - -',
+    'E6 - D6 - B5 - D6 - E6 - - - G6 - - -',
+    'F#6 - - - E6 - D6 - B5 - - - D6 - - -',
+    'D6 - - - - - - - A5 - - - F#5 - - -',
+    'B5 - - - - - - - D#6 - - - F#6 - - -',
+  ];
+  lead.forEach((l, i) => line(l, 'gtrlead', i * 16, 0.8).forEach((n) => notes.push({ ...n, n: n.n - 12 })));
+  return { bpm: 150, steps: prog.length * 16, notes };
+}
+
+
 // "Flavortown": a hot-rod rockabilly boogie in A, two loud choruses round a 12-bar blues.
 function flavortownSong(): Song {
   const notes: Note[] = [];
@@ -715,7 +763,7 @@ function runwaySong(): Song {
   return { bpm: 124, steps: prog.length * 16, notes };
 }
 
-export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), spire: spireSong(), mushroom: mushroomSong(), boat: boatSong(), moon: moonSong(), blizzard: blizzardSong(), underground: undergroundSong(), burger: burgerSong(), dojo: dojoSong(), flavortown: flavortownSong(), runway: runwaySong() };
+export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), spire: spireSong(), mushroom: mushroomSong(), boat: boatSong(), moon: moonSong(), blizzard: blizzardSong(), underground: undergroundSong(), burger: burgerSong(), dojo: dojoSong(), flavortown: flavortownSong(), runway: runwaySong(), concert: concertSong() };
 export type SongName = keyof typeof SONGS;
 
 function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
@@ -761,6 +809,18 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
       break;
     case 'crash':
       noise({ dur: 1.4, vol: 0.09 * vol, type: 'highpass', freq: 5000, to: 3000, at, out });
+      break;
+    case 'guitar':
+      // overdriven power chord: root, fifth and octave as gritty detuned saws, plus a buzzy square
+      for (const [k, d] of [[1, -7], [1.5, 7], [2, 0]])
+        tone({ type: 'sawtooth', freq: f * k, dur: dur * 0.9 + 0.04, vol: 0.032 * vol, at, out, detune: d, filter: { type: 'lowpass', freq: 2600, to: 900, q: 4 } });
+      tone({ type: 'square', freq: f, dur: dur * 0.9 + 0.03, vol: 0.025 * vol, at, out, filter: { type: 'lowpass', freq: 1400 } });
+      break;
+    case 'gtrlead':
+      // screaming lead: two detuned saws through a resonant peak, with a slow attack for sustain
+      for (const d of [-12, 12])
+        tone({ type: 'sawtooth', freq: f, dur: dur * 0.95 + 0.08, vol: 0.04 * vol, at, out, attack: 0.02, detune: d, filter: { type: 'bandpass', freq: f * 3, q: 1.5 } });
+      tone({ type: 'square', freq: f, dur: dur * 0.95 + 0.06, vol: 0.02 * vol, at, out, filter: { type: 'lowpass', freq: 2400 } });
       break;
     case 'bell':
       tone({ type: 'sine', freq: f, dur: 1.6, vol: 0.08, at, out });

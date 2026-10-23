@@ -22,7 +22,7 @@ const OUT = '#100810';
 export const BUSTER_LOOK: Look = {
   skin: '#f2c6a0', hair: '#c8602a', eye: '#2a3a6a', shirt: '#2a9a58', stripes: '#f0c828', pants: '#3a5ab0',
   boots: '#e8e4dc', hat: 'beanie', hatColor: '#d83030', hatTrim: '#2a6ad8', hairStyle: 'mop',
-  shorts: true, kneeSocks: '#f4f2ec', freckles: '#b86a40', belt: '#6a3a1a', buckle: '#e8c848',
+  shortPants: true, kneeSocks: '#f4f2ec', freckles: '#b86a40', belt: '#6a3a1a', buckle: '#e8c848',
 };
 /** Palette swap for mirror matches: the purple-and-orange Saturday sweater. */
 export const BUSTER_ALT: Look = {
