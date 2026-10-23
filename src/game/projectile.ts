@@ -1,16 +1,18 @@
 import { FLOOR } from '../core/consts';
 import { pxCircle, pxLine } from '../gfx/painter';
-import { ball, bill, cashBrick, keg, musicNote, stovepipeHat } from '../gfx/props';
+import { ball, bill, cashBrick, keg, musicNote, pineTree, stovepipeHat } from '../gfx/props';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree';
+
+const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
 const makeSprites = () => ({
   hat: stovepipeHat(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true),
-  cash: cashBrick(), bill: bill(), note: musicNote(),
+  cash: cashBrick(), bill: bill(), note: musicNote(), paint: PAINTS.map((c) => ball(5, c)), tree: pineTree(),
 });
 let SPR: ReturnType<typeof makeSprites> | null = null;
 const spr = () => (SPR ??= makeSprites());
@@ -25,14 +27,23 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   cash: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 4.6 },
   // short-range sonic blast that can't be ducked
   aria: { dmg: 70, level: 'mid', effect: 'knockdown', r: 11, speed: 5.2 },
+  paint: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.2 },
+  tree: { dmg: 95, level: 'low', effect: 'launch', r: 9, speed: 0 },
 };
+
+/** Frames a sprouting tree rumbles underground before it bursts up. */
+const TREE_WARN = 16;
 
 export class Projectile {
   vx: number;
   vy = 0;
   t = 0;
   dead = false;
+  /** Already hit; still drawn but harmless. */
+  spent = false;
   dmg: number; level: Level; effect: Effect; r: number;
+  /** Paint colour index for paint blobs. */
+  hue = Math.floor(Math.random() * PAINTS.length);
   constructor(public owner: Fighter, public kind: ProjKind, public x: number, public y: number) {
     const s = STATS[kind];
     this.vx = s.speed * owner.facing;
@@ -74,6 +85,28 @@ export class Projectile {
         this.vx *= 0.97;
         if (this.t > 26) this.dead = true;
         break;
+      case 'paint':
+        if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x, y: this.y - 2, vx: -this.vx * 0.1, vy: 0.3, life: 18, max: 18, color: PAINTS[this.hue], grav: 0.15, floor: false });
+        break;
+      case 'tree': {
+        // rumbles underground (out of reach), then shoots up from the deck
+        if (this.t < TREE_WARN) {
+          this.y = -40;
+          if (this.t % 2 === 0) p.smoke(this.x + rand(-6, 6), 1, 1, '#6a5038');
+          if (this.t === 2) f.sfx('roll');
+        } else {
+          if (this.t === TREE_WARN) {
+            f.sfx('whoosh', 1);
+            p.sparks(this.x, 4, 8, '#3a7a38');
+          }
+          this.y = Math.min(34, 6 + (this.t - TREE_WARN) * 3);
+        }
+        if (this.t > TREE_WARN + 30) {
+          this.dead = true;
+          p.sparks(this.x, 20, 10, '#2a6230');
+        }
+        break;
+      }
     }
     this.x += this.vx;
     this.y += this.vy;
@@ -118,6 +151,19 @@ export class Projectile {
           }
         }
         ctx.drawImage(s.note, -3 + d * 4, -12 + Math.round(Math.sin(this.t * 0.5) * 2));
+        break;
+      }
+      case 'paint':
+        ctx.drawImage(s.paint[this.hue], -7, -7);
+        ctx.fillStyle = PAINTS[this.hue];
+        ctx.fillRect(-Math.sign(this.vx) * 7 - 1, -1, 3, 2);
+        break;
+      case 'tree': {
+        // grows from the deck: stretch the sprite up from its base
+        ctx.translate(0, this.y);
+        const k = Math.max(0, Math.min(1, (this.t - TREE_WARN) / 8));
+        const h = Math.round(40 * k);
+        if (h > 0) ctx.drawImage(s.tree, 0, 0, 20, 40, -10, -h, 20, h);
         break;
       }
       case 'holy': {

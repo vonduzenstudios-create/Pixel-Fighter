@@ -1,4 +1,6 @@
 import { buildParts, Look } from './build';
+import { aliDef } from './ali';
+import { bobRoss } from './bobross';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
@@ -452,7 +454,9 @@ export function roster(): CharDef[] {
       quotesVs: { brucelee: 'GOOD FIGHT, OLD FRIEND. SAME RESULT AS LAST TIME.' },
       finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 60] },
     },
+    aliDef(),
     lumpsum(),
+    bobRoss(),
   ];
   return cache;
 }
