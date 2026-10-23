@@ -19,6 +19,7 @@ import { DojoStage } from './dojo';
 import { RunwayStage } from './runway';
 import { BeachStage } from './beach';
 import { LabStage } from './lab';
+import { HillsStage } from './hills';
 
 /** A custom bottom-of-the-pit landing for the uppercut stage finish, in place of the spikes. */
 export interface PitLanding {
@@ -96,6 +97,7 @@ export const STAGES: StageEntry[] = [
   { id: 'runway', name: 'THE RUNWAY', make: (b) => new RunwayStage(b) },
   { id: 'beach', name: 'CORAL COVE', make: () => new BeachStage() },
   { id: 'lab', name: 'THE COIL WORKS', make: (b) => new LabStage(b) },
+  { id: 'hills', name: 'BUTTERCUP HILLS', make: () => new HillsStage() },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
