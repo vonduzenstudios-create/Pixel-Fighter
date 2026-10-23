@@ -6,7 +6,7 @@ import { drawRig, fk, groundOffset, Part, PartName, PartSet, Pose, propTip, Skel
 import * as AN from './anims';
 import * as MV from './moves';
 import type { Fight } from './fight';
-import type { Anim, Btn, Finisher, HitDef, Move, Special } from './types';
+import type { Anim, Btn, Finisher, HitDef, Move, PropName, Special } from './types';
 import type { Look } from '../chars/build';
 import type { PortraitStyle } from '../gfx/portrait';
 import { chance } from '../core/rng';
@@ -24,7 +24,9 @@ export interface CharDef {
   finisher: Finisher;
   /** Pitch of grunts. */
   voice: number;
-  props: Partial<Record<'axe' | 'sword' | 'cutlass' | 'nunchaku', Part>>;
+  props: Partial<Record<PropName, Part>>;
+  /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
+  fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
   /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
   portrait?: PortraitStyle;
   /** Win-screen taunts. {L} becomes the loser's short name. */

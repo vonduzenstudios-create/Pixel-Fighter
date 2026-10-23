@@ -188,6 +188,7 @@ function hairline(style: Look['hairStyle'], x: number) {
   switch (style) {
     case 'slick': return x < 36 ? 58 : x < 44 ? 58 - (x - 36) * 3.3 : 30;
     case 'bob': return 37;
+    case 'feathered': return x < 46 ? 66 : x < 52 ? 66 - (x - 46) * 5.5 : 32;
     case 'mop': return x < 40 ? 62 : x < 46 ? 62 - (x - 40) * 4 : 37 - Math.max(0, x - 62) * 0.5;
     case 'long': return x < 40 ? 60 : x < 47 ? 60 - (x - 40) * 4 : 31;
     default: return x < 38 ? 60 : x < 46 ? 60 - (x - 38) * 3.6 : 31;
@@ -240,6 +241,7 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
         p.line(30, 99, 48, 101, hi), p.line(58, 101, 78, 98, hi); // collarbones
         p.line(28, 116, 50, 118, d), p.line(56, 118, 80, 115, d); // pecs
         p.line(53, 104, 53, 121, d);
+        if (L.chestHair) for (let i = 0; i < 18; i++) p.set(46 + ((i * 7) % 15), 104 + ((i * 5) % 16), L.chestHair);
         for (let y = 92; y < PH; y++) for (let x = 0; x < PW; x++) if (p.alpha(x, y)) skin[y * PW + x] = 1;
       } else {
         if (L.coat) {
@@ -293,7 +295,12 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
     if (!skip.hair) {
       const hl = (x: number, y: number) => y < hairline(L.hairStyle, x);
       const headM = maskOf(head);
-      S(where(PW, PH, (x, y) => (headM[y * PW + x] === 1 && hl(x, y) && !inEll(x, y, g.ear[0], g.ear[1], 5, 8)) || inEll(x, y, 51, 31, 26, 14) && y < 36), L.hair, { soft: 3 });
+      S(where(PW, PH, (x, y) => (headM[y * PW + x] === 1 && hl(x, y) && (L.hairStyle === 'feathered' || !inEll(x, y, g.ear[0], g.ear[1], 5, 8))) || inEll(x, y, 51, 31, 26, 14) && y < 36), L.hair, { soft: 3 });
+      if (L.hairStyle === 'feathered') {
+        S((m) => m.poly([[22, 34], [42, 30], [46, 70], [36, 78], [24, 72], [20, 50]], '#fff'), L.hair, { soft: 4 });
+        for (let i = 0; i < 5; i++) p.line(26 + i * 9, 24 - (i % 2), 40 + i * 8, 20 + i, lighten(L.hair, 0.3));
+        for (let x = 25; x < 42; x += 4) p.line(x, 44, x + 2, 70, darken(L.hair, 0.35));
+      }
       if (L.hairStyle === 'slick') {
         for (let i = 0; i < 4; i++) p.line(32 + i * 7, 22 + i, 46 + i * 7, 19 + i * 2, lighten(L.hair, 0.3));
         p.line(52, 18, 54, 30, darken(L.hair, 0.5));
@@ -349,6 +356,13 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
           ((headM[y * PW + x] === 1 && ((y > 60 && !inEll(x, y, 64, 66, 12, 11.5)) || (x < 41 && y > 50) && !inEll(x, y, g.ear[0], g.ear[1], 5, 8))) ||
             inEll(x, y, 57, 84, 13, 6))), L.hair, { soft: 3 });
         for (let x = 46; x < 70; x += 3) p.line(x, 80, x - 1, 88, darken(L.hair, 0.45));
+      } else if (L.beard === 'full') {
+        const headM = maskOf(head);
+        S(where(PW, PH, (x, y) =>
+          (headM[y * PW + x] === 1 && y > 56 && !inEll(x, y, g.mouth[0], g.mouth[1] + 1, 7, 3.5) && !inEll(x, y, g.ear[0], g.ear[1], 5, 8)) ||
+            inEll(x, y, 58, 84, 15, 7)), L.hair, { soft: 3 });
+        S((m) => m.poly([[55, 66], [64, 63.5], [73, 64], [78, 69], [72, 69], [64, 68], [54, 70]], '#fff'), darken(L.hair, 0.1), { soft: 2 });
+        for (let x = 40; x < 72; x += 4) p.line(x, 74, x - 1, 86, darken(L.hair, 0.4));
       } else if (L.beard === 'braided') {
         S((m) => {
           m.poly([[34, 58], [44, 66], [56, 70], [76, 66], [77, 76], [72, 96], [64, 110], [46, 110], [38, 92], [32, 70]], '#fff');
@@ -374,6 +388,17 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
         S((m) => m.poly(tilt([[34, 20], [71, 18], [71, 25], [34, 27]], ang), '#fff'), L.hatTrim ?? '#34303a', { soft: 2 });
         S((m) => m.poly(tilt([[20, 33], [52, 28], [84, 27], [88, 30], [52, 33], [22, 37]], ang), '#fff'), c, { soft: 2, bias: 0.2 });
         if (beaten) p.poly(tilt([[50, 6], [58, 4], [55, 12]], ang), darken(c, 0.5)); // dent
+      } else if (L.hat === 'horned') {
+        const c = L.hatColor ?? '#a8b0bc', trim = L.hatTrim ?? '#d8b040', horn = '#ece2c4';
+        S((m) => m.poly(tilt([[24, 30], [16, 22], [10, 6], [20, 14], [30, 22]], ang), '#fff'), horn, { soft: 2 });
+        S((m) => m.poly(tilt([[80, 30], [88, 22], [94, 6], [84, 14], [74, 22]], ang), '#fff'), horn, { soft: 2 });
+        S((m) => m.poly(tilt([[24, 34], [26, 20], [36, 10], [52, 6], [68, 10], [78, 20], [80, 34]], ang), '#fff'), c, { soft: 5, bias: 0.1 });
+        S((m) => m.poly(tilt([[23, 30], [81, 30], [81, 35], [23, 35]], ang), '#fff'), trim, { soft: 2 });
+        S((m) => m.poly(tilt([[50, 7], [54, 7], [54, 30], [50, 30]], ang), '#fff'), trim, { soft: 1 });
+        for (let x = 28; x < 80; x += 8) {
+          const [rx, ry] = tilt([[x, 32.5]], ang)[0];
+          p.set(rx, ry, lighten(trim, 0.5));
+        }
       } else if (L.hat === 'tricorn') {
         const c = L.hatColor ?? '#18141a', trim = L.hatTrim ?? '#c9a33a';
         const brim = tilt([[10, 36], [94, 31], [84, 16], [54, 6], [22, 14]], ang);
