@@ -1,7 +1,7 @@
 import { type Note, type Song, chordTones, line } from '../../audio/music';
 
-// "Patty Pete's": a cheesy, bouncy 90s burger-joint jingle with slap bass and brass stabs.
-export function burgerSong(): Song {
+// "The Cluck Hut": a cheesy, bouncy 90s fast-food jingle with slap bass and brass stabs.
+export function chickenSong(): Song {
   const notes: Note[] = [];
   const prog = ['C', 'Am', 'F', 'G', 'C', 'Am', 'Dm', 'G', 'F', 'G', 'Em', 'Am', 'F', 'G', 'C', 'G'];
   prog.forEach((ch, b) => {

@@ -9,6 +9,7 @@ export default {
     const c = aliDef();
     c.intro ??= ALI_INTRO;
     c.selectSet ??= SETS.ring;
+    c.homeStage ??= 'underground';
     return c;
   },
   moveSounds: {

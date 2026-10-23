@@ -8,6 +8,7 @@ export default {
   make() {
     const c = chuckNorris();
     c.selectSet ??= SETS.western;
+    c.homeStage ??= 'train';
     return c;
   },
   moveSounds: {

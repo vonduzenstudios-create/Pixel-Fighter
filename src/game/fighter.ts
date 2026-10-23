@@ -39,6 +39,12 @@ export interface CharDef {
   /** Little diorama the fighter stands in on character select (see scenes/sets.ts). */
   selectSet?: SetPainter;
   /**
+   * Folder id of this fighter's home stage (src/stages/<id>/, e.g. 'spire'). In 1P, stage select
+   * starts on the CPU opponent's home stage. Leave it out (or name a stage that isn't in yet) and
+   * stage select starts on the last stage played instead.
+   */
+  homeStage?: string;
+  /**
    * Replacement normal attacks, keyed by the shared move's id (jab, hp, lk, hk, roundhouse, sweep, cp,
    * ck, chk, uppercut, jp, jk, throw). Keep id 'uppercut' on the replacement so the stage finish works.
    */
