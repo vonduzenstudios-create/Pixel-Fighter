@@ -10,6 +10,8 @@ import { MushroomStage } from './mushroom';
 import { BlizzardStage } from './blizzard';
 import { UndergroundStage } from './underground';
 import { BurgerStage } from './burger';
+import { ConcertStage } from './concert';
+import type { Particles } from './particles';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -33,6 +35,8 @@ export interface Arena {
   update?(f: Fight): void;
   /** Drawn over the victim in the uppercut-finish close-up; replaces the spike-impale finish. */
   pitFront?: HTMLCanvasElement;
+  /** Extra effects each frame after the victim lands in a pitFront finish (it = frames since landing). */
+  pitTick?(p: Particles, it: number): void;
   /** Optional vertical offset (screen px) for the floor, fighters and effects, e.g. a rocking deck. */
   bob?(t: number): number;
 }
@@ -52,6 +56,7 @@ export const STAGES: StageEntry[] = [
   { id: 'blizzard', name: 'THE HOWLING PASS', make: (b) => new BlizzardStage(b) },
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
+  { id: 'concert', name: 'THE DECIBEL DOME', make: (b) => new ConcertStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 

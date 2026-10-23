@@ -833,6 +833,7 @@ export class Fight {
             }
           } else {
             D.it++;
+            this.stage.pitTick?.(this.pitParticles, D.it);
             if (this.stage.pitFront) {
               if (D.it % 4 === 0) this.pitParticles.smoke(128 + rand(-24, 24), H - 150 + rand(-4, 4), 1, '#d8d0c0');
               if (D.it % 10 === 0) this.pitParticles.sparks(128 + rand(-20, 20), H - 152, 2, '#ffe070');
