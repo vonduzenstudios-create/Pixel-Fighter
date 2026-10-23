@@ -140,6 +140,7 @@ export function lumpsum(check = bigCheck()): CharDef {
       'HOLD THE NOTE... HOLD IT... AND YOU ARE DOWN.',
     ],
     quotesVs: { chuck: 'YOU NEVER BLINK? THEN WATCH ME CASH YOU OUT.' },
+  };
 }
 
 // TODO: round-intro animation and voice line ("Your payments... are about to END!") once the intro hook lands.

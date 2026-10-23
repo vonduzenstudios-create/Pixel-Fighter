@@ -221,6 +221,13 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
     // ---- hair that hangs behind the head
     if (!skip.hair) {
       if (L.hairStyle === 'long') S((m) => m.poly([[22, 34], [46, 26], [48, 104], [30, 108], [18, 96]], '#fff'), L.hair, { soft: 4 });
+      if (L.hairStyle === 'perm') {
+        S((m) => m.ellipse(50, 34, 36, 29, '#fff'), L.hair, { soft: 7, clip: rectMask(0, 0, PW, 72) });
+        // tight curls: little highlight and shadow commas across the mass
+        for (let y = 6; y < 70; y += 5)
+          for (let x = 14 + ((y / 5) % 2) * 3; x < 92; x += 6)
+            if (inEll(x, y, 50, 34, 34, 27)) p.set(x, y, lighten(L.hair, 0.25)), p.set(x + 1, y + 1, darken(L.hair, 0.4));
+      }
       if (L.hairStyle === 'bob') S((m) => m.ellipse(48, 46, 29, 32, '#fff'), L.hair, { soft: 5, clip: rectMask(0, 0, PW, 76) });
     }
     // ---- shoulders and clothes
@@ -252,6 +259,12 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
           p.line(46, 92, 52, 112, darken(L.coat, 0.55));
           p.line(62, 92, 56, 112, darken(L.coat, 0.55));
           if (L.coatTrim) p.line(38, 91, 40, 106, L.coatTrim), p.line(68, 91, 66, 106, L.coatTrim);
+        }
+        if (L.openCollar) {
+          S((m) => m.poly([[44, 89], [62, 89], [53, 110]], '#fff'), L.skin, { soft: 2, into: skin });
+          if (L.chestHair) for (let i = 0; i < 10; i++) p.set(49 + ((i * 3) % 9), 96 + ((i * 5) % 11), L.chestHair);
+          p.rect(28, 108, 12, 8, darken(L.shirt, 0.12)), p.rect(66, 108, 12, 8, darken(L.shirt, 0.12));
+          for (const y of [112, 118]) p.set(53, y, lighten(L.shirt, 0.5));
         }
         // shirt collar points
         p.poly([[44, 88], [52, 94], [47, 98]], lighten(L.shirt, 0.15));
