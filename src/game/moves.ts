@@ -6,32 +6,33 @@ import type { Move } from './types';
 // heavies are slower and punishable on block, and the launchers and sweeps are big commitments.
 // tests/anims.test.ts pins these numbers so animation polish can't quietly change them.
 
+// Light punch: a short, straight gut shot that dips the shoulder and drives the fist into the stomach.
 export const JAB: Move = {
   id: 'jab',
   anim: A([
-    [P(STANCE, { af: -52, ef: -118, t: 6, h: -2, ab: -40, eb: -110 }), 1, 'out'],
-    [P(STANCE, { af: -91, ef: -2, t: 16, h: -7, rx: 2, ab: -30, eb: -122 }), 1, 'lin'],
-    [P(STANCE, { af: -88, ef: -6, t: 14, h: -6, rx: 1, ab: -30, eb: -120 }), 3],
-    [P(STANCE, { af: -68, ef: -76, t: 11 }), 2, 'out'],
+    [P(STANCE, { af: -40, ef: -122, t: 12, h: -2, ab: -40, eb: -110 }), 1, 'out'],
+    [P(STANCE, { af: -50, ef: -6, t: 30, h: -10, rx: 2, ab: -30, eb: -122, lf: -36, kf: 46, lb: 10, kb: 18 }), 1, 'lin'],
+    [P(STANCE, { af: -48, ef: -10, t: 28, h: -9, rx: 1, ab: -30, eb: -120, lf: -36, kf: 46, lb: 10, kb: 18 }), 3],
+    [P(STANCE, { af: -58, ef: -78, t: 15 }), 2, 'out'],
     [STANCE, 3],
   ]),
   active: [2, 5],
-  hit: { limb: 'handF', r: 5, dmg: 30, level: 'high', effect: 'light', push: 2.5, stun: 13 },
+  hit: { limb: 'handF', r: 5, dmg: 30, level: 'mid', effect: 'light', push: 2.5, stun: 13 },
   whoosh: true,
 };
+// Heavy punch: dips, then drives the fist up into the face. Nearly as quick as the jab (both chain),
+// but it hits a little harder and a frame later.
 export const HIGH_PUNCH: Move = {
   id: 'hp',
   anim: A([
-    [P(STANCE, { af: -38, ef: -132, t: -2, h: 2, rx: -1, ab: -45, eb: -110 }), 2],
-    [P(STANCE, { af: -30, ef: -140, t: -6, h: 4, rx: -2, ab: -50, eb: -105, lf: -18, kf: 18 }), 1, 'lin'],
-    [P(STANCE, { af: -94, ef: -26, t: 16, h: -8, rx: 2, ab: -28, eb: -90 }), 1, 'lin'],
-    [P(STANCE, { af: -104, ef: -2, t: 22, h: -10, rx: 4, ab: -12, eb: -70, lf: -28, kf: 26, lb: 24, kb: 6 }), 4],
-    [P(STANCE, { af: -100, ef: -10, t: 20, h: -8, rx: 3, ab: -16, eb: -76, lf: -28, kf: 26, lb: 24, kb: 6 }), 3, 'out'],
-    [P(STANCE, { af: -70, ef: -96, t: 13, h: -6 }), 3],
-    [STANCE, 3],
+    [P(STANCE, { af: -48, ef: -132, t: 16, h: 2, rx: -1, ab: -45, eb: -110, lf: -30, kf: 40, lb: 14, kb: 14 }), 2, 'in'],
+    [P(STANCE, { af: -112, ef: -30, t: 4, h: -8, rx: 2, ab: -28, eb: -90 }), 1, 'lin'],
+    [P(STANCE, { af: -126, ef: -6, t: -2, h: -14, rx: 3, ab: -16, eb: -76, lf: -22, kf: 18, lb: 22, kb: 4 }), 3],
+    [P(STANCE, { af: -120, ef: -16, t: -3, h: -10, rx: 2, ab: -20, eb: -80 }), 2, 'out'],
+    [STANCE, 4],
   ]),
-  active: [4, 8],
-  hit: { limb: 'handF', r: 5, dmg: 50, level: 'high', effect: 'heavy', push: 3.5, stun: 17 },
+  active: [3, 6],
+  hit: { limb: 'handF', r: 6, dmg: 42, level: 'high', effect: 'light', push: 3, stun: 15 },
   whoosh: true,
 };
 export const LOW_KICK: Move = {
@@ -79,7 +80,8 @@ export const ROUNDHOUSE: Move = {
   whoosh: true,
 };
 const CR = (o = {}) => P(CROUCH, o);
-// Hand-planted leg sweep: drop low, then scythe the back leg along the floor from behind to the front.
+// Spinning leg sweep: drop low, turn the back to the opponent, then come round with the leg
+// scything along the floor.
 export const SWEEP: Move = {
   id: 'sweep',
   crouch: true,
@@ -93,6 +95,7 @@ export const SWEEP: Move = {
     [CROUCH, 6],
   ]),
   active: [7, 15],
+  turn: [2, 6],
   hit: { limb: 'toeF', r: 7, dmg: 65, level: 'low', effect: 'sweep', push: 2, stun: 20 },
   whoosh: true,
 };

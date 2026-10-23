@@ -7,13 +7,14 @@ import * as MV from '../src/game/moves';
 // the button goes down as frame 1:
 //   startup  = the first frame the attack can hit (active[0] + 2)
 //   recovery = frames after the last active one before the fighter can act again
-// The lights are 4-5 frames to hit and about 6 to recover, so they chain and are safe up close.
+// The lights and the heavy punch are 4-5 frames to hit and 6-7 to recover, so they chain and are
+// safe up close.
 const DATA: Record<string, { len: number; startup: number; active: number; recovery: number }> = {
   jab: { len: 10, startup: 4, active: 3, recovery: 6 },
   cp: { len: 10, startup: 4, active: 3, recovery: 6 },
   lk: { len: 12, startup: 5, active: 4, recovery: 6 },
   ck: { len: 12, startup: 5, active: 4, recovery: 6 },
-  hp: { len: 17, startup: 6, active: 4, recovery: 10 },
+  hp: { len: 12, startup: 5, active: 3, recovery: 7 },
   hk: { len: 20, startup: 7, active: 6, recovery: 10 },
   chk: { len: 19, startup: 6, active: 6, recovery: 10 },
   roundhouse: { len: 26, startup: 7, active: 7, recovery: 15 },

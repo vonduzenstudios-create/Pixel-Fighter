@@ -70,6 +70,8 @@ export interface Move {
   sounds?: MoveSounds;
   /** Frames during which the fighter is not drawn and cannot be hit. */
   invisible?: [number, number];
+  /** Frames [from, to) drawn turned away from the opponent (a spin), without changing facing or hitboxes. */
+  turn?: [number, number];
   /** Toggle facing every N frames (spinning attacks). */
   spin?: number;
   /** Counter stance: a hit landing during frames [from, to) is absorbed and `move` fires instead. */

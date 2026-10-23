@@ -82,8 +82,9 @@ Tesla and Blackbeard each have one. Motion commands are forgiving: a diagonal co
 direction beside it, and the steps can be spread over about half a second.
 
 Combos work like the 16-bit classics. A ground normal that connects (hit or block) can be
-cancelled into a special by finishing the command over the hit, and light attacks (LP, LK and
-their crouching versions) chain straight into each other. Button presses are buffered for 6
+cancelled into a special by finishing the command over the hit, and the quick attacks (both
+standing punches, LK, and the crouching LP and LK) chain straight into each other. The uppercut
+(down + HP) comes up under a standing guard, so only a crouching block stops it. Button presses are buffered for 6
 frames, so a press made a moment before your fighter recovers still comes out on the first frame
 they can act. Frame data for the shared normals lives in `tests/anims.test.ts`.
 
