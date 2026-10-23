@@ -6,6 +6,7 @@ import type { Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
 import { sfx } from '../audio/sfx';
 import { rand } from '../core/rng';
+import { lerp, offscreenX, type Intro } from '../game/intro';
 
 // Michael Jackson: a pixel caricature of the pop showman. Every special is a dance move.
 // Voice barks are original synth whoops; no lyrics, melodies or logos.
@@ -106,7 +107,38 @@ export const JACKSON_SPECIALS: Special[] = [
 
 export const JACKSON_FINISHER = { name: 'Showstopper', cmd: [4, 6, 4], btn: 'hk' as const, text: 'B, F, B + HK (close)', range: [0, 60] as [number, number] };
 
-// TODO: intro animation + voice line and post-match portrait once the shared hooks land on main.
+// TODO: post-match portrait once that shared hook lands on main.
+
+/** Entrance state per fighter: the facing he started with and where he glided in from. */
+const entry = new WeakMap<Fighter, { face: 1 | -1; x0: number }>();
+
+/** Round 1 entrance: moonwalks in backwards from the edge, spins round and tips the hat. */
+export const JACKSON_INTRO: Intro = {
+  line: 'Hee hee! Try to keep up.',
+  speech: { pitch: 1.6, rate: 1.1 },
+  speakAt: 80,
+  dur: 140,
+  update(self, f, t, home) {
+    if (t === 0 || !entry.has(self)) entry.set(self, { face: self.facing, x0: offscreenX(self, f) });
+    const E = entry.get(self)!;
+    if (t <= 56) {
+      // face away from the opponent while gliding toward them
+      self.facing = (-E.face) as 1 | -1;
+      self.x = lerp(E.x0, home, t / 56);
+      self.poseOverride = Math.floor(t / 6) % 2 ? MW_B : MW_A;
+      if (t % 4 === 0) f.particles.smoke(self.x, 2, 1, '#6a6070');
+    } else if (t < 72) {
+      self.facing = ((t >> 2) % 2 ? E.face : -E.face) as 1 | -1;
+      self.poseOverride = P(STANCE, { t: -2, h: -6, af: -95, ef: -5, ab: -80, eb: -10, lf: 0, kf: 0, ff: 40, lb: -60, kb: 110 });
+      f.particles.sparks(self.x + rand(-8, 8), rand(20, 70), 1, SPARKLE);
+      if (t === 58) f.sfx('sparkle');
+    } else {
+      self.facing = E.face;
+      self.poseOverride = t < 110 ? HAT_TIP : null;
+      if (t === 72) f.sfx('hee');
+    }
+  },
+};
 
 /**
  * Finisher: a sparkling pirouette, a heel kick that sends the head flying,

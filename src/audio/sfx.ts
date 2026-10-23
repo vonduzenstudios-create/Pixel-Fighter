@@ -167,6 +167,14 @@ export const sfx = {
     const c = ac();
     if (c) tone({ type: 'square', freq: 784, dur: 0.12, vol: 0.1, at: c.currentTime + 0.07 });
   },
+  bell() {
+    // boxing ring bell: two bright metallic dings
+    const c = ac();
+    if (!c) return;
+    for (const at of [0, 0.22])
+      for (const [f, v] of [[1320, 0.22], [1980 * 1.01, 0.1], [3170, 0.06]])
+        tone({ type: 'sine', freq: f, to: f * 0.995, dur: 0.9, vol: v, attack: 0.002, at: c.currentTime + at });
+  },
   /** A squeaky falsetto "TOAST-EE!!" for the uppercut easter egg. */
   toasty() {
     const c = ac();
@@ -227,25 +235,82 @@ function speakHigh(text: string) {
   }
 }
 
-// Announcer: uses the browser's built-in speech synthesis (deep and slow) with a synth boom under it.
-let voicePick: SpeechSynthesisVoice | null = null;
-export function announce(text: string) {
-  sfx.boom();
+// Speech uses the browser's built-in synthesiser; every caller must cope with it being missing.
+export interface SpeechOpts {
+  /** 0..2, 1 is the voice's normal pitch. */
+  pitch: number;
+  /** 0.1..10, 1 is normal speed. */
+  rate: number;
+  /** Prefer a higher, female system voice. */
+  female?: boolean;
+}
+
+const MALE = /male|daniel|fred|alex|david|george|mark|james/i;
+const FEMALE = /female|samantha|victoria|karen|zira|susan|moira|tessa|fiona|hazel|serena/i;
+const voiceCache = new Map<boolean, SpeechSynthesisVoice>();
+function pickVoice(ss: SpeechSynthesis, female: boolean) {
+  const hit = voiceCache.get(female);
+  if (hit) return hit;
+  const vs = ss.getVoices().filter((v) => /en/i.test(v.lang));
+  const want = female ? FEMALE : MALE;
+  const v = vs.find((v) => want.test(v.name) && (female || !/female/i.test(v.name))) ?? vs[0] ?? null;
+  // voices load asynchronously in some browsers, so only remember a real pick
+  if (v) voiceCache.set(female, v);
+  return v;
+}
+
+/** Speak a line. Returns false when speech synthesis is unavailable. */
+export function say(text: string, o: SpeechOpts): boolean {
   const ss = window.speechSynthesis;
-  if (!ss) return;
+  if (!ss) return false;
   try {
-    if (!voicePick) {
-      const vs = ss.getVoices();
-      voicePick = vs.find((v) => /en/i.test(v.lang) && /male|daniel|fred|alex|david|george/i.test(v.name)) ?? vs.find((v) => /en/i.test(v.lang)) ?? null;
-    }
     ss.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    if (voicePick) u.voice = voicePick;
-    u.pitch = 0.1;
-    u.rate = 0.8;
+    const v = pickVoice(ss, !!o.female);
+    if (v) u.voice = v;
+    u.pitch = o.pitch;
+    u.rate = o.rate;
     u.volume = 1;
     ss.speak(u);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function speaking() {
+  try {
+    return !!window.speechSynthesis?.speaking;
+  } catch {
+    return false;
+  }
+}
+
+export function hush() {
+  try {
+    window.speechSynthesis?.cancel();
   } catch {
     /* speech is optional */
   }
+}
+
+/** Chiptune "voice": one formant blip per syllable around the character's grunt pitch. */
+export function bark(text: string, pitch: number, vol = 0.2) {
+  const c = ac();
+  if (!c) return;
+  const vowels = [[700, 1150, 2500], [400, 2000, 2600], [300, 900, 2300], [500, 1500, 2500]];
+  const syl = text.toLowerCase().match(/[aeiouy]+/g) ?? ['a'];
+  let t = 0;
+  syl.forEach((v, i) => {
+    const f = pitch * (1 + 0.25 * Math.sin(i * 1.7)) * (i === syl.length - 1 ? 0.85 : 1);
+    const d = 0.07 + v.length * 0.03;
+    voice(f, f * 0.9, d, vol, vowels['aeiouy'.indexOf(v[0]) % 4], t);
+    t += d + 0.025;
+  });
+}
+
+// Announcer: deep and slow speech with a synth boom under it.
+export function announce(text: string) {
+  sfx.boom();
+  say(text, { pitch: 0.1, rate: 0.8 });
 }
