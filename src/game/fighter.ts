@@ -137,12 +137,15 @@ export class Fighter {
   shake = 0;
   /** Horizontal draw scale (finishers that stretch the victim). */
   stretch = 1;
+  /** Temporary size multiplier (a growth potion). It eases back to 1 once `sizeBy` is no longer the current move. */
+  size = 1;
+  sizeBy: Move | null = null;
 
   constructor(public ch: CharDef, public parts: PartSet, public bones: PartSet, public ctrl: Controller, public side: 0 | 1) {
     this.skel = this.rawSkel = fk(AN.STANCE);
   }
   get scale() {
-    return this.ch.scale ?? 1;
+    return (this.ch.scale ?? 1) * this.size;
   }
 
   resetRound(x: number) {
@@ -159,6 +162,8 @@ export class Fighter {
     this.tint = null;
     this.alpha = 1;
     this.stretch = 1;
+    this.size = 1;
+    this.sizeBy = null;
     this.poseOverride = null;
     this.projOut = false;
     this.locked = false;
@@ -287,6 +292,8 @@ export class Fighter {
     this.t++;
     this.animT++;
     if (this.shake > 0) this.shake--;
+    if (this.size !== 1 && (this.move !== this.sizeBy || this.state !== 'attack') && this.state !== 'fatal')
+      this.size = Math.abs(this.size - 1) < 0.04 ? 1 : this.size + (1 - this.size) * 0.2;
     const s = this.state;
 
     if (NEUTRAL.has(s) && !this.airborne) {
