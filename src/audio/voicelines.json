@@ -47,7 +47,7 @@
     { "file": "ann-wins-hawking", "who": "announcer", "text": "Stephen Hawking wins" },
     { "file": "ann-wins-jackson", "who": "announcer", "text": "Michael Jackson wins" },
     { "file": "ann-wins-ali", "who": "announcer", "text": "Muhammad Ali wins" },
-    { "file": "ann-wins-lumpsum", "who": "announcer", "text": "Monty Lumpsum wins" },
+    { "file": "ann-wins-lumpsum", "who": "announcer", "text": "J.G. Spentworth wins", "spoken": "J. G. Spentworth wins" },
     { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" }
   ]
 }

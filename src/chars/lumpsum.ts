@@ -8,7 +8,7 @@ import { Projectile, ProjKind } from '../game/projectile';
 import { sfx } from '../audio/sfx';
 import { rand } from '../core/rng';
 
-// Monty Lumpsum: an original parody of the late-night "trade your payments for cash" pitchman,
+// J.G. Spentworth: an original parody of the late-night "trade your payments for cash" pitchman,
 // reimagined as a horned-helmet opera tenor who fights with money and high notes.
 
 let IMG: { bill: HTMLCanvasElement; note: HTMLCanvasElement; noteR: HTMLCanvasElement } | null = null;
@@ -128,7 +128,7 @@ function grandFinale(f: Fight, w: Fighter, l: Fighter, t: number): boolean {
 
 export function lumpsum(check = bigCheck()): CharDef {
   return {
-    id: 'lumpsum', name: 'Monty Lumpsum', short: 'LUMPSUM', title: 'The Payout Tenor', look: LUMPSUM_LOOK,
+    id: 'lumpsum', name: 'J.G. Spentworth', short: 'SPENTWORTH', title: 'The Payout Tenor', look: LUMPSUM_LOOK,
     alt: { ...LUMPSUM_LOOK, coat: '#f0ece0', coatTrim: '#1a1a22', pants: '#e0dcd0', shirt: '#1a1a22', bowtie: '#a01828', sash: '#a01828', hatColor: '#d8b040', hatTrim: '#f4f0e8', glove: '#1a1a22' },
     specials, voice: 130, props: { check },
     finisher: { name: 'Grand Finale', cmd: [2, 4, 6], btn: 'hp', text: 'D, B, F + HP (any range)', range: [0, 400] },
