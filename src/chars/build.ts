@@ -32,6 +32,12 @@ export interface Look {
   coil?: boolean;
   sash?: string;
   bandolier?: string;
+  /** Shirtless: muscle lines on the chest and arms (shirt should be the skin colour). */
+  bare?: boolean;
+  /** Boxing trunks over bare legs (pants should be the skin colour). */
+  trunks?: { color: string; stripe: string };
+  /** Padded boxing gloves in this colour. */
+  boxingGloves?: string;
 }
 
 const OUT = '#100810';
@@ -77,6 +83,20 @@ function torso(L: Look): Painter {
   }
   if (L.sash) p.poly([[7, 21], [20, 21], [20, 23], [7, 23]], L.sash);
   if (L.bandolier) p.line(9, 6, 20, 21, L.bandolier), p.line(10, 6, 20, 20, L.bandolier);
+  if (L.trunks) {
+    p.ellipse(13, 30, 7.5, 4.5, L.trunks.color);
+    p.poly([[7, 31], [19, 31], [19.5, 22], [6.5, 22]], L.trunks.color);
+    p.rect(7, 22, 13, 2, L.trunks.stripe);
+    p.line(18, 24, 18, 33, L.trunks.stripe);
+  }
+  if (L.bare) {
+    const d = darken(L.skin, 0.22);
+    p.line(14, 12, 20, 12, d); // pec line
+    p.line(15, 15, 18, 15, d);
+    p.line(15, 18, 18, 18, d);
+    p.line(16, 13, 16, 21, d); // abs
+    p.set(19, 9, lighten(L.skin, 0.2));
+  }
   p.shade(0.2);
   if (L.bowtie) {
     p.rect(18, 5, 4, 2, L.bowtie);
@@ -180,9 +200,18 @@ function foreArm(L: Look, front: boolean): Painter {
     p.rect(2, 4, 8, 7, '#b5652a');
     for (let y = 4; y < 11; y += 2) p.line(2, y, 9, y, '#e8a050');
   }
-  p.ellipse(6, 16, 3.6, 3.6, L.glove ?? L.skin);
-  p.shade(0.22);
-  p.line(4, 18, 8, 18, darken(L.glove ?? L.skin, 0.3));
+  if (L.boxingGloves) {
+    const g = L.boxingGloves;
+    p.rect(2, 10, 8, 3, '#e8e4dc'); // taped cuff
+    p.ellipse(6, 16, 5.2, 5.4, g);
+    p.ellipse(8.5, 14, 2, 2.4, lighten(g, 0.25));
+    p.shade(0.22);
+    p.line(2, 19, 7, 20, darken(g, 0.35));
+  } else {
+    p.ellipse(6, 16, 3.6, 3.6, L.glove ?? L.skin);
+    p.shade(0.22);
+    p.line(4, 18, 8, 18, darken(L.glove ?? L.skin, 0.3));
+  }
   p.outline(OUT);
   return p;
 }
@@ -191,6 +220,10 @@ function thigh(L: Look): Painter {
   const p = new Painter(14, 25);
   const c = L.armor ? L.armor.metal : L.pants;
   p.capsule(7, 3, 5.6, 7, 19, 4.4, c);
+  if (L.trunks) {
+    p.capsule(7, 3, 6, 7, 10, 5.4, L.trunks.color);
+    p.line(10, 1, 10, 13, L.trunks.stripe);
+  }
   if (L.armor) {
     p.ellipse(7, 20, 4.5, 3.5, lighten(L.armor.metal, 0.15));
     p.line(2, 9, 12, 9, L.armor.trim);

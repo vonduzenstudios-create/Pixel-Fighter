@@ -565,6 +565,9 @@ export class Fight {
         }
         break;
       }
+      default:
+        w.ch.runFinisher?.(this, tt, D, done);
+        break;
     }
   }
 

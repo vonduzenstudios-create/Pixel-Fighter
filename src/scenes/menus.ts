@@ -87,8 +87,8 @@ export class TitleScene implements Scene {
     st.draw(ctx, cam, this.t);
     const chars = roster();
     chars.forEach((c, i) => {
-      const x = 52 + i * 50;
-      drawFigure(ctx, partsFor(c), sample(IDLE, this.t + i * 9), x, FLOOR, i < 2 ? 1 : -1, 1, ['#0a0208', 0.82]);
+      const x = Math.round(52 + (i * 152) / Math.max(1, chars.length - 1));
+      drawFigure(ctx, partsFor(c), sample(IDLE, this.t + i * 9), x, FLOOR, i < chars.length / 2 ? 1 : -1, 1, ['#0a0208', 0.82]);
     });
     st.drawFront(ctx, cam, this.t);
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
@@ -169,9 +169,14 @@ export class SelectScene implements Scene {
     ctx.drawImage(selectBg(), 0, 0);
     drawText(ctx, 'CHOOSE YOUR FIGHTER', W / 2, 10, '#fff', { scale: 2, align: 'center', grad: ['#fff4b0', '#c03010'], outline: '#000' });
     const ch = roster();
-    const cw = 46, gap = 8, x0 = (W - (cw * 4 + gap * 3)) / 2, y0 = 34;
+    // one row of portraits, shrinking (and wrapping past 6) as the roster grows
+    const cols = Math.min(ch.length, 6), rows = Math.ceil(ch.length / cols);
+    const gap = cols > 4 ? 5 : 8;
+    const cw = Math.min(46, Math.floor((W - 16 - gap * (cols - 1)) / cols), rows > 1 ? Math.floor(62 / rows) : 99);
+    const x0 = Math.round((W - (cw * cols + gap * (cols - 1))) / 2);
+    const hs = (cw / 46) * 2;
     ch.forEach((c, i) => {
-      const x = x0 + i * (cw + gap);
+      const x = x0 + (i % cols) * (cw + gap), y0 = 34 + Math.floor(i / cols) * (cw + gap + 4);
       ctx.fillStyle = '#000';
       ctx.fillRect(x - 2, y0 - 2, cw + 4, cw + 4);
       ctx.fillStyle = '#2a1018';
@@ -183,7 +188,7 @@ export class SelectScene implements Scene {
       ctx.beginPath();
       ctx.rect(x, y0, cw, cw);
       ctx.clip();
-      ctx.drawImage(head.img, 0, 0, head.img.width, head.img.height, x + cw / 2 - 22, y0 + cw - 82, head.img.width * 2, head.img.height * 2);
+      ctx.drawImage(head.img, 0, 0, head.img.width, head.img.height, x + cw / 2 - 11 * hs, y0 + cw - 41 * hs, head.img.width * hs, head.img.height * hs);
       ctx.restore();
       for (let pl = 0; pl < 2; pl++) {
         const show = pl === 0 || this.app.settings.players === 2 || this.roulette > 0 || this.picked[1] !== null;

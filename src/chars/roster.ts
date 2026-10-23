@@ -1,4 +1,5 @@
 import { buildParts, Look } from './build';
+import { aliDef } from './ali';
 import { axe, cutlass, sword } from '../gfx/props';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
@@ -237,6 +238,7 @@ export function roster(): CharDef[] {
       specials: beardSpecials, voice: 95, props: { cutlass: props.cutlass },
       finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 70] },
     },
+    aliDef(),
   ];
   return cache;
 }
