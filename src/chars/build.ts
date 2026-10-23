@@ -25,7 +25,7 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout';
   beard?: 'chinstrap' | 'braided' | 'full';
   beardRibbon?: string;
   mustache?: boolean;
@@ -54,6 +54,10 @@ export interface Look {
   trunks?: { color: string; stripe: string };
   /** Padded boxing gloves in this colour. */
   boxingGloves?: string;
+  /** Small hoop earrings (metal colour). */
+  earrings?: string;
+  /** Lipstick colour for the mouth. */
+  lips?: string;
 }
 
 const OUT = '#100810';
@@ -152,6 +156,11 @@ function head(L: Look): Painter {
     for (const [x, y] of [[3, 33], [5, 36], [8, 38], [3, 37]]) p.ellipse(x, y, 2.2, 2.4, L.hair);
   }
   if (L.hairStyle === 'perm') p.ellipse(8.5, 25, 9.5, 9.5, L.hair);
+  if (L.hairStyle === 'blowout') {
+    // big bouncy volume behind the head, flipped out above the shoulders
+    p.ellipse(8, 25, 9, 9, L.hair);
+    p.poly([[0, 28], [7, 27], [8.5, 37], [5, 39.5], [0.5, 38.5], [0, 33]], L.hair);
+  }
   p.ellipse(10.5, 29, 6, 7, L.skin);
   p.ellipse(13, 33, 4, 3.5, L.skin);
   p.poly([[15, 28], [17.5, 30.5], [15, 31]], L.skin); // nose
@@ -182,6 +191,10 @@ function head(L: Look): Painter {
     p.rect(3, 23, 5, 9, L.hair);
     p.poly([[9, 21], [17, 22.5], [16.5, 26], [12, 25], [10, 24]], L.hair);
     p.line(7, 21, 14, 22, lighten(L.hair, 0.3));
+  } else if (L.hairStyle === 'blowout') {
+    p.ellipse(10.5, 21.5, 8.5, 5.5, L.hair);
+    p.rect(3, 22, 6, 10, L.hair);
+    p.poly([[8, 19], [17.5, 22], [18, 26.5], [14, 25], [10, 24]], L.hair); // side-swept fringe
   } else if (L.hairStyle === 'perm') {
     p.ellipse(10, 20.5, 9, 6, L.hair);
     p.rect(3, 22, 5, 9, L.hair);
@@ -208,7 +221,14 @@ function head(L: Look): Painter {
   p.set(13, 28, '#e8e0d8');
   p.line(12, 26, 15, 26, darken(L.hair, 0.1));
   p.ellipse(8, 30, 1.2, 1.8, skinD);
-  p.line(14, 34, 15, 34, '#5a2a2a');
+  p.line(L.lips ? 13 : 14, 34, 15, 34, L.lips ?? '#5a2a2a');
+  if (L.earrings) for (const [x, y] of [[8, 33], [7, 34], [9, 34], [8, 35]]) p.set(x, y, L.earrings);
+  if (L.hairStyle === 'blowout') {
+    const hl = lighten(L.hair, 0.35);
+    p.line(5, 19, 11, 17, hl);
+    p.line(12, 19, 16, 22, hl);
+    p.line(2, 30, 3, 35, lighten(L.hair, 0.22));
+  }
   if (L.mustache) p.poly([[13, 32], [17, 32], [17, 33.5], [12.5, 34]], L.hair);
   if (L.beard === 'chinstrap') {
     p.poly([[6.5, 30], [8.5, 35], [11, 38], [15.5, 37.5], [16, 35.5], [12.5, 35.5], [9.5, 31], [8.5, 28.5]], L.hair);

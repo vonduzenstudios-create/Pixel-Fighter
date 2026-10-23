@@ -14,6 +14,7 @@ import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
 import { jacksonFatality } from '../chars/jackson';
+import { confetti } from '../chars/oprah';
 import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
@@ -493,6 +494,7 @@ export class Fight {
         const res = this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
         const ps = PROJ_SOUNDS[p.kind];
         playCue(res === 'block' ? ps?.blocked : ps?.impact);
+        if (p.kind === 'gift') confetti(this.particles, p.x, p.y, 16);
         if (p.kind === 'cannon' || p.kind === 'keg') {
           this.particles.smoke(p.x, p.y, 10);
           this.particles.fire(p.x, p.y, 10, 6);
