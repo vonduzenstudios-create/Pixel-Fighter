@@ -14,6 +14,7 @@ import { sfx } from '../audio/sfx';
 import { playSong } from '../audio/music';
 import { audioReady } from '../audio/audio';
 import { drawFigure, Scene } from './common';
+import { PostMatchScene } from './postmatch';
 
 export interface Settings {
   players: 1 | 2;
@@ -311,7 +312,12 @@ export class FightScene implements Scene {
     const bones = bonesParts();
     const f1 = new Fighter(a, partsFor(a), bones, new HumanCtrl(0, !two), 0);
     const f2 = new Fighter(b, partsFor(b, a === b), bones, two ? new HumanCtrl(1, false) : new AICtrl(app.settings.diff), 1);
-    this.fight = new Fight([f1, f2], stage, [true, two], () => app.go(new SelectScene(app)));
+    this.fight = new Fight([f1, f2], stage, [true, two], (w) => {
+      const l = w === f1 ? f2 : f1;
+      const alt = (f: Fighter) => f === f2 && a === b;
+      const result = { winner: w.ch, loser: l.ch, winnerAlt: alt(w), loserAlt: alt(l), fatality: this.fight.hadFatality };
+      app.go(new PostMatchScene(result, () => app.go(new SelectScene(app))));
+    });
   }
   update() {
     this.fight.update();

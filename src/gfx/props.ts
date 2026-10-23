@@ -62,6 +62,16 @@ export function stovepipeHat(): HTMLCanvasElement {
   return p.canvas();
 }
 
+export function fedora(): HTMLCanvasElement {
+  const p = new Painter(22, 12);
+  p.poly([[4, 9], [5, 3], [8, 1], [13, 1.5], [16, 3], [17, 9]], '#141218');
+  p.poly([[0, 9], [21, 9], [20, 11], [1, 11]], '#141218');
+  p.rect(5, 6, 12, 2, '#e8e4dc');
+  p.line(9, 2, 12, 2, '#000000');
+  p.outline(OUT);
+  return p.canvas();
+}
+
 export function keg(): HTMLCanvasElement {
   const p = new Painter(18, 18);
   p.ellipse(9, 9, 8, 8, '#6a4222');

@@ -12,6 +12,7 @@ import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
+import { jacksonFatality } from '../chars/jackson';
 import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
@@ -645,6 +646,12 @@ export class Fight {
         if (tt >= 300) done();
         break;
       }
+      case 'jackson': {
+        const end = jacksonFatality(this, tt, w, l, D);
+        tick();
+        if (end) done();
+        break;
+      }
       case 'chuck': {
         // a blur of boots, then three heel drops that hammer them down through the bridge deck like a nail
         const kick = (k: number) =>
@@ -937,6 +944,9 @@ export class Fight {
   drawArena(ctx: CanvasRenderingContext2D) {
     const cam = Math.round(this.camX);
     this.stage.draw(ctx, cam, this.t);
+    // a rocking stage moves its floor, and everything standing on it moves too
+    ctx.save();
+    ctx.translate(0, this.stage.bob?.(this.t) ?? 0);
     if (this.phase === 'entrance') {
       const f = this.f[this.entrance.who];
       this.introOf(f).draw?.(ctx, f, this, this.entrance.t, cam);
@@ -987,6 +997,7 @@ export class Fight {
       ctx.fillRect(0, 0, W, H);
     }
     this.particles.draw(ctx, cam);
+    ctx.restore();
     this.stage.drawFront(ctx, cam, this.t);
   }
 
