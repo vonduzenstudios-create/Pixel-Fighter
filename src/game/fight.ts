@@ -380,9 +380,11 @@ export class Fight {
           this.particles.sparks((p.x + q.x) / 2, p.y, 16, '#ffffff');
           sfx.block();
         }
-      if (p.dead || d.invulnerable) continue;
+      if (p.dead || p.spent || d.invulnerable) continue;
       if (circleRect(p.x, p.y, p.r, d.hurtbox())) {
-        p.dead = true;
+        // a sprouted tree stays standing after it hits; everything else breaks
+        if (p.kind === 'tree') p.spent = true;
+        else p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
         if (p.kind === 'cash') sfx.kaching();

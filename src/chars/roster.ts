@@ -1,5 +1,6 @@
 import { buildParts, Look } from './build';
 import { aliDef } from './ali';
+import { bobRoss } from './bobross';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
@@ -398,6 +399,7 @@ export function roster(): CharDef[] {
     },
     aliDef(),
     lumpsum(),
+    bobRoss(),
   ];
   return cache;
 }

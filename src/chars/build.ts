@@ -1,5 +1,5 @@
 import { Painter } from '../gfx/painter';
-import { Color, darken, lighten, mix } from '../gfx/palette';
+import { Color, darken, lighten, mix, rgb } from '../gfx/palette';
 import { Part, PartSet } from '../gfx/rig';
 
 // Describes a fighter's outfit. The builder paints every jointed body part from this.
@@ -21,7 +21,7 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn' | 'horned';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm';
   beard?: 'chinstrap' | 'braided' | 'full';
   beardRibbon?: string;
   mustache?: boolean;
@@ -31,6 +31,8 @@ export interface Look {
   /** Copper coil gauntlet on the front forearm. */
   coil?: boolean;
   sash?: string;
+  /** Unbuttoned collar showing a V of skin, with breast pockets (work shirt). */
+  openCollar?: boolean;
   bandolier?: string;
   /** Chest hair showing through an open collar. */
   chestHair?: string;
@@ -99,6 +101,14 @@ function torso(L: Look): Painter {
   if (L.chestHair) {
     for (const [x, y] of [[17, 8], [18, 10], [17, 12], [19, 9], [18, 14], [19, 12], [17, 16]]) p.set(x, y, L.chestHair);
   }
+  if (L.openCollar && !L.coat && !L.armor) {
+    p.poly([[15.5, 5], [21, 5.5], [18, 11.5]], L.skin);
+    p.line(15, 5, 18, 12, darken(L.shirt, 0.35));
+    p.line(21, 5.5, 18.5, 12, darken(L.shirt, 0.35));
+    p.rect(10, 13, 4, 3, darken(L.shirt, 0.12));
+    p.rect(17, 13, 3, 3, darken(L.shirt, 0.12));
+    for (const y of [14, 18, 22]) p.set(18, y, lighten(L.shirt, 0.5));
+  }
   if (L.sash) p.poly([[7, 21], [20, 21], [20, 23], [7, 23]], L.sash);
   if (L.bandolier) p.line(9, 6, 20, 21, L.bandolier), p.line(10, 6, 20, 20, L.bandolier);
   if (L.trunks) {
@@ -128,6 +138,7 @@ function head(L: Look): Painter {
   p.rect(8, 35, 5, 7, skinD);
   if (L.hairStyle === 'long') p.poly([[3, 26], [8, 24], [8, 40], [4, 41]], L.hair);
   if (L.hairStyle === 'bob') p.ellipse(9, 29, 7.5, 7.5, L.hair);
+  if (L.hairStyle === 'perm') p.ellipse(8.5, 25, 9.5, 9.5, L.hair);
   p.ellipse(10.5, 29, 6, 7, L.skin);
   p.ellipse(13, 33, 4, 3.5, L.skin);
   p.poly([[15, 28], [17.5, 30.5], [15, 31]], L.skin); // nose
@@ -155,11 +166,27 @@ function head(L: Look): Painter {
     p.rect(3, 23, 5, 9, L.hair);
     p.poly([[9, 21], [17, 22.5], [16.5, 26], [12, 25], [10, 24]], L.hair);
     p.line(7, 21, 14, 22, lighten(L.hair, 0.3));
+  } else if (L.hairStyle === 'perm') {
+    p.ellipse(10, 20.5, 9, 6, L.hair);
+    p.rect(3, 22, 5, 9, L.hair);
   } else {
     p.ellipse(10, 24.5, 6.5, 3.5, L.hair);
     p.rect(4, 24, 4, 6, L.hair);
   }
   p.shade(0.18);
+  if (L.hairStyle === 'perm') {
+    // tight curls
+    const hi = lighten(L.hair, 0.3), lo = darken(L.hair, 0.3);
+    for (let y = 15; y < 33; y += 2)
+      for (let x = (y >> 1) % 2; x < 20; x += 3) {
+        const c = p.get(x, y);
+        const h = rgb(L.hair);
+        if (p.alpha(x, y) && Math.abs(c[0] - h[0]) + Math.abs(c[1] - h[1]) + Math.abs(c[2] - h[2]) < 90) {
+          p.set(x, y, hi);
+          if (p.alpha(x + 1, y + 1)) p.set(x + 1, y + 1, lo);
+        }
+      }
+  }
   // face details (after shading so they stay crisp)
   p.set(14, 28, L.eye ?? '#1a1010');
   p.set(13, 28, '#e8e0d8');
@@ -169,6 +196,12 @@ function head(L: Look): Painter {
   if (L.mustache) p.poly([[13, 32], [17, 32], [17, 33.5], [12.5, 34]], L.hair);
   if (L.beard === 'chinstrap') {
     p.poly([[6.5, 30], [8.5, 35], [11, 38], [15.5, 37.5], [16, 35.5], [12.5, 35.5], [9.5, 31], [8.5, 28.5]], L.hair);
+  } else if (L.beard === 'full') {
+    p.poly([[6.5, 29], [8, 34.5], [10.5, 38.5], [15, 39], [17.5, 36.5], [17.8, 33], [13.5, 33.5], [10, 31.5], [8.5, 28.5]], L.hair);
+    p.poly([[12.5, 32], [17.5, 31.5], [17.8, 33.2], [12.5, 33.8]], L.hair);
+    p.line(14, 35, 16, 35, '#7a3434');
+    const br = lighten(L.hair, 0.25);
+    for (const [x, y] of [[9, 33], [11, 36], [14, 37], [16, 36], [12, 34]]) p.set(x, y, br);
   } else if (L.beard === 'braided') {
     p.poly([[6.5, 28], [9, 31], [13, 33], [17.5, 31.5], [17.5, 35], [16, 43], [9, 43], [6, 35]], L.hair);
     p.poly([[12, 31.5], [17.5, 31], [17.5, 32.5], [12, 33]], L.hair);
