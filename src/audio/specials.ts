@@ -338,6 +338,52 @@ export const FX: Record<string, () => void> = {
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
     noise({ dur: 0.2, vol: 0.15, type: 'highpass', freq: 4000 });
   },
+  // ---------------------------------------------------------------- basketball
+  /** Rubber ball slapping a hardwood floor: a hollow low thump with a ping. */
+  dribble() {
+    tone({ type: 'sine', freq: 150 * vary(), to: 70, dur: 0.09, vol: 0.32 });
+    tone({ type: 'triangle', freq: 520 * vary(), to: 300, dur: 0.05, vol: 0.07 });
+    noise({ dur: 0.03, vol: 0.12, type: 'bandpass', freq: 900, q: 2 });
+  },
+  /** Sneakers squeaking on a polished court. */
+  squeak() {
+    const t = now();
+    tone({ type: 'sawtooth', freq: 2400 * vary(0.1), to: 3100, dur: 0.07, vol: 0.035, filter: { type: 'bandpass', freq: 2800, q: 6 } });
+    tone({ type: 'sine', freq: 2900 * vary(0.1), to: 2300, dur: 0.06, vol: 0.04, at: t + 0.06 });
+  },
+  /** A big body thumping into another (post-up bump). */
+  bodyBump() {
+    tone({ type: 'sine', freq: 85 * vary(), to: 40, dur: 0.14, vol: 0.38 });
+    noise({ dur: 0.08, vol: 0.18, type: 'lowpass', freq: 700, to: 200 });
+  },
+  /** Net swish: a soft filtered rush that falls away. */
+  swish() {
+    noise({ dur: 0.35, vol: 0.22, type: 'bandpass', freq: 4200, to: 1800, q: 1.2, attack: 0.02 });
+    noise({ dur: 0.2, vol: 0.06, type: 'highpass', freq: 6000, at: now() + 0.05 });
+  },
+  /** The rim and backboard shaking after a dunk: metallic clang with a long wobble. */
+  rimRattle() {
+    const t = now();
+    tone({ type: 'square', freq: 310 * vary(), to: 290, dur: 0.5, vol: 0.06, filter: { type: 'bandpass', freq: 1400, q: 8 } });
+    tone({ type: 'triangle', freq: 1240 * vary(), dur: 0.6, vol: 0.05 });
+    for (let i = 0; i < 4; i++) tone({ type: 'sine', freq: 620 + i * 37, dur: 0.12, vol: 0.05 - i * 0.01, at: t + 0.12 + i * 0.1 });
+    noise({ dur: 0.1, vol: 0.2, type: 'bandpass', freq: 2200, q: 3 });
+  },
+  /** Arena horn. */
+  buzzer() {
+    tone({ type: 'sawtooth', freq: 233, dur: 0.9, vol: 0.1, filter: { type: 'lowpass', freq: 1500 } });
+    tone({ type: 'square', freq: 235, dur: 0.9, vol: 0.06, filter: { type: 'lowpass', freq: 1000 } });
+  },
+  /** A stadium crowd rising to its feet. */
+  crowd() {
+    noise({ dur: 1.4, vol: 0.18, type: 'bandpass', freq: 700, to: 1100, q: 0.8, attack: 0.3 });
+    noise({ dur: 1.2, vol: 0.08, type: 'bandpass', freq: 2200, q: 1.5, attack: 0.4 });
+  },
+  /** Ground-shaking landing of a very large man. */
+  bigStomp() {
+    tone({ type: 'sine', freq: 70 * vary(), to: 28, dur: 0.3, vol: 0.45 });
+    noise({ dur: 0.18, vol: 0.25, type: 'lowpass', freq: 600, to: 90 });
+  },
 };
 
 /** Per-special sound design, keyed by character id then move id. */
@@ -403,6 +449,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     proj_ragtop: { frames: { 12: 'engineRev' } },
     smash: { frames: { 1: 'heave', 8: 'smashPress', 14: 'smashPress', 20: 'smashPress', 26: 'smashPress', 32: 'smashPress' }, impact: ['smashPress', 'sizzle'], blocked: 'clang' },
   },
+  shaq: {
+    proj_bball: { frames: { 1: 'dribble', 7: 'dribble', 12: 'squeak' } },
+    backboard: { frames: { 0: 'squeak', 2: 'heave', 18: 'bigStomp' }, impact: ['rimRattle', 'boneCrack'], blocked: 'clang' },
+    postup: { frames: { 1: 'squeak', 12: 'squeak', 24: 'squeak' }, impact: 'bodyBump', blocked: 'bodyBump' },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
@@ -444,6 +495,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
   burger: { travel: { every: 12, cue: 'fireCrackle' }, impact: ['splat', 'flameBurst'] },
   ragtop: { launch: ['horn', 'screech'], travel: { every: 16, cue: 'engineRev' }, impact: 'carCrash', blocked: 'carCrash' },
+  bball: { impact: ['dribble', 'bodyBump'], blocked: 'dribble', clash: 'dribble' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */

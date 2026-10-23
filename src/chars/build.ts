@@ -25,7 +25,7 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky' | 'bald';
   beard?: 'chinstrap' | 'braided' | 'full' | 'goatee' | 'vandyke';
   /** Facial hair colour when it differs from the hair (bleached spikes over a darker beard). */
   beardColor?: string;
@@ -66,6 +66,14 @@ export interface Look {
   shadesBack?: string;
   /** Knee-length shorts: bare shins below a cuff of the pants colour. */
   shorts?: boolean;
+  /** Sleeveless basketball jersey (bare arms) with trim and a chest number. `shirt` is ignored. */
+  jersey?: { color: string; trim: string; number: string };
+  /** Baggy knee-length basketball shorts flaring past the knee, over tall socks (`pants` is the shorts colour). */
+  baggyShorts?: boolean;
+  /** Sweatband on each wrist. */
+  wristband?: string;
+  /** High-top sneakers: `boots` is the shoe, this is the side stripe. */
+  hiTops?: string;
 }
 
 /** Hot-rod flames rising from a hem at y = base across [x0, x1]. */
@@ -79,6 +87,18 @@ function flameHem(p: Painter, x0: number, x1: number, base: number, h: number, c
 
 const OUT = '#100810';
 
+// 3x5 pixel digits for jersey numbers
+export const DIGITS: Record<string, string> = {
+  '0': '111101101101111', '1': '010110010010111', '2': '111001111100111', '3': '111001111001111', '4': '101101111001001',
+  '5': '111100111001111', '6': '111100111101111', '7': '111001010010010', '8': '111101111101111', '9': '111101111001111',
+};
+function digits(p: Painter, n: string, x: number, y: number, c: Color) {
+  [...n].forEach((d, i) => {
+    const g = DIGITS[d];
+    if (g) for (let k = 0; k < 15; k++) if (g[k] === '1') p.set(x + i * 4 + (k % 3), y + Math.floor(k / 3), c);
+  });
+}
+
 function finish(p: Painter, dimmed = false): HTMLCanvasElement {
   const c = p.clone();
   if (dimmed) c.dim(0.32);
@@ -88,7 +108,7 @@ function finish(p: Painter, dimmed = false): HTMLCanvasElement {
 function torso(L: Look): Painter {
   // 28x42, hip pivot at (13,31), shoulders 24px above it at y=7
   const p = new Painter(28, 42);
-  const outer = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
+  const outer = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.jersey ? L.jersey.color : L.coat ?? L.shirt;
   if (L.tails && L.coat) {
     // frock coat tails hanging behind the legs
     p.poly([[5, 24], [14, 24], [13, 40], [9, 41], [4, 39]], darken(L.coat, 0.1));
@@ -122,6 +142,19 @@ function torso(L: Look): Painter {
     p.line(16, 16, 16, 21, d); // abs
     for (const y of [16, 18, 20]) p.line(17, y, 19, y, d);
     p.set(19, 11, d);
+  }
+  if (L.jersey) {
+    // tank top: bare shoulders, trimmed scoop neck and armholes, a number on the chest
+    const j = L.jersey;
+    p.ellipse(13.5, 7.5, 7.5, 3, L.skin);
+    p.poly([[15, 5], [21, 6], [18, 10]], L.skin);
+    p.line(8, 9, 14.5, 7, j.trim);
+    p.line(15, 6, 18, 10, j.trim);
+    p.line(18, 10, 21, 7, j.trim);
+    p.line(7, 10, 7, 14, j.trim);
+    p.line(20, 11, 21, 15, j.trim);
+    p.rect(7, 22, 13, 1, j.trim);
+    digits(p, j.number, 12, 13, j.trim);
   }
   if (L.belt) {
     p.rect(7, 23, 13, 2, L.belt);
@@ -223,11 +256,15 @@ function head(L: Look): Painter {
     p.rect(4, 23, 4, 6, root);
     const spikes = [[[3, 25], [2, 16], [7, 22]], [[5, 23], [5.5, 12], [9, 21]], [[8, 22], [10, 10], [12, 21]], [[11, 21], [14.5, 11], [15, 22]], [[13.5, 22], [19, 16], [16.5, 25]]];
     for (const s of spikes) p.poly(s, L.hair);
+  } else if (L.hairStyle === 'bald') {
+    // a smooth dome: a touch taller skull and nothing on top
+    p.ellipse(10.5, 26, 6.2, 5, L.skin);
   } else {
     p.ellipse(10, 24.5, 6.5, 3.5, L.hair);
     p.rect(4, 24, 4, 6, L.hair);
   }
   p.shade(0.18);
+  if (L.hairStyle === 'bald') p.line(8, 22, 12, 21.5, lighten(L.skin, 0.4)); // shine on the scalp
   if (L.hairStyle === 'perm') {
     // tight curls
     const hi = lighten(L.hair, 0.3), lo = darken(L.hair, 0.3);
@@ -346,9 +383,10 @@ function head(L: Look): Painter {
 
 function upperArm(L: Look): Painter {
   const p = new Painter(12, 21);
-  const c = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
+  const bare = L.bareChest || !!L.jersey;
+  const c = L.armor ? L.armor.metal : bare ? L.skin : L.coat ?? L.shirt;
   p.capsule(6, 3, 4.6, 6, 15, 3.6, c);
-  if (L.bareChest) p.line(8, 5, 8, 11, lighten(L.skin, 0.15));
+  if (bare) p.line(8, 5, 8, 11, lighten(L.skin, 0.15));
   if (L.flames && !L.coat) flameHem(p, 3, 9, 18, 7, L.flames);
   if (L.armor) {
     p.ellipse(6, 4, 5.5, 4.5, lighten(L.armor.metal, 0.1));
@@ -361,14 +399,16 @@ function upperArm(L: Look): Painter {
 
 function foreArm(L: Look, front: boolean): Painter {
   const p = new Painter(12, 23);
-  const c = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
+  const bare = L.bareChest || !!L.jersey;
+  const c = L.armor ? L.armor.metal : bare ? L.skin : L.coat ?? L.shirt;
   p.capsule(6, 3, 3.9, 6, 12, 3.2, c);
   const cuff = L.wraps ?? L.coatTrim ?? (L.coat ? L.shirt : darken(c, 0.2));
   if (L.rolledSleeves) {
     p.capsule(6, 3, 3.9, 6, 12, 3.2, L.skin);
     p.rect(1.5, 1, 9, 4, c);
     p.line(2, 4, 9, 4, darken(c, 0.25));
-  } else if (!L.bareChest || L.wraps) p.rect(2, 11, 8, 2, cuff);
+  } else if (L.wristband) p.rect(2, 9, 8, 3, L.wristband);
+  else if (!bare || L.wraps) p.rect(2, 11, 8, 2, cuff);
   if (L.coil && front) {
     p.rect(2, 4, 8, 7, '#b5652a');
     for (let y = 4; y < 11; y += 2) p.line(2, y, 9, y, '#e8a050');
@@ -407,6 +447,15 @@ function thigh(L: Look): Painter {
     return p;
   }
   const c = L.armor ? L.armor.metal : L.pants;
+  if (L.baggyShorts) {
+    // baggy leg that flares out past the knee
+    p.poly([[1.5, 2], [12.5, 2], [13.5, 23], [0.5, 23]], c);
+    p.line(1, 22, 13, 22, darken(c, 0.3));
+    if (L.jersey) p.line(11, 3, 12.5, 21, L.jersey.trim);
+    p.shade(0.2);
+    p.outline(OUT);
+    return p;
+  }
   p.capsule(7, 3, 5.6, 7, 19, 4.4, c);
   if (L.trunks) {
     p.capsule(7, 3, 6, 7, 10, 5.4, L.trunks.color);
@@ -434,6 +483,16 @@ function shin(L: Look): Painter {
     return p;
   }
   const c = L.armor ? L.armor.metal : L.pants;
+  if (L.baggyShorts) {
+    // bare calf, tall socks and the collar of a high-top
+    p.capsule(6, 2, 4.4, 6, 19, 3.6, L.skin);
+    p.rect(2, 11, 8, 6, L.socks ?? '#f0f0f0');
+    p.rect(2, 12, 8, 1, L.hiTops ?? darken(L.socks ?? '#f0f0f0', 0.25));
+    p.rect(1.5, 17, 9, 6, L.boots);
+    p.shade(0.2);
+    p.outline(OUT);
+    return p;
+  }
   p.capsule(6, 2, 4.6, 6, 19, 3.6, L.shorts ? L.skin : c);
   if (L.shorts) {
     p.rect(1, 0, 10, 5, c);
@@ -460,6 +519,17 @@ function foot(L: Look): Painter {
     p.rect(0, 7, 15, 2, darken(c.frame, 0.4));
     p.set(13, 6, c.glow);
     p.shade(0.2);
+    p.outline(OUT);
+    return p;
+  }
+  if (L.hiTops) {
+    // big high-top sneaker: chunky sole, toe cap and a swoosh-free side stripe
+    p.poly([[0, 0], [7, 0], [14.5, 4], [15, 8], [0, 8]], L.boots);
+    p.line(3, 3, 11, 5, L.hiTops);
+    p.line(3, 4, 10, 6, L.hiTops);
+    p.shade(0.2);
+    p.rect(0, 8, 16, 2, '#e8e4dc');
+    p.line(0, 9, 15, 9, darken('#e8e4dc', 0.3));
     p.outline(OUT);
     return p;
   }

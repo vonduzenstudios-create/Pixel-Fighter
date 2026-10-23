@@ -7,6 +7,7 @@ import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { colonelCrisp } from './colonel';
 import { guyFieri } from './fieri';
+import { shaqDef } from './shaq';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
 import type { Move, Special } from '../game/types';
@@ -481,6 +482,7 @@ export function roster(): CharDef[] {
     },
     oprah(),
     guyFieri(),
+    shaqDef(),
   ];
   for (const c of cache) c.intro ??= INTROS[c.id];
   return cache;
