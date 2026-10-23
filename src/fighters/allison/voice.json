@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "allison": { "voice": "bf_alice", "speed": 1.02, "pitch": 1.06 }
+  },
+  "lines": [
+    { "file": "allison-intro", "who": "allison", "text": "Down the hole and straight into a fight. How curious!", "spoken": "Down the hole... and straight into a fight. How curious!" },
+    { "file": "allison-finisher", "who": "allison", "text": "Guards! Cut the deck!" },
+    { "file": "ann-wins-allison", "who": "announcer", "text": "Allison Wonderland wins" }
+  ]
+}

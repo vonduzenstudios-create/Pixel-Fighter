@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "teresa": { "voice": "hf_alpha", "speed": 0.84, "pitch": 0.94 }
+  },
+  "lines": [
+    { "file": "teresa-intro", "who": "teresa", "text": "I have come to help. You will need it.", "spoken": "I have come to help... You will need it." },
+    { "file": "teresa-finisher", "who": "teresa", "text": "Go with God. He is expecting you.", "spoken": "Go with God... He is expecting you." },
+    { "file": "ann-wins-teresa", "who": "announcer", "text": "Mother Teresa wins" }
+  ]
+}
