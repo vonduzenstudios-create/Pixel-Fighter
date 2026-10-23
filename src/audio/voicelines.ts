@@ -1,5 +1,5 @@
 import { ac, voiceOut } from './audio';
-import manifest from './voicelines.json';
+import { manifest } from './voicemanifest';
 
 // Pre-rendered voice lines (Kokoro TTS, see scripts/gen_voices.py). A line plays from its clip
 // when one exists for that exact text; otherwise callers fall back to the browser speech synth.

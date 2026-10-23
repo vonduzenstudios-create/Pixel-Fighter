@@ -8,7 +8,7 @@ import type { Fighter } from './fighter';
 // one use DEFAULT_INTRO. The fight runs player 1's entrance, then player 2's, then ROUND 1.
 export interface Intro {
   /**
-   * Voice line, shown as a subtitle and played from its Kokoro clip (src/audio/voicelines.json,
+   * Voice line, shown as a subtitle and played from its Kokoro clip (the fighter's voice.json,
    * scripts/gen_voices.py) or the speech synth when it has none. Write original lines.
    */
   line: string;

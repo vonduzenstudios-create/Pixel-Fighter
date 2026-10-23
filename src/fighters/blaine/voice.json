@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "blaine": { "voice": "am_liam", "speed": 0.84, "pitch": 0.86 }
+  },
+  "lines": [
+    { "file": "blaine-intro", "who": "blaine", "text": "Watch closely. You won't see how this ends." },
+    { "file": "blaine-finisher", "who": "blaine", "text": "And that... was your card.", "spoken": "And that, was your card." },
+    { "file": "ann-wins-blaine", "who": "announcer", "text": "David Blaine wins" }
+  ]
+}

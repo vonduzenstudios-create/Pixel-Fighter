@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "shaq": { "voice": "am_echo", "speed": 0.92, "pitch": 0.82 }
+  },
+  "lines": [
+    { "file": "shaq-intro", "who": "shaq", "text": "Big man on the floor. Clear the lane!" },
+    { "file": "shaq-finisher", "who": "shaq", "text": "Too big. Too strong. Nothing but net." },
+    { "file": "ann-wins-shaq", "who": "announcer", "text": "Shaquille O'Neal wins", "spoken": "Shaquille O'Neal wins!" }
+  ]
+}

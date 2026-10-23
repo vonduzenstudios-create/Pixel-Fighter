@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Render every spoken line in src/audio/voicelines.json with Kokoro TTS.
+"""Render every spoken line with Kokoro TTS: src/audio/voicelines.json (announcer, default intro)
+plus each fighter's src/fighters/<id>/voice.json.
 
 Only Kokoro's stock voices are used (no cloning). Each speaker gets a voice, a speed and an
 optional pitch shift or robot filter, then the clip is trimmed, peak-normalised and encoded
@@ -24,7 +25,7 @@ import soundfile as sf
 from kokoro_onnx import Kokoro
 
 ROOT = Path(__file__).resolve().parent.parent
-MANIFEST = ROOT / 'src' / 'audio' / 'voicelines.json'
+MANIFESTS = [ROOT / 'src' / 'audio' / 'voicelines.json', *sorted((ROOT / 'src' / 'fighters').glob('*/voice.json'))]
 OUT = ROOT / 'public' / 'voices'
 
 
@@ -57,7 +58,11 @@ def main():
     ap.add_argument('--only', default='', help='comma separated file names to regenerate')
     args = ap.parse_args()
 
-    m = json.loads(MANIFEST.read_text())
+    m = {'speakers': {}, 'lines': []}
+    for path in MANIFESTS:
+        part = json.loads(path.read_text())
+        m['speakers'].update(part['speakers'])
+        m['lines'] += part['lines']
     only = {s for s in args.only.split(',') if s}
     models = Path(args.models)
     tts = Kokoro(str(models / 'kokoro-v1.0.onnx'), str(models / 'voices-v1.0.bin'))

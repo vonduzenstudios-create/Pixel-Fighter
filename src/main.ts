@@ -2,7 +2,7 @@ import { H, W } from './core/consts';
 import { onKey } from './core/input';
 import { initAudio } from './audio/audio';
 import { loadVoiceLines } from './audio/voicelines';
-import { Stage } from './game/stage';
+import { Stage } from './stages/gorge/stage';
 import { App, Settings, TitleScene, FightScene, bonesParts } from './scenes/menus';
 import { AICtrl } from './game/ai';
 import { roster } from './chars/roster';

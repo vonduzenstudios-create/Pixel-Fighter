@@ -5,7 +5,7 @@ import { Painter } from '../gfx/painter';
 import { roster, partsFor } from '../chars/roster';
 import { buildBones } from '../gfx/bones';
 import { sample, IDLE, VICTORY_ANIM, STANCE } from '../game/anims';
-import { Stage } from '../game/stage';
+import { Stage } from '../stages/gorge/stage';
 import { arena, Arena, STAGES } from '../game/stages';
 import { Fighter, CharDef } from '../game/fighter';
 import { Fight } from '../game/fight';

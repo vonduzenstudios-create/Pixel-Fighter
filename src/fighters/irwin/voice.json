@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "irwin": { "voice": "bm_george", "speed": 1.12, "pitch": 1.12 }
+  },
+  "lines": [
+    { "file": "irwin-intro", "who": "irwin", "text": "Easy, mate. She only bites when I ask her to." },
+    { "file": "irwin-finisher", "who": "irwin", "text": "Good girl! She was hungry, that one." },
+    { "file": "ann-wins-irwin", "who": "announcer", "text": "Steve Irwin wins" }
+  ]
+}

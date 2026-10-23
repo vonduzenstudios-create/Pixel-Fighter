@@ -87,52 +87,79 @@ TypeScript + Vite + plain Canvas 2D at a native 256×224 resolution, scaled up w
 
 - `src/gfx/painter.ts` paints pixel sprites with shape primitives, auto-shading and outlines.
 - `src/chars/build.ts` paints each fighter as separate jointed parts (head, torso, upper arm,
-  forearm, thigh, shin, foot). `src/gfx/rig.ts` poses them with forward kinematics, so every
-  animation is a list of joint-angle keyframes in `src/game/anims.ts` and `src/chars/roster.ts`.
-  Hitboxes come from the posed fist or foot, so they always match what you see.
-- `src/game/stage.ts` builds the parallax stage and the spike pit.
-- `src/audio/` synthesises SFX with the Web Audio API and runs a small tracker for the
-  original music.
-- Voice lines (intros, finisher lines, announcer) are listed in `src/audio/voicelines.json`
-  and rendered with the open-source [Kokoro TTS](https://github.com/hexgrad/kokoro) model,
-  using one of its stock voices per speaker, by `scripts/gen_voices.py` (setup steps are in
-  the script). After changing a line's text, re-run the script and commit the new MP3s. A line
-  with no clip falls back to the browser's speech synthesis.
-- `src/game/ai.ts` drives the CPU with the same inputs a player would press.
+  forearm, thigh, shin, foot) from a `Look`. `src/gfx/rig.ts` poses them with forward
+  kinematics, so every animation is a list of joint-angle keyframes (`src/game/anims.ts` and
+  each fighter's own file). Hitboxes come from the posed fist or foot, so they always match
+  what you see.
+- `src/fighters/<id>/` holds everything about one fighter and `src/stages/<id>/` everything
+  about one stage. Both are found automatically (`src/fighters/registry.ts`,
+  `src/stages/registry.ts`, using Vite's `import.meta.glob`), so adding one never edits a
+  shared file. See [Adding a fighter](#adding-a-fighter) and [Adding a stage](#adding-a-stage).
+- `src/game/` is the engine: fight rules, fighters, projectiles, particles, the AI
+  (`ai.ts` drives the CPU with the same inputs a player would press).
+- `src/audio/` synthesises SFX with the Web Audio API (`specials.ts` is the shared library of
+  special-move sounds) and runs a small tracker for the original music (`music.ts`).
+- Voice lines (intros, finisher lines, announcer) are rendered with the open-source
+  [Kokoro TTS](https://github.com/hexgrad/kokoro) model, using one of its stock voices per
+  speaker, by `scripts/gen_voices.py` (setup steps are in the script). The announcer's calls
+  are in `src/audio/voicelines.json`; each fighter's speaker and lines are in its own
+  `voice.json`. After changing a line's text, re-run the script and commit the new MP3s. A
+  line with no clip falls back to the browser's speech synthesis.
+
+## Adding a fighter
+
+Make a folder `src/fighters/<id>/` (the folder name is the fighter's id). Nothing outside it
+needs to change: `npm test` checks that it registers and builds.
+
+| File | What goes in it |
+| --- | --- |
+| `index.ts` | Default-exports a `FighterModule` (`src/fighters/kit.ts`): `order` (select-screen position, lower first; pick a number not used yet), `make()` returning the `CharDef` (with `selectSet`, its character-select diorama from `SETS` in `src/scenes/sets.ts` or one of its own), and optionally `moveSounds`, `projectiles` and `fx`. |
+| `fighter.ts` | The `CharDef`: name, `Look` and alt colours, specials and finisher, props, `intro`, `portrait`, `quotes` / `quotesVs` taunts, optional `scale`, `fatality` and `fatalityDraw`. |
+| `intro.ts` | Optional round 1 entrance (`Intro`, see `src/game/intro.ts`). |
+| `projectiles.ts` | Optional `ProjDef`s by kind name: stats, sounds, `update`, `draw`, `onHit`. Kind names must be unique across fighters. |
+| `voice.json` | The fighter's Kokoro speaker (keyed by its id) and its lines, plus the announcer's `"<Name> wins"` line. |
+
+Then generate the voice clips: `python3 scripts/casting.py` lists the voices already taken, pick
+an unused one (or one with a clearly different pitch), and run `scripts/gen_voices.py --only
+<id>-intro,...`. Commit the MP3s in `public/voices/`.
+
+Tips:
+
+- Copy a similar fighter's folder as a starting point (`lincoln` is the simplest; `irwin`
+  and `fieri` have custom projectiles; `hawking` and `jackson` have custom finishers).
+- `throwProj(kind, frame, height, sound)` in `src/fighters/kit.ts` is the standard throw.
+- New sound cues go in `fx` in your `index.ts` and can then be named in `moveSounds` and
+  projectile `sounds` (or call them directly). The test fails on any cue or `FX.name()` that
+  does not exist, because a missing one freezes the game mid-fight.
+- Outfit details the shared `Look` options can't draw go in `Look.paint` (per-part painting
+  hooks), and props or sprites in your own folder, rather than in `chars/build.ts` or
+  `gfx/props.ts`.
+- Only touch the engine (`src/game/`) when the fighter needs a mechanic that does not exist
+  yet, and keep that change generic so other fighters can use it.
+- The What's new changelog is written by a nightly task; don't add lines to `CHANGELOG.md`.
+
+## Adding a stage
+
+Make a folder `src/stages/<id>/`:
+
+| File | What goes in it |
+| --- | --- |
+| `index.ts` | Default-exports a `StageModule` (`src/game/stages.ts`): `order` (stage-select position), `name`, `make(bones)` returning the stage, and `songs` (name to song builder). |
+| `stage.ts` | A class implementing `Arena` (`src/game/stages.ts`): `draw`, `drawFront`, `song`, the uppercut-finish `pit` or `pitLanding`, and optional `update`, `reset`, `bob`, `gravity`, `width`. |
+| `song.ts` | The stage's original theme: a function returning a `Song` built with `line()` and `chordTones()` from `src/audio/music.ts`. A song can bring its own `instruments`. |
+
+`npm test` builds every stage and composes every song.
 
 ## Voice casting
 
-Each speaker has its own stock Kokoro voice (`src/audio/voicelines.json`). A test fails if two
-speakers share a voice unless their `pitch` differs by at least 0.1. Voice ids: `a`/`b` = American/British English, `f`/`m` = female/male; other language
-packs such as `ff_siwis` (French) read the English lines with that accent.
+Each speaker has its own stock Kokoro voice: the announcer's in `src/audio/voicelines.json`,
+each fighter's in its `voice.json`. A test fails if two speakers share a voice unless their
+`pitch` differs by at least 0.1. Voice ids: `a`/`b` = American/British English, `f`/`m` =
+female/male; other language packs such as `ff_siwis` (French) read the English lines with that
+accent. Run `python3 scripts/casting.py` for the current casting table and the English voices
+still unused.
 
-| Speaker | Voice | Speed | Pitch |
-| --- | --- | --- | --- |
-| announcer | `am_onyx` | 0.85 | 0.86 |
-| default | `bm_fable` | 0.95 | 1 |
-| lincoln | `am_adam` | 0.88 | 0.94 |
-| tesla | `bm_lewis` | 1.0 | 1 |
-| joan | `ff_siwis` | 0.95 | 1 |
-| blackbeard | `bm_george` | 0.85 | 0.9 |
-| brucelee | `am_liam` | 1.08 | 1 |
-| chuck | `am_fenrir` | 0.85 | 0.9 |
-| ali | `am_echo` | 1.1 | 1 |
-| lumpsum | `bm_daniel` | 0.9 | 0.95 |
-| bobross | `am_michael` | 0.82 | 1 |
-| jackson | `am_puck` | 1.05 | 1.15 |
-| hawking | `am_eric` | 0.88 | 1 + robot filter |
-| oprah | `af_heart` | 0.95 | 0.94 |
-| cleo | `af_kore` | 0.92 | 0.92 |
-| colonel | `am_santa` | 0.82 | 0.94 |
-| buster | `am_santa` | 1.12 | 1.28 |
-| kingtut | `bm_lewis` | 0.92 | 1.12 |
-| fieri | `am_fenrir` | 1.12 | 1.03 |
-| shaq | `am_echo` | 0.92 | 0.82 |
-| irwin | `bm_george` | 1.12 | 1.12 |
-| ramsay | `bm_fable` | 1.12 | 0.88 |
-
-Still unused English voices: `af_alloy`, `af_aoede`, `af_bella`, `af_jessica`, `af_nicole`, `af_nova`, `af_river`, `af_sarah`, `af_sky`, `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`.
 Every American and British male voice is taken, so a new male fighter should use another
 language pack that suits him (`em_alex` Spanish, `im_nicola` Italian, `pm_alex` Portuguese,
 `hm_omega` / `hm_psi` Hindi, `jm_kumo` Japanese, `zm_yunjian` etc. Mandarin) or reuse a voice
-with a clearly different pitch. New fighters: add a speaker with an unused voice, add the lines, then run `scripts/gen_voices.py`.
+with a clearly different pitch.

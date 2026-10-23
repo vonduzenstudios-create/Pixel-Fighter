@@ -98,6 +98,22 @@ export interface Look {
   wristband?: string;
   /** High-top sneakers: `boots` is the shoe, this is the side stripe. */
   hiTops?: string;
+  /**
+   * A fighter's own outfit details, painted onto a body part after everything above and before
+   * the outline, so a new fighter can add a look without editing this file.
+   */
+  paint?: LookPainters;
+}
+
+/** Per-part painting hooks for Look.paint. Each part's canvas size and pivot are noted in its builder below. */
+export interface LookPainters {
+  torso?: (p: Painter, L: Look) => void;
+  head?: (p: Painter, L: Look) => void;
+  upperArm?: (p: Painter, L: Look) => void;
+  foreArm?: (p: Painter, L: Look, front: boolean) => void;
+  thigh?: (p: Painter, L: Look) => void;
+  shin?: (p: Painter, L: Look) => void;
+  foot?: (p: Painter, L: Look) => void;
 }
 
 /** Hot-rod flames rising from a hem at y = base across [x0, x1]. */
@@ -249,6 +265,7 @@ function torso(L: Look): Painter {
     p.line(19, 7, 18, 13, L.necktie);
     p.line(20, 7, 19, 12, darken(L.necktie, 0.3));
   }
+  L.paint?.torso?.(p, L);
   p.outline(OUT);
   return p;
 }
@@ -505,6 +522,7 @@ function head(L: Look): Painter {
     p.line(10, 16, 10, 22, L.hatTrim ?? '#d8b040');
     p.line(7, 18, 8, 17, lighten(c, 0.4));
   }
+  L.paint?.head?.(p, L);
   p.outline(OUT);
   return p;
 }
@@ -523,6 +541,7 @@ function upperArm(L: Look): Painter {
     p.line(1, 7, 11, 7, L.armor.trim);
   }
   p.shade(0.22);
+  L.paint?.upperArm?.(p, L);
   p.outline(OUT);
   return p;
 }
@@ -560,6 +579,7 @@ function foreArm(L: Look, front: boolean): Painter {
     p.line(4, 18, 8, 18, darken(hand, 0.3));
     if (front && L.gloveFront) for (const [x, y] of [[5, 15], [7, 17]]) p.set(x, y, '#ffffff'); // sequin glints
   }
+  L.paint?.foreArm?.(p, L, front);
   p.outline(OUT);
   return p;
 }
@@ -610,6 +630,7 @@ function thigh(L: Look): Painter {
     p.line(2, 9, 12, 9, L.armor.trim);
   }
   p.shade(0.2);
+  L.paint?.thigh?.(p, L);
   p.outline(OUT);
   return p;
 }
@@ -656,6 +677,7 @@ function shin(L: Look): Painter {
   }
   if (L.bandages) for (const y of [5, 9, 13]) p.line(1.5, y + 1.5, 10.5, y, L.bandages), p.line(1.5, y + 2.5, 10.5, y + 1, darken(L.bandages, 0.2));
   p.shade(0.2);
+  L.paint?.shin?.(p, L);
   p.outline(OUT);
   return p;
 }
@@ -686,6 +708,7 @@ function foot(L: Look): Painter {
   p.poly([[1, 1], [7, 1], [13.5, 4.5], [14, 8], [1, 8]], L.boots);
   p.shade(0.2);
   p.line(1, 8, 13, 8, darken(L.boots, 0.5));
+  L.paint?.foot?.(p, L);
   p.outline(OUT);
   return p;
 }

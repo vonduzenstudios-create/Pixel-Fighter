@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "cleo": { "voice": "af_kore", "speed": 0.92, "pitch": 0.92 }
+  },
+  "lines": [
+    { "file": "cleo-intro", "who": "cleo", "text": "The cards already told me how this ends, darling. Not well for you." },
+    { "file": "cleo-finisher", "who": "cleo", "text": "I see your future. It is very, very short." },
+    { "file": "ann-wins-cleo", "who": "announcer", "text": "Miss Cleo wins" }
+  ]
+}

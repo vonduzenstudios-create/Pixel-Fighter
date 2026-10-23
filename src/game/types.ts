@@ -2,7 +2,8 @@ import type { Pose } from '../gfx/rig';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 
-export type PropName = 'axe' | 'sword' | 'cutlass' | 'nunchaku' | 'check' | 'brush' | 'knife' | 'book' | 'cane' | 'skillet' | 'drumstick' | 'spatula' | 'crook' | 'bball' | 'cleaver' | 'phone';
+/** Name of a held prop in CharDef.props (e.g. 'axe'); each fighter names its own. */
+export type PropName = string;
 export type Level = 'high' | 'mid' | 'low' | 'overhead';
 export type Effect = 'light' | 'heavy' | 'knockdown' | 'launch' | 'sweep';
 export type Limb = 'handF' | 'handB' | 'toeF' | 'toeB' | 'kneeF' | 'prop' | 'body';
@@ -63,7 +64,7 @@ export interface Move {
   propBehind?: boolean;
   onFrame?: (self: Fighter, fight: Fight, frame: number) => void;
   whoosh?: boolean;
-  /** Per-move sound design; falls back to MOVE_SOUNDS[id] in src/audio/specials.ts. */
+  /** Per-move sound design; falls back to the fighter's FighterModule.moveSounds[id]. */
   sounds?: MoveSounds;
   /** Frames during which the fighter is not drawn and cannot be hit. */
   invisible?: [number, number];

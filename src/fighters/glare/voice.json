@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "glare": { "voice": "am_eric", "speed": 0.9, "pitch": 0.97 }
+  },
+  "lines": [
+    { "file": "glare-intro", "who": "glare", "text": "Try not to stare. Actually, go ahead.", "spoken": "Try not to stare... Actually, go ahead." },
+    { "file": "glare-finisher", "who": "glare", "text": "Hold still. Perfect. You are done.", "spoken": "Hold still... Perfect. You're done." },
+    { "file": "ann-wins-glare", "who": "announcer", "text": "Dorian Glare wins" }
+  ]
+}

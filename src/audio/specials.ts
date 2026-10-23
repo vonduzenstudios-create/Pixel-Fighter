@@ -1,14 +1,14 @@
 import { ac, noise, tone, voice } from './audio';
 import { sfx } from './sfx';
 import type { Cue, Move, MoveSounds } from '../game/types';
-import type { ProjKind } from '../game/projectile';
 
 // Layered sound design for special moves. Every special gets a cast/windup cue on its move frames,
 // and an impact (and optionally blocked) cue that plays on top of the generic hit sound.
 // Projectiles get launch, travel (looping), impact and clash cues.
 //
-// To give a new fighter's specials their own sounds, either set `sounds` on the Move itself, or add
-// an entry to MOVE_SOUNDS under the character id and move id (and PROJ_SOUNDS for a new projectile kind).
+// To give a new fighter's specials their own sounds, either set `sounds` on the Move itself, or list
+// them by move id in the fighter's folder (FighterModule.moveSounds; a projectile kind's ProjDef.sounds).
+// New sound cues belong in the fighter's folder too (FighterModule.fx), not in this file.
 // A cue is the name of a sound in FX or sfx, a list of names to layer, or a function.
 
 const vary = (amt = 0.06) => 1 + (Math.random() * 2 - 1) * amt;
@@ -460,59 +460,6 @@ export const FX: Record<string, () => void> = {
     sfx.thud();
     noise({ dur: 0.3, vol: 0.3, type: 'lowpass', freq: 2000, to: 300 });
   },
-  // ---------------------------------------------------------------- psychic
-  /** Wind chimes and a soft shimmer: the spirits arriving. */
-  mysticChime() {
-    const t = now();
-    [1568, 1976, 2349, 2637, 3136].forEach((f, i) => tone({ type: 'sine', freq: f * vary(0.01), dur: 0.7, vol: 0.035, at: t + i * 0.07 + Math.random() * 0.03 }));
-    noise({ dur: 0.6, vol: 0.025, type: 'highpass', freq: 6000, attack: 0.2 });
-  },
-  /** A glass ball humming with power: a low throb under a glassy whine. */
-  crystalHum() {
-    tone({ type: 'sine', freq: 110, to: 116, dur: 0.6, vol: 0.12, attack: 0.15 });
-    tone({ type: 'triangle', freq: 880 * vary(0.02), to: 932, dur: 0.6, vol: 0.03, attack: 0.25, detune: 15 });
-    tone({ type: 'sine', freq: 1760, to: 1866, dur: 0.5, vol: 0.015, attack: 0.3 });
-  },
-  /** Bowling the ball: a low rolling rumble with a glassy ping. */
-  crystalRoll() {
-    tone({ type: 'triangle', freq: 70 * vary(), to: 60, dur: 0.25, vol: 0.15 });
-    noise({ dur: 0.2, vol: 0.06, freq: 300, to: 200, q: 2 });
-    tone({ type: 'sine', freq: 2400 * vary(0.05), dur: 0.12, vol: 0.03 });
-  },
-  /** An old desk phone's bell: two quick bursts of a fast trill. */
-  phoneRing() {
-    const t = now();
-    for (let b = 0; b < 2; b++)
-      for (let i = 0; i < 9; i++) {
-        tone({ type: 'square', freq: 1150, dur: 0.025, vol: 0.05, at: t + b * 0.4 + i * 0.033, filter: { type: 'bandpass', freq: 1800 } });
-        tone({ type: 'square', freq: 1380, dur: 0.025, vol: 0.04, at: t + b * 0.4 + i * 0.033 + 0.016, filter: { type: 'bandpass', freq: 1800 } });
-      }
-  },
-  /** Coiled cord whirring round overhead. */
-  cordWhir() {
-    noise({ dur: 0.14, vol: 0.1, type: 'bandpass', freq: 700, to: 1400, q: 3 });
-  },
-  /** A plastic handset cracking against a skull. */
-  receiverSmack() {
-    noise({ dur: 0.05, vol: 0.35, type: 'bandpass', freq: 1700, q: 2 });
-    tone({ type: 'square', freq: 420 * vary(), to: 180, dur: 0.06, vol: 0.08 });
-    tone({ type: 'square', freq: 1150, dur: 0.05, vol: 0.03, at: now() + 0.05 });
-  },
-  /** A tarot card fanned out of the deck. */
-  cardFan() {
-    noise({ dur: 0.05, vol: 0.12, type: 'bandpass', freq: 3600 * vary(0.2), q: 3 });
-  },
-  /** A heavy glass dome landing on the floor. */
-  glassThud() {
-    tone({ type: 'sine', freq: 95, to: 50, dur: 0.25, vol: 0.35 });
-    tone({ type: 'sine', freq: 1900 * vary(0.05), dur: 0.5, vol: 0.04 });
-    tone({ type: 'sine', freq: 2850 * vary(0.05), dur: 0.4, vol: 0.025 });
-  },
-  /** Glass splitting under pressure. */
-  glassCrack() {
-    noise({ dur: 0.07, vol: 0.25, type: 'highpass', freq: 3500 });
-    tone({ type: 'sine', freq: 3200 * vary(0.1), to: 2600, dur: 0.15, vol: 0.04 });
-  },
   shatter() {
     const t = now();
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
@@ -709,109 +656,8 @@ export const FX: Record<string, () => void> = {
 };
 
 /** Per-special sound design, keyed by character id then move id. */
-export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
-  lincoln: {
-    proj_hat: { frames: { 1: 'inhale' } },
-    railsplit: { frames: { 1: 'heave', 6: 'creak' }, impact: 'chop', blocked: 'clack' },
-    logroll: { frames: { 1: 'heave', 6: 'rumble', 14: 'rumble', 22: 'rumble' }, impact: ['clack', 'thud'] },
-  },
-  tesla: {
-    proj_bolt: { frames: { 1: 'charge' } },
-    teleport: { frames: { 15: 'popIn', 24: 'crackle' }, impact: 'elecHit' },
-    acfield: { frames: { 1: 'charge', 14: 'crackle', 22: 'crackle', 30: 'crackle' }, impact: 'elecHit' },
-  },
-  joan: {
-    proj_holy: { frames: { 1: 'choir' } },
-    charge: { frames: { 1: 'shing', 4: 'warCry', 8: 'stomp', 13: 'stomp', 18: 'stomp' }, impact: 'clang', blocked: 'clang' },
-    ascend: { frames: { 0: 'shing' }, impact: 'flameBurst', blocked: 'clang' },
-  },
-  blackbeard: {
-    proj_cannon: { frames: { 1: 'fuse' } },
-    proj_keg: { frames: { 1: 'fuse' } },
-    cyclone: { frames: { 1: 'shing' }, impact: 'chop', blocked: 'clang' },
-  },
-  brucelee: {
-    inchpunch: { frames: { 1: 'chi' }, impact: 'boneCrack' },
-    dragonkick: { frames: { 0: 'chi' }, impact: 'boneCrack' },
-    nunchaku: { frames: { 1: 'chainRattle', 13: 'chainRattle', 25: 'chainRattle' }, impact: 'clack', blocked: 'clack' },
-  },
-  chuck: {
-    proj_gust: { frames: { 1: 'inhale' } },
-    tornado: { frames: { 0: 'heave' }, impact: 'boneCrack' },
-    flurry: { frames: { 1: 'heave' }, impact: 'bootThud' },
-  },
-  lumpsum: {
-    proj_cash: { frames: { 1: 'coins' } },
-    proj_aria: { frames: { 1: 'inhale' } },
-    checkslam: { frames: { 1: 'paperFlap', 8: 'heave' }, impact: 'paperSlap' },
-  },
-  ali: {
-    flurry: { frames: { 1: 'shuffle', 14: 'shuffle' }, impact: 'glovePop' },
-    ropeadope: { frames: { 3: 'ropeCreak' } },
-    ropecounter: { frames: { 0: 'heave' }, impact: ['glovePop', 'boneCrack'] },
-    lightningcross: { frames: { 0: 'crackle' }, impact: ['glovePop', 'boneCrack'] },
-  },
-  bobross: {
-    proj_paint: { frames: { 1: 'brushTap' } },
-    proj_tree: { frames: { 1: 'brushTap', 6: 'brushTap' } },
-    flurry: { frames: { 1: 'brushTap' }, impact: 'splat' },
-  },
-  hawking: {
-    proj_hole: { frames: { 1: 'servo' } },
-    rocketchair: { frames: { 1: 'servo' }, impact: 'metalCrash', blocked: 'clang' },
-    radiation: { frames: { 1: 'geiger' }, impact: 'crackle' },
-  },
-  colonel: {
-    proj_drumstick: { frames: { 1: 'paperFlap', 12: 'heave' } },
-    proj_grease: { frames: { 1: 'clang', 9: 'heave' } },
-    canethrash: { frames: { 0: 'caneTap', 1: 'warCry' }, impact: ['clack', 'caneTap'], blocked: 'clack' },
-  },
-  buster: {
-    proj_robot: { frames: { 2: 'windUp', 9: 'windUp' } },
-    bikedash: { frames: { 2: 'bikeBell', 10: 'pedal', 18: 'pedal', 26: 'pedal' }, impact: 'bikeCrash', blocked: 'clang' },
-    tantrum: { frames: { 1: 'wail', 10: 'tantrumStomp', 22: 'tantrumStomp', 34: 'tantrumStomp' }, impact: 'glovePop' },
-  },
-  kingtut: {
-    proj_scarab: { frames: { 1: 'linenSnap', 10: 'buzz' } },
-    proj_sarc: { frames: { 2: 'curseChant', 12: 'stoneGrind' } },
-    sandstorm: { frames: { 1: 'sandWind', 14: 'sandWind', 28: 'sandWind' }, impact: 'sandHit' },
-  },
-  fieri: {
-    proj_burger: { frames: { 1: 'inhale', 9: 'sizzle' } },
-    proj_ragtop: { frames: { 12: 'engineRev' } },
-    smash: { frames: { 1: 'heave', 8: 'smashPress', 14: 'smashPress', 20: 'smashPress', 26: 'smashPress', 32: 'smashPress' }, impact: ['smashPress', 'sizzle'], blocked: 'clang' },
-  },
-  shaq: {
-    proj_bball: { frames: { 1: 'dribble', 7: 'dribble', 12: 'squeak' } },
-    backboard: { frames: { 0: 'squeak', 2: 'heave', 18: 'bigStomp' }, impact: ['rimRattle', 'boneCrack'], blocked: 'clang' },
-    postup: { frames: { 1: 'squeak', 12: 'squeak', 24: 'squeak' }, impact: 'bodyBump', blocked: 'bodyBump' },
-  },
-  irwin: {
-    proj_croc: { frames: { 2: 'callWhistle', 10: 'rustle' } },
-    proj_roo: { frames: { 2: 'callWhistle' } },
-    proj_snake: { frames: { 1: 'rustle', 8: 'rustle' } },
-  },
-  jackson: {
-    proj_fedora: { frames: { 2: 'shing' } },
-    moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
-    toespin: { impact: ['sparkle', 'boneCrack'] },
-  },
-  oprah: {
-    proj_gift: { frames: { 1: 'giftRustle', 9: 'giftRustle' } },
-    bookslam: { frames: { 1: 'pageFlutter', 7: 'heave' }, impact: ['bookThump', 'pageFlutter'], blocked: 'bookThump' },
-    ovation: { frames: { 1: 'applause', 13: 'clap', 21: 'clap', 30: ['applause', 'confettiPop'] }, impact: 'clap', blocked: 'clap' },
-  },
-  cleo: {
-    proj_crystal: { frames: { 1: 'crystalHum', 10: 'crystalRoll' } },
-    hotline: { frames: { 0: 'phoneRing', 5: 'cordWhir', 9: 'cordWhir', 13: 'cordWhir', 17: 'cordWhir' }, impact: ['receiverSmack', 'boneCrack'], blocked: 'receiverSmack' },
-    tarot: { frames: { 1: 'mysticChime', 6: 'cardFan', 10: 'cardFan', 14: 'cardFan', 18: 'cardFan', 22: 'cardFan', 26: 'cardFan' }, impact: ['cardSlice', 'sparkle'], blocked: 'cardFlick' },
-  },
-  ramsay: {
-    proj_steak: { frames: { 1: 'sizzle', 7: 'panClang' } },
-    flambe: { frames: { 0: 'chefBark', 5: 'flambe', 16: 'fireCrackle' }, impact: 'flameBurst', blocked: 'fireCrackle' },
-    mince: { frames: { 0: 'chefBark', 6: 'boardKnock', 14: 'boardKnock', 22: 'boardKnock', 30: 'boardKnock' }, impact: 'cleaverChop', blocked: 'clang' },
-  },
-};
+/** Move sound design by character id and move id; each fighter folder brings its own (FighterModule.moveSounds). */
+export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {};
 
 export interface ProjSounds {
   /** When the projectile leaves the hand (layered on the move's own release sound). */
@@ -823,37 +669,6 @@ export interface ProjSounds {
   /** Two projectiles cancelling each other out. */
   clash?: Cue;
 }
-
-export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
-  hat: { impact: 'clack' },
-  bolt: { travel: { every: 8, cue: 'crackle' }, impact: 'elecHit', blocked: 'crackle' },
-  holy: { travel: { every: 10, cue: 'fireCrackle' }, impact: 'flameBurst' },
-  cannon: { travel: { every: 30, cue: 'whistle' }, impact: 'cannon', blocked: 'cannon' },
-  keg: { travel: { every: 14, cue: 'rumble' }, impact: 'cannon', blocked: 'cannon' },
-  gust: { travel: { every: 9, cue: 'wind' }, impact: 'windHit' },
-  cash: { travel: { every: 14, cue: 'coins' }, impact: ['kaching', 'paperSlap'], blocked: 'kaching' },
-  aria: { impact: 'shatter' },
-  fedora: { impact: 'clack' },
-  paint: { impact: 'splat' },
-  hole: { travel: { every: 24, cue: 'drone' }, impact: 'gravityHit' },
-  tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
-  smolder: { travel: { every: 10, cue: 'twinkle' }, impact: ['sparkle', 'glovePop'], blocked: 'sparkle' },
-  gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
-  drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
-  grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
-  steak: { travel: { every: 12, cue: 'sizzle' }, impact: ['meatSlap', 'sizzle'], blocked: 'meatSlap' },
-  crystal: { travel: { every: 14, cue: 'crystalRoll' }, impact: ['glassThud', 'boneCrack'], blocked: 'glassThud', clash: 'glassCrack' },
-  card: { travel: { every: 6, cue: 'cardWhir' }, impact: 'cardSlice', blocked: 'cardFlick' },
-  robot: { travel: { every: 12, cue: 'tinTick' }, impact: 'tinClank', blocked: 'tinClank', clash: 'tinClank' },
-  scarab: { travel: { every: 12, cue: 'buzz' }, impact: ['buzz', 'crunch'], blocked: 'buzz' },
-  sarcophagus: { impact: ['stoneGrind', 'crunch'], blocked: 'stoneGrind' },
-  burger: { travel: { every: 12, cue: 'fireCrackle' }, impact: ['splat', 'flameBurst'] },
-  ragtop: { launch: ['horn', 'screech'], travel: { every: 16, cue: 'engineRev' }, impact: 'carCrash', blocked: 'carCrash' },
-  bball: { impact: ['dribble', 'bodyBump'], blocked: 'dribble', clash: 'dribble' },
-  croc: { launch: 'crocHiss', travel: { every: 10, cue: 'scuttle' }, impact: ['jawSnap', 'boneCrack'], blocked: 'jawSnap' },
-  roo: { launch: 'rooSpring', impact: ['rooKick', 'boneCrack'], blocked: 'hopThump' },
-  snake: { launch: 'snakeHiss', travel: { every: 9, cue: 'rustle' }, impact: ['snakeStrike', 'snakeHiss'], blocked: 'snakeStrike' },
-};
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */
 export function playCue(cue: Cue | undefined) {

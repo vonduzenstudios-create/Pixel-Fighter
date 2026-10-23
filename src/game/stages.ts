@@ -1,26 +1,11 @@
-import type { SongName } from '../audio/music';
+import type { Song, SongName } from '../audio/music';
 import type { PartSet, Pose } from '../gfx/rig';
 import type { Fight } from './fight';
 import type { Fighter } from './fighter';
-import { MoonStage } from './moon';
-import { Stage } from './stage';
-import { TrainStage } from './train';
-import { BoatStage } from './boat';
-import { SkyscraperStage } from './skyscraper';
-import { MushroomStage } from './mushroom';
-import { BlizzardStage } from './blizzard';
-import { UndergroundStage } from './underground';
-import { BurgerStage } from './burger';
-import { PyramidStage } from './pyramid';
-import { ConcertStage } from './concert';
 import type { Particles } from './particles';
-import { FlavortownStage } from './flavortown';
-import { DojoStage } from './dojo';
-import { RunwayStage } from './runway';
-import { BeachStage } from './beach';
-import { LabStage } from './lab';
-import { HillsStage } from './hills';
-import { ChurchStage } from './church';
+import { STAGES } from '../stages/registry';
+
+export { STAGES };
 
 /** A custom bottom-of-the-pit landing for the uppercut stage finish, in place of the spikes. */
 export interface PitLanding {
@@ -76,32 +61,17 @@ export interface Arena {
   pitLanding?: PitLanding;
 }
 
-interface StageEntry {
-  id: string;
+/** What a stage folder's index.ts default-exports (src/stages/<id>/index.ts; the folder name is its id). */
+export interface StageModule {
+  /** Position in stage select; lower comes first. Ties go alphabetically by id. */
+  order: number;
+  /** Shown on stage select. */
   name: string;
+  /** Builds the stage; called once, the first time it is picked. */
   make: (bones: PartSet) => Arena;
+  /** Songs this stage brings, by name; the stage's `song` picks one of these (or a shared one such as 'fight'). */
+  songs?: Record<string, () => Song>;
 }
-
-export const STAGES: StageEntry[] = [
-  { id: 'gorge', name: 'THE THORN GORGE', make: (b) => new Stage(b) },
-  { id: 'train', name: 'THE MIDNIGHT EXPRESS', make: (b) => new TrainStage(b) },
-  { id: 'boat', name: 'THE DROWNED GALLEON', make: (b) => new BoatStage(b) },
-  { id: 'spire', name: 'THE DATA SPIRE', make: (b) => new SkyscraperStage(b) },
-  { id: 'mushroom', name: 'THE SPOREWOOD', make: (b) => new MushroomStage(b) },
-  { id: 'blizzard', name: 'THE HOWLING PASS', make: (b) => new BlizzardStage(b) },
-  { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
-  { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
-  { id: 'pyramid', name: 'TOMB OF THE SUN KING', make: (b) => new PyramidStage(b) },
-  { id: 'concert', name: 'THE DECIBEL DOME', make: (b) => new ConcertStage(b) },
-  { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
-  { id: 'dojo', name: 'IRONWOOD DOJO', make: (b) => new DojoStage(b) },
-  { id: 'runway', name: 'THE RUNWAY', make: (b) => new RunwayStage(b) },
-  { id: 'beach', name: 'CORAL COVE', make: () => new BeachStage() },
-  { id: 'lab', name: 'THE COIL WORKS', make: (b) => new LabStage(b) },
-  { id: 'hills', name: 'BUTTERCUP HILLS', make: () => new HillsStage() },
-  { id: 'church', name: 'THE ECHO CATHEDRAL', make: (b) => new ChurchStage(b) },
-  { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
-];
 
 // Stages paint themselves at construction, so build each one only when first needed.
 const cache = new Map<string, Arena>();
