@@ -22,11 +22,11 @@ export interface Look {
   socks?: string;
   belt?: string;
   buckle?: string;
-  hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora';
+  hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora' | 'nemes';
   hatColor?: string;
   hatTrim?: string;
   hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout';
-  beard?: 'chinstrap' | 'braided' | 'full' | 'goatee';
+  beard?: 'chinstrap' | 'braided' | 'full' | 'goatee' | 'pharaoh';
   beardRibbon?: string;
   mustache?: boolean;
   bowtie?: string;
@@ -58,6 +58,16 @@ export interface Look {
   earrings?: string;
   /** Lipstick colour for the mouth. */
   lips?: string;
+  /** Pharaoh's broad bead collar across the shoulders: [gold, inlay]. */
+  usekh?: [string, string];
+  /** Pleated linen kilt with a front apron and a belt, over bare legs. */
+  kilt?: { color: string; belt: string };
+  /** Gold bands on the upper arms and wrists. */
+  bracers?: string;
+  /** Loose mummy bandages wound round the shins and trailing off the torso. */
+  bandages?: string;
+  /** Long kohl lines out from the eyes. */
+  kohl?: boolean;
 }
 
 const OUT = '#100810';
@@ -128,6 +138,28 @@ function torso(L: Look): Painter {
     p.poly([[7, 31], [19, 31], [19.5, 22], [6.5, 22]], L.trunks.color);
     p.rect(7, 22, 13, 2, L.trunks.stripe);
     p.line(18, 24, 18, 33, L.trunks.stripe);
+  }
+  if (L.kilt) {
+    const k = L.kilt.color;
+    p.ellipse(13, 31, 8, 5.5, k);
+    p.poly([[6.5, 31], [20, 31], [19.5, 22], [6.5, 22]], k);
+    p.poly([[13, 24], [19, 24], [21, 35], [15, 37]], lighten(k, 0.08)); // front apron
+    for (const x of [9, 11, 16, 18]) p.line(x, 26, x + 0.5, 35, darken(k, 0.18));
+    p.rect(6.5, 22, 14, 2, L.kilt.belt);
+    p.set(17, 23, lighten(L.kilt.belt, 0.4));
+  }
+  if (L.bandages) {
+    p.line(7, 13, 20, 17, L.bandages);
+    p.line(7, 18, 19, 15, darken(L.bandages, 0.15));
+    p.poly([[6, 18], [8, 19], [4, 28], [2.5, 27]], L.bandages); // a loose end trailing behind
+  }
+  if (L.usekh) {
+    const [g, inlay] = L.usekh;
+    p.ellipse(13.5, 7.5, 8.5, 5, g);
+    p.ellipse(15, 8.5, 6.5, 3.5, inlay);
+    p.ellipse(15.5, 8, 5, 2.4, g);
+    p.ellipse(16, 7, 3.5, 1.5, inlay);
+    for (const x of [9, 12, 15, 18, 21]) p.set(x, 11, lighten(g, 0.35));
   }
   p.shade(0.2);
   if (L.bowtie) {
@@ -250,6 +282,15 @@ function head(L: Look): Painter {
     // a neat tuft on the chin under the lip
     p.poly([[12.5, 35], [16.5, 35], [16, 38], [14, 40], [12.5, 38.5]], L.hair);
     p.set(14, 34, '#5a2a2a');
+  } else if (L.beard === 'pharaoh') {
+    // the plaited ceremonial false beard: a narrow column off the chin
+    p.poly([[13, 35], [16, 35], [16.5, 42], [13.5, 43]], L.hair);
+    for (const y of [37, 39, 41]) p.line(13.5, y, 16, y, L.hatColor ?? L.hair);
+  }
+  if (L.kohl) {
+    p.line(12, 27, 15, 27, '#0a0608');
+    p.line(12, 29, 11, 30, '#0a0608');
+    p.set(15, 29, '#1a3a8a');
   }
   if (L.glasses) {
     p.rect(11, 26, 6, 4, L.glasses);
@@ -289,6 +330,20 @@ function head(L: Look): Painter {
     p.rect(5, 19, 12, 2, L.hatTrim ?? '#e8e4dc');
     p.line(9, 14, 12, 14.5, darken(c, 0.4));
     p.line(5, 16, 5, 18, lighten(c, 0.25));
+  } else if (L.hat === 'nemes') {
+    // striped royal headcloth: a cap over the skull, a broad flap behind the jaw and a cobra on the brow
+    const c = L.hatColor ?? '#d8b040', st = L.hatTrim ?? '#1c3a9a';
+    p.poly([[4, 25], [2, 34], [2.5, 43], [9, 43], [9, 33], [8, 27]], c);
+    p.ellipse(10, 23, 7.8, 5.8, c);
+    p.rect(4, 22, 13, 4, c);
+    for (const y of [18, 21, 24]) p.line(3.5, y, 17, y, st);
+    for (const y of [28, 31, 34, 37, 40]) p.line(2.5, y, 9, y + 0.5, st);
+    p.line(2, 25, 3, 42, darken(c, 0.35));
+    p.rect(4, 25, 13, 1, lighten(c, 0.3)); // gold brow band
+    // uraeus
+    p.rect(15, 19, 2, 5, '#e8c040');
+    p.set(17, 19, '#e8c040');
+    p.set(16, 20, '#c01818');
   } else if (L.hat === 'horned') {
     // opera-house warrior helmet
     const c = L.hatColor ?? '#a8b0bc';
@@ -311,6 +366,7 @@ function upperArm(L: Look): Painter {
   const c = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
   p.capsule(6, 3, 4.6, 6, 15, 3.6, c);
   if (L.bareChest) p.line(8, 5, 8, 11, lighten(L.skin, 0.15));
+  if (L.bracers) p.rect(1.5, 9, 9, 2, L.bracers);
   if (L.armor) {
     p.ellipse(6, 4, 5.5, 4.5, lighten(L.armor.metal, 0.1));
     p.line(1, 7, 11, 7, L.armor.trim);
@@ -330,6 +386,7 @@ function foreArm(L: Look, front: boolean): Painter {
     p.rect(1.5, 1, 9, 4, c);
     p.line(2, 4, 9, 4, darken(c, 0.25));
   } else if (!L.bareChest || L.wraps) p.rect(2, 11, 8, 2, cuff);
+  if (L.bracers) p.rect(2, 8, 8, 3, L.bracers), p.line(2, 9, 9, 9, lighten(L.bracers, 0.35));
   if (L.coil && front) {
     p.rect(2, 4, 8, 7, '#b5652a');
     for (let y = 4; y < 11; y += 2) p.line(2, y, 9, y, '#e8a050');
@@ -373,6 +430,10 @@ function thigh(L: Look): Painter {
     p.capsule(7, 3, 6, 7, 10, 5.4, L.trunks.color);
     p.line(10, 1, 10, 13, L.trunks.stripe);
   }
+  if (L.kilt) {
+    p.poly([[0.5, 0], [13.5, 0], [13.5, 11], [0.5, 12]], L.kilt.color);
+    for (const x of [3, 6, 9, 12]) p.line(x, 2, x, 11, darken(L.kilt.color, 0.18));
+  }
   if (L.armor) {
     p.ellipse(7, 20, 4.5, 3.5, lighten(L.armor.metal, 0.15));
     p.line(2, 9, 12, 9, L.armor.trim);
@@ -403,6 +464,7 @@ function shin(L: Look): Painter {
     p.rect(2, 16, 8, 6, L.boots);
     if (L.socks) p.rect(2, 16, 8, 4, L.socks);
   }
+  if (L.bandages) for (const y of [5, 9, 13]) p.line(1.5, y + 1.5, 10.5, y, L.bandages), p.line(1.5, y + 2.5, 10.5, y + 1, darken(L.bandages, 0.2));
   p.shade(0.2);
   p.outline(OUT);
   return p;

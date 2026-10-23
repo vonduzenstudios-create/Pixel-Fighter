@@ -303,6 +303,39 @@ export const FX: Record<string, () => void> = {
       tone({ type: 'square', freq: 494, dur: 0.13, vol: 0.05, at: t + at, filter: { type: 'lowpass', freq: 2000 } });
     }
   },
+  // ---------------------------------------------------------------- the tomb
+  /** A swarm of beetles: fast clicking over a papery buzz. */
+  buzz() {
+    const t = now();
+    tone({ type: 'sawtooth', freq: 180 * vary(), to: 220, dur: 0.35, vol: 0.05, filter: { type: 'bandpass', freq: 1400, q: 3 } });
+    for (let i = 0; i < 8; i++) noise({ dur: 0.012, vol: 0.12, type: 'highpass', freq: 3500 + Math.random() * 2500, at: t + i * 0.04 * vary(0.3) });
+  },
+  /** Stone sliding on stone. */
+  stoneGrind() {
+    noise({ dur: 0.4, vol: 0.2, type: 'bandpass', freq: 220 * vary(), to: 160, q: 4 });
+    tone({ type: 'sawtooth', freq: 48 * vary(), to: 40, dur: 0.4, vol: 0.06, filter: { type: 'lowpass', freq: 400 } });
+  },
+  /** Linen bandage snapping taut. */
+  linenSnap() {
+    noise({ dur: 0.06, vol: 0.22, type: 'bandpass', freq: 2400 * vary(), to: 900, q: 2 });
+    noise({ dur: 0.03, vol: 0.12, type: 'highpass', freq: 5000 });
+  },
+  /** A low, ominous two-note chant from somewhere inside the tomb. */
+  curseChant() {
+    voice(98 * vary(0.02), 92, 0.5, 0.18, [500, 850, 2400]);
+    voice(73 * vary(0.02), 70, 0.7, 0.16, [450, 800, 2400], 0.45);
+    noise({ dur: 1.0, vol: 0.05, type: 'bandpass', freq: 300, to: 200, q: 3, attack: 0.3 });
+  },
+  /** Desert wind whipped into a twister. */
+  sandWind() {
+    noise({ dur: 0.5, vol: 0.16, type: 'bandpass', freq: 600, to: 1800, q: 1.5, attack: 0.15 });
+    noise({ dur: 0.4, vol: 0.08, type: 'highpass', freq: 4500, attack: 0.1 });
+  },
+  /** Grit sprayed into a face. */
+  sandHit() {
+    noise({ dur: 0.18, vol: 0.28, type: 'highpass', freq: 2500 * vary(), to: 1200 });
+    tone({ type: 'sine', freq: 160, to: 80, dur: 0.08, vol: 0.12 });
+  },
   shatter() {
     const t = now();
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
@@ -368,6 +401,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     proj_grease: { frames: { 1: 'clang', 9: 'heave' } },
     canethrash: { frames: { 0: 'caneTap', 1: 'warCry' }, impact: ['clack', 'caneTap'], blocked: 'clack' },
   },
+  kingtut: {
+    proj_scarab: { frames: { 1: 'linenSnap', 10: 'buzz' } },
+    proj_sarc: { frames: { 2: 'curseChant', 12: 'stoneGrind' } },
+    sandstorm: { frames: { 1: 'sandWind', 14: 'sandWind', 28: 'sandWind' }, impact: 'sandHit' },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
@@ -407,6 +445,8 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
   drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
   grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
+  scarab: { travel: { every: 12, cue: 'buzz' }, impact: ['buzz', 'crunch'], blocked: 'buzz' },
+  sarcophagus: { impact: ['stoneGrind', 'crunch'], blocked: 'stoneGrind' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */
