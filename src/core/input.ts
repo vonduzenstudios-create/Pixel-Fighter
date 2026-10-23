@@ -9,18 +9,28 @@ export interface RawInput {
 export const EMPTY: RawInput = { l: false, r: false, u: false, d: false, lp: false, hp: false, lk: false, hk: false, bl: false, start: false, back: false };
 
 const keys = new Set<string>();
+/**
+ * Keys pressed since the game last stepped. A quick tap can go down and up between two frames;
+ * this keeps it showing as held for one frame so the press still counts.
+ */
+const tapped = new Set<string>();
 const listeners: ((code: string) => void)[] = [];
 window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   keys.add(e.code);
+  tapped.add(e.code);
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
   for (const l of listeners) l(e.code);
 });
 window.addEventListener('keyup', (e) => keys.delete(e.code));
-window.addEventListener('blur', () => keys.clear());
+window.addEventListener('blur', () => (keys.clear(), tapped.clear()));
 export const onKey = (f: (code: string) => void) => listeners.push(f);
 
-const K = (c: string) => keys.has(c);
+const K = (c: string) => keys.has(c) || tapped.has(c);
+/** Call after each game step: taps from before it have now been seen. */
+export function endInputFrame() {
+  tapped.clear();
+}
 const KEYMAP = [
   {
     l: ['KeyA'], r: ['KeyD'], u: ['KeyW'], d: ['KeyS'],
