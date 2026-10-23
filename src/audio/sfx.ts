@@ -218,6 +218,25 @@ export const sfx = {
     tone({ type: 'sine', freq: 60, to: 30, dur: 0.9, vol: 0.6 });
     noise({ dur: 0.7, vol: 0.25, freq: 500, to: 60 });
   },
+  /** The finisher's "dun, dun, DUNNN": two short low brass stabs, then a long falling one over a timpani roll. */
+  dread() {
+    const c = ac();
+    if (!c) return;
+    const t = c.currentTime;
+    const stab = (at: number, f: number, dur: number, fall = 1) => {
+      // a stack of detuned saws through a closing filter reads as low brass
+      for (const [m, v, d] of [[1, 0.16, -8], [1, 0.16, 8], [2, 0.07, 0], [1.5, 0.06, 4]])
+        tone({ type: 'sawtooth', freq: f * m, to: f * m * fall, dur, vol: v, attack: 0.02, at: t + at, detune: d, filter: { type: 'lowpass', freq: 1600, to: 260, q: 2 } });
+      tone({ type: 'sine', freq: f / 2, to: (f / 2) * fall, dur, vol: 0.4, attack: 0.01, at: t + at });
+      tone({ type: 'sine', freq: 70, to: 40, dur: 0.5, vol: 0.5, at: t + at });
+      noise({ dur: 0.35, vol: 0.25, freq: 400, to: 60, at: t + at });
+    };
+    stab(0, 147, 0.32);
+    stab(0.36, 147, 0.32);
+    stab(0.74, 139, 1.5, 0.94);
+    // a low rumble that swells under the last one
+    for (let i = 0; i < 10; i++) noise({ dur: 0.18, vol: 0.06 + i * 0.012, freq: 260, to: 80, at: t + 0.74 + i * 0.08 });
+  },
 };
 // sounds roll their own pitch drift, outside the fight's shared random (see core/rng.ts)
 for (const k of Object.keys(sfx) as (keyof typeof sfx)[]) (sfx as any)[k] = unseeded(sfx[k]);
