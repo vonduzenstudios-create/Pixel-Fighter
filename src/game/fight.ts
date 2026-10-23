@@ -839,6 +839,7 @@ export class Fight {
             }
           } else {
             D.it++;
+            this.stage.pitTick?.(this.pitParticles, D.it);
             if (this.stage.pitLanding) this.stage.pitLanding.tick(this, D.it);
             else if (this.stage.pitFront) {
               if (D.it % 4 === 0) this.pitParticles.smoke(128 + rand(-24, 24), H - 150 + rand(-4, 4), 1, '#d8d0c0');
