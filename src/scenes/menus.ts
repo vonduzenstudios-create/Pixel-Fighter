@@ -26,8 +26,8 @@ export interface App {
   back: boolean; // set by Escape key
 }
 
-const confirm = (p: RawInput) => p.lp || p.lk || p.start || p.hp;
-const cancel = (p: RawInput, app: App) => p.hk || app.back;
+const confirm = (p: RawInput) => p.lp || p.hp || p.start;
+const cancel = (p: RawInput, app: App) => p.back || app.back;
 
 let bg: HTMLCanvasElement | null = null;
 function selectBg() {
@@ -54,7 +54,7 @@ export class TitleScene implements Scene {
     const back = this.app.back;
     this.app.back = false;
     if (!this.menu) {
-      if (confirm(p) || p.hk) {
+      if (confirm(p) || p.back) {
         this.menu = true;
         sfx.menuPick();
       }
@@ -142,7 +142,7 @@ export class SelectScene implements Scene {
         sfx.menuPick();
         if (!two) this.roulette = 50;
       }
-      if (i === 0 && (p.hk || back) && this.picked[0] === null) {
+      if (i === 0 && (p.back || back) && this.picked[0] === null) {
         this.app.go(new TitleScene(this.app));
         return;
       }
@@ -271,7 +271,7 @@ export class MoveListScene implements Scene {
     const n = roster().length;
     if (p.l) (this.i = (this.i + n - 1) % n), sfx.menuMove();
     if (p.r) (this.i = (this.i + 1) % n), sfx.menuMove();
-    if (p.hk || p.start || this.app.back) {
+    if (p.back || p.start || this.app.back) {
       this.app.back = false;
       this.app.go(new TitleScene(this.app));
     }
@@ -299,12 +299,12 @@ export class MoveListScene implements Scene {
     y += 4;
     drawText(ctx, 'BASIC MOVES', 60, y, '#e0c050');
     y += 11;
-    row('UPPERCUT', 'D + HP');
-    row('SWEEP / ROUNDHOUSE', 'B + LK / B + HK');
-    row('THROW (CLOSE)', 'F + LP');
-    row('BLOCK', 'BLOCK OR HOLD BACK');
+    row('UPPERCUT (LAUNCH)', 'D + HP');
+    row('ROUNDHOUSE (LAUNCH)', 'B + HK');
+    row('SWEEP / JUDO THROW', 'B + LK / F + LP');
+    row('CROUCH ATTACKS', 'D + LP / LK / HK');
     drawText(ctx, 'KEYS: WASD MOVE  U I = LP HP  J K = LK HK  L = BLOCK', W / 2, H - 30, '#a09080', { align: 'center' });
-    drawText(ctx, 'PAD: X Y = LP HP  A B = LK HK  L R = BLOCK', W / 2, H - 20, '#a09080', { align: 'center' });
-    drawText(ctx, 'B = HK / ESC TO GO BACK', W / 2, H - 10, '#806060', { align: 'center' });
+    drawText(ctx, 'PAD: A X = LP HP  B Y = LK HK  L R = BLOCK', W / 2, H - 20, '#a09080', { align: 'center' });
+    drawText(ctx, 'PAD B / K / ESC TO GO BACK', W / 2, H - 10, '#806060', { align: 'center' });
   }
 }
