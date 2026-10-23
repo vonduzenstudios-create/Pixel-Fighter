@@ -13,6 +13,7 @@ import { BurgerStage } from './burger';
 import { FlavortownStage } from './flavortown';
 import { DojoStage } from './dojo';
 import { RunwayStage } from './runway';
+import { BeachStage } from './beach';
 
 /** A custom bottom-of-the-pit landing for the uppercut stage finish, in place of the spikes. */
 export interface PitLanding {
@@ -24,6 +25,14 @@ export interface PitLanding {
   tick(f: Fight, it: number): void;
   /** Drawn over the victim in the close-up. */
   draw(ctx: CanvasRenderingContext2D, it: number): void;
+  /** Screen y the falling victim comes to rest at; defaults to 150. */
+  rest?: number;
+  /** Frames to hold after landing before the round ends; defaults to 150. */
+  length?: number;
+  /** Every frame of the fall, with the victim's screen y. */
+  fall?(f: Fight, y: number): void;
+  /** Drawn over the victim while they are still falling. */
+  drawFall?(ctx: CanvasRenderingContext2D): void;
 }
 
 /** Anything the fight can be staged in. */
@@ -74,6 +83,7 @@ export const STAGES: StageEntry[] = [
   { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'dojo', name: 'IRONWOOD DOJO', make: (b) => new DojoStage(b) },
   { id: 'runway', name: 'THE RUNWAY', make: (b) => new RunwayStage(b) },
+  { id: 'beach', name: 'CORAL COVE', make: () => new BeachStage() },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
