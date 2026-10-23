@@ -8,6 +8,7 @@ export default {
   make() {
     const c = oprah();
     c.selectSet ??= SETS.talkshow;
+    c.homeStage ??= 'market';
     return c;
   },
   moveSounds: {

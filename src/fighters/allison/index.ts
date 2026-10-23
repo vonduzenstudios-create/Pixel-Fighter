@@ -9,6 +9,7 @@ export default {
   make() {
     const c = allison();
     c.selectSet ??= gardenSet;
+    c.homeStage ??= 'mushroom';
     return c;
   },
   moveSounds: {

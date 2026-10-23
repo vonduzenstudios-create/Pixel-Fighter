@@ -8,6 +8,7 @@ export default {
   make() {
     const c = blackbeard();
     c.selectSet ??= SETS.ship;
+    c.homeStage ??= 'boat';
     return c;
   },
   moveSounds: {

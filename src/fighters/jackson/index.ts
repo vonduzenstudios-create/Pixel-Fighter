@@ -8,6 +8,7 @@ export default {
   make() {
     const c = jackson();
     c.selectSet ??= SETS.disco;
+    c.homeStage ??= 'concert';
     return c;
   },
   moveSounds: {

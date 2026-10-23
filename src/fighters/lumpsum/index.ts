@@ -10,6 +10,7 @@ export default {
     const c = lumpsum();
     c.intro ??= LUMPSUM_INTRO;
     c.selectSet ??= SETS.vault;
+    c.homeStage ??= 'bank';
     return c;
   },
   moveSounds: {

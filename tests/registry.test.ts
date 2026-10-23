@@ -90,6 +90,13 @@ describe('fighter registry', () => {
   });
 });
 
+describe('home stages', () => {
+  it('only names stages that exist', () => {
+    const ids = new Set(STAGES.map((s) => s.id));
+    for (const c of roster()) if (c.homeStage) expect(ids.has(c.homeStage), `${c.id}: homeStage '${c.homeStage}'`).toBe(true);
+  });
+});
+
 describe('stage registry', () => {
   it('registers every folder in src/stages', () => {
     expect(STAGES.map((s) => s.id).sort()).toEqual(folders('../src/stages').sort());
@@ -103,7 +110,7 @@ describe('stage registry', () => {
       expect(songNames(), s.id).toContain(a.song);
       expect(getSong(a.song).notes.length, s.id).toBeGreaterThan(0);
     });
-  });
+  }, 30000); // every stage paints itself here, and there are a lot of them now
 
   it('composes every song', () => {
     for (const n of songNames()) expect(getSong(n).steps, n).toBeGreaterThan(0);

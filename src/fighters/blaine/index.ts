@@ -8,6 +8,7 @@ export default {
   make() {
     const c = blaine();
     c.selectSet ??= SETS.street;
+    c.homeStage ??= 'streetmagic';
     return c;
   },
   projectiles: PROJECTILES,

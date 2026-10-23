@@ -8,6 +8,7 @@ export default {
   make() {
     const c = ramsay();
     c.selectSet ??= SETS.kitchen;
+    c.homeStage ??= 'inferno';
     return c;
   },
   moveSounds: {
