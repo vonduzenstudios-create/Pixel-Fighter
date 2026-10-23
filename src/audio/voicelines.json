@@ -15,7 +15,8 @@
     "jackson":    { "voice": "am_puck",    "speed": 1.05, "pitch": 1.15 },
     "hawking":    { "voice": "am_eric",    "speed": 0.88, "robot": true },
     "oprah":      { "voice": "af_heart",   "speed": 0.95, "pitch": 0.94 },
-    "colonel":    { "voice": "am_santa",   "speed": 0.82, "pitch": 0.94 }
+    "colonel":    { "voice": "am_santa",   "speed": 0.82, "pitch": 0.94 },
+    "ramsay":     { "voice": "bm_fable",   "speed": 1.12, "gain": 1.05 }
   },
   "lines": [
     { "file": "default-intro", "who": "default", "text": "Let's settle this." },
@@ -34,6 +35,8 @@
     { "file": "hawking-finisher", "who": "hawking", "text": "You have crossed the event horizon." },
     { "file": "oprah-intro", "who": "oprah", "text": "Welcome to the show! Today's topic: your defeat.", "spoken": "Welcome to the show! Today's topic... your defeat." },
     { "file": "oprah-finisher", "who": "oprah", "text": "Surprise! It comes with a bow." },
+    { "file": "ramsay-intro", "who": "ramsay", "text": "Right! Let's turn up the heat." },
+    { "file": "ramsay-finisher", "who": "ramsay", "text": "Plated, seasoned, and served." },
 
     { "file": "ann-round-1", "who": "announcer", "text": "Round 1", "spoken": "Round one!" },
     { "file": "ann-round-2", "who": "announcer", "text": "Round 2", "spoken": "Round two!" },
@@ -55,6 +58,9 @@
     { "file": "ann-wins-lumpsum", "who": "announcer", "text": "J.G. Spentworth wins", "spoken": "J. G. Spentworth wins" },
     { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" },
     { "file": "ann-wins-oprah", "who": "announcer", "text": "Oprah Winfrey wins" },
-    { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" }
+    { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" },
+    { "file": "ann-wins-lumpsum", "who": "announcer", "text": "Monty Lumpsum wins" },
+    { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" },
+    { "file": "ann-wins-ramsay", "who": "announcer", "text": "Gordon Ramsay wins" }
   ]
 }

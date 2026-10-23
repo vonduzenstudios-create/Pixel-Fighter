@@ -185,3 +185,79 @@ export function pineTree(): HTMLCanvasElement {
   p.outline(OUT);
   return p.canvas();
 }
+
+/** Cast-iron skillet, held by the handle, the pan tilted toward the viewer with a steak in it. */
+export function skillet(): Part {
+  const p = new Painter(18, 32);
+  p.rect(8, 0, 2, 13, '#1c1a20');
+  p.line(8, 1, 8, 12, '#3a3842');
+  p.set(9, 11, '#8a8a94'); // rivet
+  p.ellipse(9, 22, 8.5, 9, '#3a3842');
+  p.ellipse(9, 22, 6.5, 7, '#1e1c22');
+  p.ellipse(9.5, 22.5, 4, 3.6, '#8a3a1e');
+  p.ellipse(9, 22, 2.6, 2.2, '#a8502a');
+  p.line(7, 21, 10, 24, '#3a160c');
+  p.line(9, 20, 12, 23, '#3a160c');
+  p.shade(0.2);
+  p.line(3, 18, 5, 15, '#6a6a76');
+  return done(p, 9, 1);
+}
+
+/** Heavy square cleaver: wooden grip, the edge on the image's left (leading when chopping). */
+export function cleaver(): Part {
+  const p = new Painter(14, 28);
+  p.rect(7, 0, 3, 10, '#5a3418');
+  p.line(7, 1, 7, 9, '#8a5a30');
+  p.set(8, 3, '#d8d0c0'); p.set(8, 7, '#d8d0c0');
+  p.rect(1, 10, 10, 16, '#b8c0cc');
+  p.line(1, 10, 1, 25, '#f4f8ff');
+  p.line(10, 10, 10, 25, '#6a7280');
+  p.ellipse(8, 13, 1.2, 1.2, '#3a3e48'); // hanging hole
+  p.rect(2, 22, 7, 1, '#a8b0bc');
+  return done(p, 8, 1);
+}
+
+/** A thick, flipping steak with grill marks and a rim of fat. */
+export function steak(): HTMLCanvasElement {
+  const p = new Painter(14, 10);
+  p.ellipse(7, 5, 6, 3.6, '#8a3a1e');
+  p.ellipse(6, 4.5, 4.6, 2.6, '#a8502a');
+  p.line(2, 7, 11, 8, '#f0d8b0');
+  for (const x of [4, 7, 10]) p.line(x - 1, 2, x + 1, 7, '#3a160c');
+  p.shade(0.2);
+  p.outline(OUT);
+  return p.canvas();
+}
+
+/** Oversized silver serving dome, 40x40, rim along the bottom. */
+export function cloche(): HTMLCanvasElement {
+  const p = new Painter(40, 40);
+  p.ellipse(20, 38, 19, 34, '#c8ccd8');
+  p.rect(1, 36, 38, 3, '#9aa0ae');
+  p.ellipse(20, 3, 3, 2, '#e8ecf4');
+  p.rect(19, 4, 3, 1, '#8a90a0');
+  p.shade(0.25);
+  p.line(9, 18, 14, 10, '#ffffff');
+  p.line(7, 24, 8, 21, '#ffffff');
+  p.line(2, 36, 38, 36, '#e8ecf4');
+  p.outline(OUT);
+  return p.canvas();
+}
+
+/** Wide white dinner plate seen nearly edge-on, 42x6. */
+export function plate(): HTMLCanvasElement {
+  const p = new Painter(42, 6);
+  p.ellipse(21, 2.5, 20, 2.5, '#f4f2ee');
+  p.ellipse(21, 2.2, 15, 1.4, '#dcdad6');
+  p.rect(13, 4, 16, 1, '#b8b4b0');
+  p.outline(OUT);
+  return p.canvas();
+}
+
+/** A sprig of herbs for the garnish. */
+export function sprig(): HTMLCanvasElement {
+  const p = new Painter(7, 6);
+  p.line(1, 5, 5, 1, '#3a7a2a');
+  for (const [x, y] of [[2, 3], [4, 2], [5, 0], [3, 1], [6, 2]]) p.set(x, y, '#6ac04a');
+  return p.canvas();
+}

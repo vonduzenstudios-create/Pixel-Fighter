@@ -1,6 +1,6 @@
 import { FLOOR } from '../core/consts';
 import { pxCircle, pxLine } from '../gfx/painter';
-import { ball, bill, cashBrick, fedora, keg, musicNote, pineTree, stovepipeHat } from '../gfx/props';
+import { ball, bill, cashBrick, fedora, keg, musicNote, pineTree, steak, stovepipeHat } from '../gfx/props';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 import type { Effect, Level } from './types';
@@ -10,13 +10,13 @@ import { drawMiniHole } from '../chars/hawking';
 import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'steak';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
 const makeSprites = () => ({
   hat: stovepipeHat(), fedora: fedora(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true),
-  cash: cashBrick(), bill: bill(), note: musicNote(), paint: PAINTS.map((c) => ball(5, c)), tree: pineTree(),
+  cash: cashBrick(), bill: bill(), note: musicNote(), paint: PAINTS.map((c) => ball(5, c)), tree: pineTree(), steak: steak(),
 });
 let SPR: ReturnType<typeof makeSprites> | null = null;
 const spr = () => (SPR ??= makeSprites());
@@ -39,6 +39,7 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   drumstick: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.4 },
   // lobbed in an arc (vy set by the thrower), then burns on the floor where it lands
   grease: { dmg: 75, level: 'mid', effect: 'heavy', r: 7, speed: 2.6 },
+  steak: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 4.4 },
 };
 
 /** Frames a grease puddle keeps burning after it lands. */
@@ -147,6 +148,12 @@ export class Projectile {
           if (this.t % 3 === 0) p.fire(this.x + rand(-10, 10), 4, 1, 3);
           if (this.t - this.landed > GREASE_BURN) this.dead = true;
         }
+      case 'steak':
+        // a seared steak flipping end over end, spitting grease and flame
+        this.y += Math.sin(this.t * 0.25) * 0.4;
+        if (this.t % 2 === 0) p.fire(this.x - Math.sign(this.vx) * 5, this.y + 2, 1, 2);
+        if (this.t % 5 === 0) p.smoke(this.x - Math.sign(this.vx) * 8, this.y + 4, 1, '#d8d0c8');
+        if (this.t % 7 === 0) p.add({ kind: 'spark', x: this.x, y: this.y, vx: -this.vx * 0.2, vy: 0.8, life: 14, max: 14, color: '#ffe8a0', grav: 0.15 });
         break;
       case 'tree': {
         // rumbles underground (out of reach), then shoots up from the deck
@@ -199,6 +206,10 @@ export class Projectile {
         break;
       case 'cannon':
         ctx.drawImage(s.cannon, -7, -7);
+        break;
+      case 'steak':
+        ctx.rotate(this.t * 0.35 * Math.sign(this.vx));
+        ctx.drawImage(s.steak, -7, -5);
         break;
       case 'cash':
         ctx.rotate(Math.sin(this.t * 0.3) * 0.15);
