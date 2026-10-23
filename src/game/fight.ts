@@ -11,7 +11,7 @@ import * as AN from './anims';
 import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
-import { Stage } from './stage';
+import type { Arena } from './stages';
 import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
@@ -51,7 +51,7 @@ export class Fight {
   /** Round 1 entrances: whose turn it is, its frame counter and the current subtitle. */
   entrance = { who: 0, t: 0, homes: [0, 0], caption: '' };
 
-  constructor(public f: [Fighter, Fighter], public stage: Stage, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
+  constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
     f[1].opp = f[0];
     this.particles.floorY = 0;
@@ -224,7 +224,7 @@ export class Fight {
           sfx.gong();
           this.banner(`ROUND ${this.round}`, 70, 3, ['#ffffff', '#c0a060']);
           announce(`Round ${this.round}`);
-          playSong('fight');
+          playSong(this.stage.song);
         }
         if (this.pt === 72) {
           this.banner('FIGHT!', 40, 4, ['#fff080', '#e01010']);
@@ -324,7 +324,7 @@ export class Fight {
   /** Round 1: each fighter makes their entrance in turn, then the ROUND 1 call. */
   runEntrance() {
     const E = this.entrance;
-    if (this.pt === 1) playSong('fight');
+    if (this.pt === 1) playSong(this.stage.song);
     const f = this.f[E.who], intro = this.introOf(f);
     const t = E.t++;
     if (t === 0) {
@@ -451,6 +451,7 @@ export class Fight {
         p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
+        if (p.kind === 'cash') sfx.kaching();
         if (p.kind === 'cannon' || p.kind === 'keg') {
           sfx.cannon();
           this.particles.smoke(p.x, p.y, 10);
@@ -462,15 +463,14 @@ export class Fight {
 
   resolveHit(a: Fighter, d: Fighter, hit: HitDef, at: { x: number; y: number }, projectile = false) {
     if (this.phase === 'finish' && d === this.loser) {
-      if (a.move?.id === 'uppercut') {
+      if (a.move?.id === 'uppercut' && this.stage.pit) {
         this.startPitFatality(a);
         return;
       }
       // they just stand there and take it until the window runs out
       d.reel(a, at);
       const heavy = hit.dmg >= 60;
-      this.particles.blood(at.x, at.y, a.facing, heavy ? 16 : 9, heavy ? 1.3 : 1);
-      this.particles.sparks(at.x, at.y, 4, '#ffffff');
+      this.particles.impact(at.x, at.y, a.facing, heavy ? 80 : 45, heavy);
       sfx.hit(strengthOf(hit.dmg), isKick(hit));
       if (Math.random() < 0.5) sfx.blood();
       if (Math.random() < 0.45) sfx.grunt();
@@ -482,6 +482,7 @@ export class Fight {
     if (res === 'block') {
       sfx.block(hit.dmg >= 60);
       this.particles.sparks(at.x, at.y, 6);
+      this.particles.flash(at.x, at.y, 4, '#a0d0ff');
       this.hitstop = 3;
       return;
     }
@@ -491,8 +492,7 @@ export class Fight {
     else sfx.hit(hit.effect === 'launch' || hit.effect === 'knockdown' ? 3 : strengthOf(hit.dmg), isKick(hit));
     if (hit.sfx === 'zap') this.particles.zap(at.x, at.y, 8);
     if (projectile && (hit.dmg >= 80)) this.particles.fire(at.x, at.y, 6, 4);
-    this.particles.blood(at.x, at.y, a.facing, Math.round(hit.dmg / 6), heavy ? 1.3 : 1);
-    this.particles.sparks(at.x, at.y, 4, '#ffffff');
+    this.particles.impact(at.x, at.y, a.facing, hit.dmg, heavy);
     if (Math.random() < 0.5) sfx.blood();
     this.hitstop = heavy ? 7 : 4;
     if (heavy) this.shake(4);
@@ -517,6 +517,13 @@ export class Fight {
     const neck = () => ({ x: l.wx(l.skel.neck[0]), y: l.wy(l.skel.neck[1]) });
 
     switch (F.kind) {
+      default: {
+        // characters that bring their own finishing move
+        const over = w.ch.fatality?.(this, w, l, tt, D) ?? true;
+        tick();
+        if (over) done();
+        break;
+      }
       case 'lincoln': {
         if (tt < 18) {
           w.x += ((l.x - l.facing * -1 * 0 - w.facing * 30) - w.x) * 0.2;
@@ -852,7 +859,7 @@ export class Fight {
 
   drawPit(ctx: CanvasRenderingContext2D) {
     const D = this.fatal?.data ?? { y: 150, rot: -90, impaled: true };
-    ctx.drawImage(this.stage.pit, 0, 0);
+    if (this.stage.pit) ctx.drawImage(this.stage.pit, 0, 0);
     const l = this.loser!;
     const pose = D.impaled ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
     l.hidden.clear();

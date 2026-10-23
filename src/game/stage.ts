@@ -4,6 +4,7 @@ import { makeCanvas, Painter } from '../gfx/painter';
 import { bayer, darken, lighten, mix } from '../gfx/palette';
 import { drawRig, fk, PartSet } from '../gfx/rig';
 import { P, LIE } from './anims';
+import type { Arena } from './stages';
 
 // "The Thorn Gorge": a rickety plank bridge strung between stone towers over a pit of spikes,
 // under a blood moon. Every layer is painted procedurally at load time.
@@ -173,7 +174,9 @@ function bridge(): HTMLCanvasElement {
   return p.canvas();
 }
 
-export class Stage {
+export class Stage implements Arena {
+  name = 'THE THORN GORGE';
+  song = 'fight' as const;
   sky = sky();
   far = far();
   mid = mid();

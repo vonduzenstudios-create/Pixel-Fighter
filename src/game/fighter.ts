@@ -6,7 +6,7 @@ import { drawRig, fk, groundOffset, Part, PartName, PartSet, Pose, propTip, Skel
 import * as AN from './anims';
 import * as MV from './moves';
 import type { Fight } from './fight';
-import type { Anim, Btn, Finisher, HitDef, Move, Special } from './types';
+import type { Anim, Btn, Finisher, HitDef, Move, PropName, Special } from './types';
 import type { Look } from '../chars/build';
 import type { Intro } from './intro';
 import { chance } from '../core/rng';
@@ -24,7 +24,9 @@ export interface CharDef {
   finisher: Finisher;
   /** Pitch of grunts. */
   voice: number;
-  props: Partial<Record<'axe' | 'sword' | 'cutlass' | 'nunchaku', Part>>;
+  props: Partial<Record<PropName, Part>>;
+  /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
+  fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
   /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
   intro?: Intro;
 }
