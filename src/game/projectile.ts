@@ -5,8 +5,9 @@ import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
+import { drawMiniHole } from '../chars/hawking';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'hole';
 
 const makeSprites = () => ({
   hat: stovepipeHat(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true),
@@ -24,6 +25,7 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   cash: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 4.6 },
   // short-range sonic blast that can't be ducked
   aria: { dmg: 70, level: 'mid', effect: 'knockdown', r: 11, speed: 5.2 },
+  hole: { dmg: 95, level: 'high', effect: 'knockdown', r: 7, speed: 2.4 },
 };
 
 export class Projectile {
@@ -70,6 +72,16 @@ export class Projectile {
         this.vx *= 0.97;
         if (this.t > 26) this.dead = true;
         break;
+      case 'hole': {
+        // a slow singularity that drags a grounded opponent toward it
+        const o = this.owner.opp;
+        if (!o.airborne && !o.locked && Math.abs(o.x - this.x) < 70) o.x += Math.sign(this.x - o.x) * 0.45;
+        if (this.t % 3 === 0) {
+          const a = rand(0, Math.PI * 2);
+          p.add({ kind: 'spark', x: this.x + Math.cos(a) * 14, y: this.y + Math.sin(a) * 10, vx: -Math.cos(a) * 1.2, vy: -Math.sin(a) * 1.2, life: 10, max: 10, color: '#a070ff', floor: false });
+        }
+        break;
+      }
     }
     this.x += this.vx;
     this.y += this.vy;
@@ -116,6 +128,9 @@ export class Projectile {
         ctx.drawImage(s.note, -3 + d * 4, -12 + Math.round(Math.sin(this.t * 0.5) * 2));
         break;
       }
+      case 'hole':
+        drawMiniHole(ctx, this.t);
+        break;
       case 'holy': {
         const fl = Math.sin(this.t * 0.8) > 0;
         ctx.fillStyle = fl ? '#ff7010' : '#ff4008';

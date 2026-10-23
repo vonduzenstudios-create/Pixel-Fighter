@@ -36,6 +36,10 @@ export interface Look {
   bareChest?: boolean;
   /** Cloth wraps on the wrists and hands. */
   wraps?: string;
+  /** Thick-rimmed glasses (frame colour). */
+  glasses?: string;
+  /** Rides a jointed mech-chair: the legs become hydraulic struts and the seated legs are part of the chair. */
+  chair?: { frame: string; accent: string; glow: string };
 }
 
 const OUT = '#100810';
@@ -154,6 +158,12 @@ function head(L: Look): Painter {
     if (L.beardRibbon) for (const [x, y] of [[11, 39], [14, 40], [12, 37]]) p.set(x, y, L.beardRibbon);
     p.set(15, 33, '#5a2a2a');
   }
+  if (L.glasses) {
+    p.rect(11, 26, 6, 4, L.glasses);
+    p.rect(12, 27, 4, 2, '#cfe6f0');
+    p.set(13, 27, '#ffffff');
+    p.line(6, 27, 11, 27, L.glasses);
+  }
   if (L.hat === 'stovepipe') {
     const c = L.hatColor ?? '#141218';
     p.rect(4, 2, 13, 21, c);
@@ -222,6 +232,18 @@ function foreArm(L: Look, front: boolean): Painter {
 
 function thigh(L: Look): Painter {
   const p = new Painter(14, 25);
+  if (L.chair) {
+    // hydraulic strut: outer sleeve with a piston rod and a glowing knee joint
+    const c = L.chair;
+    p.capsule(7, 3, 4.2, 7, 18, 3.2, c.frame);
+    p.rect(5, 6, 4, 11, darken(c.frame, 0.35));
+    p.line(7, 6, 7, 17, lighten(c.frame, 0.4));
+    p.ellipse(7, 20, 3.4, 3.4, c.accent);
+    p.shade(0.2);
+    p.set(7, 20, c.glow);
+    p.outline(OUT);
+    return p;
+  }
   const c = L.armor ? L.armor.metal : L.pants;
   p.capsule(7, 3, 5.6, 7, 19, 4.4, c);
   if (L.armor) {
@@ -235,6 +257,16 @@ function thigh(L: Look): Painter {
 
 function shin(L: Look): Painter {
   const p = new Painter(12, 25);
+  if (L.chair) {
+    const c = L.chair;
+    p.capsule(6, 2, 3, 6, 19, 2.6, lighten(c.frame, 0.15));
+    p.line(4, 5, 4, 17, darken(c.frame, 0.3));
+    p.rect(3, 10, 6, 2, c.accent);
+    p.shade(0.2);
+    p.set(6, 11, c.glow);
+    p.outline(OUT);
+    return p;
+  }
   const c = L.armor ? L.armor.metal : L.pants;
   p.capsule(6, 2, 4.6, 6, 19, 3.6, c);
   if (L.tallBoots) {
@@ -250,9 +282,74 @@ function shin(L: Look): Painter {
 
 function foot(L: Look): Painter {
   const p = new Painter(16, 10);
+  if (L.chair) {
+    // three-toed mech claw
+    const c = L.chair;
+    p.poly([[1, 1], [7, 1], [14, 6], [14, 8], [1, 8]], c.frame);
+    p.rect(0, 7, 15, 2, darken(c.frame, 0.4));
+    p.set(13, 6, c.glow);
+    p.shade(0.2);
+    p.outline(OUT);
+    return p;
+  }
   p.poly([[1, 1], [7, 1], [13.5, 4.5], [14, 8], [1, 8]], L.boots);
   p.shade(0.2);
   p.line(1, 8, 13, 8, darken(L.boots, 0.5));
+  p.outline(OUT);
+  return p;
+}
+
+/** Seat, backrest and big rear wheel, drawn behind the torso. Pivot = hip. */
+function chairBack(L: Look): Painter {
+  const c = L.chair!;
+  const p = new Painter(38, 46);
+  const hx = 18, hy = 26;
+  const tire = '#1a1820', rim = lighten(c.frame, 0.25);
+  // backrest with push handle and a little antenna beacon
+  p.rect(hx - 13, hy - 27, 5, 29, c.frame);
+  p.rect(hx - 17, hy - 27, 5, 2, c.frame);
+  p.rect(hx - 12, hy - 24, 3, 22, c.accent);
+  p.line(hx - 11, hy - 27, hx - 11, hy - 33, darken(c.frame, 0.2));
+  p.ellipse(hx - 11, hy - 34, 1.6, 1.6, c.glow);
+  // seat
+  p.rect(hx - 12, hy, 26, 4, c.accent);
+  p.rect(hx - 12, hy + 3, 26, 2, c.frame);
+  // rear wheel
+  const wx = hx - 2, wy = hy + 6;
+  p.ellipse(wx, wy, 11, 11, tire);
+  p.ellipse(wx, wy, 9, 9, rim);
+  p.ellipse(wx, wy, 7.5, 7.5, darken(c.frame, 0.5));
+  for (let a = 0; a < 8; a++) {
+    const t = (a * Math.PI) / 4;
+    p.line(wx, wy, wx + Math.cos(t) * 7, wy + Math.sin(t) * 7, rim);
+  }
+  p.ellipse(wx, wy, 2.6, 2.6, c.accent);
+  p.set(wx, wy, c.glow);
+  p.shade(0.18);
+  p.outline(OUT);
+  return p;
+}
+
+/** Seated legs, footrest and the armrest console, drawn in front of the torso. Pivot = hip. */
+function chairFront(L: Look): Painter {
+  const c = L.chair!;
+  const p = new Painter(36, 34);
+  const hx = 10, hy = 12;
+  p.line(hx + 2, hy + 4, hx + 14, hy + 19, c.frame);
+  p.line(hx + 3, hy + 4, hx + 15, hy + 19, c.frame);
+  p.rect(hx + 10, hy + 18, 13, 2, lighten(c.frame, 0.15));
+  p.capsule(hx, hy, 4.6, hx + 14, hy + 1, 4, L.pants);
+  p.capsule(hx + 14, hy + 1, 3.8, hx + 15, hy + 13, 3.2, L.pants);
+  p.poly([[hx + 12, hy + 13], [hx + 17, hy + 13], [hx + 22, hy + 16], [hx + 22, hy + 18], [hx + 12, hy + 18]], L.boots);
+  // armrest with a glowing control console
+  p.rect(hx - 8, hy - 6, 20, 2, c.frame);
+  p.line(hx + 9, hy - 4, hx + 9, hy + 1, c.frame);
+  p.rect(hx + 8, hy - 11, 8, 5, darken(c.frame, 0.3));
+  p.rect(hx + 9, hy - 10, 6, 3, '#103020');
+  p.shade(0.18);
+  p.set(hx + 10, hy - 9, c.glow);
+  p.set(hx + 12, hy - 9, c.glow);
+  p.set(hx + 13, hy - 8, c.glow);
   p.outline(OUT);
   return p;
 }
@@ -267,6 +364,7 @@ export function buildParts(L: Look): PartSet {
     uarm: part(ua, 6, 3), farm: part(faF, 6, 3), thigh: part(th, 7, 3), shin: part(sh, 6, 2), foot: part(ft, 4, 2),
     uarmB: part(ua, 6, 3, true), farmB: part(faB, 6, 3, true), thighB: part(th, 7, 3, true), shinB: part(sh, 6, 2, true),
     footB: part(ft, 4, 2, true),
+    ...(L.chair ? { chair: part(chairBack(L), 18, 26), chairF: part(chairFront(L), 10, 12) } : {}),
   };
 }
 

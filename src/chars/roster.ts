@@ -7,6 +7,7 @@ import type { Move, Special } from '../game/types';
 import { Projectile, ProjKind } from '../game/projectile';
 import type { Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
+import { HAWKING_ALT, HAWKING_FINISHER, HAWKING_LOOK, hawkingSpecials } from './hawking';
 
 // Original takes on historical figures. Commands are relative to facing:
 // 6 = toward the opponent, 4 = away, 2 = down, 3 = down-toward, 1 = down-away.
@@ -314,6 +315,10 @@ export function roster(): CharDef[] {
       finisher: { name: 'Hundred-Fist Finale', cmd: [4, 6, 4, 6], btn: 'lp', text: 'B, F, B, F + LP (close)', range: [0, 70] },
     },
     lumpsum(),
+    {
+      id: 'hawking', name: 'Stephen Hawking', short: 'HAWKING', title: 'Spacetime Bender', look: HAWKING_LOOK, alt: HAWKING_ALT,
+      specials: hawkingSpecials, voice: 120, props: {}, finisher: HAWKING_FINISHER,
+    },
   ];
   return cache;
 }
