@@ -11,6 +11,7 @@ import { BlizzardStage } from './blizzard';
 import { UndergroundStage } from './underground';
 import { BurgerStage } from './burger';
 import { PyramidStage } from './pyramid';
+import { FlavortownStage } from './flavortown';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -54,6 +55,7 @@ export const STAGES: StageEntry[] = [
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
   { id: 'pyramid', name: 'TOMB OF THE SUN KING', make: (b) => new PyramidStage(b) },
+  { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
