@@ -1,5 +1,5 @@
 import type { SongName } from '../audio/music';
-import type { PartSet } from '../gfx/rig';
+import type { PartSet, Pose } from '../gfx/rig';
 import type { Fight } from './fight';
 import { MoonStage } from './moon';
 import { Stage } from './stage';
@@ -14,6 +14,19 @@ import { ConcertStage } from './concert';
 import type { Particles } from './particles';
 import { FlavortownStage } from './flavortown';
 import { DojoStage } from './dojo';
+import { RunwayStage } from './runway';
+
+/** A custom bottom-of-the-pit landing for the uppercut stage finish, in place of the spikes. */
+export interface PitLanding {
+  /** How the victim lies once they hit the bottom. */
+  pose: Pose;
+  /** The moment they hit. */
+  land(f: Fight): void;
+  /** Every frame after landing; it counts up from 1. */
+  tick(f: Fight, it: number): void;
+  /** Drawn over the victim in the close-up. */
+  draw(ctx: CanvasRenderingContext2D, it: number): void;
+}
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -43,6 +56,8 @@ export interface Arena {
   stakeColor?: string;
   /** Optional vertical offset (screen px) for the floor, fighters and effects, e.g. a rocking deck. */
   bob?(t: number): number;
+  /** Replaces the spike impale at the bottom of the uppercut-finish drop. */
+  pitLanding?: PitLanding;
 }
 
 interface StageEntry {
@@ -63,6 +78,7 @@ export const STAGES: StageEntry[] = [
   { id: 'concert', name: 'THE DECIBEL DOME', make: (b) => new ConcertStage(b) },
   { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'dojo', name: 'IRONWOOD DOJO', make: (b) => new DojoStage(b) },
+  { id: 'runway', name: 'THE RUNWAY', make: (b) => new RunwayStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
