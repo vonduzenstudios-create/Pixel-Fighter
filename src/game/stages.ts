@@ -11,6 +11,7 @@ import { MushroomStage } from './mushroom';
 import { BlizzardStage } from './blizzard';
 import { UndergroundStage } from './underground';
 import { BurgerStage } from './burger';
+import { PyramidStage } from './pyramid';
 import { ConcertStage } from './concert';
 import type { Particles } from './particles';
 import { FlavortownStage } from './flavortown';
@@ -88,6 +89,7 @@ export const STAGES: StageEntry[] = [
   { id: 'blizzard', name: 'THE HOWLING PASS', make: (b) => new BlizzardStage(b) },
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
+  { id: 'pyramid', name: 'TOMB OF THE SUN KING', make: (b) => new PyramidStage(b) },
   { id: 'concert', name: 'THE DECIBEL DOME', make: (b) => new ConcertStage(b) },
   { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'dojo', name: 'IRONWOOD DOJO', make: (b) => new DojoStage(b) },

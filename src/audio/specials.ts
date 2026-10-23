@@ -738,6 +738,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   paint: { impact: 'splat' },
   hole: { travel: { every: 24, cue: 'drone' }, impact: 'gravityHit' },
   tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
+  smolder: { travel: { every: 10, cue: 'twinkle' }, impact: ['sparkle', 'glovePop'], blocked: 'sparkle' },
   gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
   drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
   grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
