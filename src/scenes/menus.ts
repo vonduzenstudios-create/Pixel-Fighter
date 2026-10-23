@@ -15,6 +15,7 @@ import { playSong } from '../audio/music';
 import { audioReady } from '../audio/audio';
 import { drawFigure, Scene } from './common';
 import { PostMatchScene } from './postmatch';
+import { WhatsNewScene } from './whatsnew';
 
 export interface Settings {
   players: 1 | 2;
@@ -33,7 +34,7 @@ const confirm = (p: RawInput) => p.lp || p.hp || p.start;
 const cancel = (p: RawInput, app: App) => p.back || app.back;
 
 let bg: HTMLCanvasElement | null = null;
-function selectBg() {
+export function selectBg() {
   if (bg) return bg;
   const p = new Painter(W, H);
   p.gradRect(0, 0, W, H, '#1a0610', '#3a0a10', 10);
@@ -67,8 +68,8 @@ export class TitleScene implements Scene {
       this.menu = false;
       return;
     }
-    if (p.u) (this.sel = (this.sel + 3) % 4), sfx.menuMove();
-    if (p.d) (this.sel = (this.sel + 1) % 4), sfx.menuMove();
+    if (p.u) (this.sel = (this.sel + 4) % 5), sfx.menuMove();
+    if (p.d) (this.sel = (this.sel + 1) % 5), sfx.menuMove();
     const s = this.app.settings;
     if (this.sel === 2 && (p.l || p.r)) {
       s.diff = ((s.diff + (p.r ? 1 : 2)) % 3) as Difficulty;
@@ -80,7 +81,8 @@ export class TitleScene implements Scene {
         s.players = this.sel === 0 ? 1 : 2;
         this.app.go(new SelectScene(this.app));
       } else if (this.sel === 2) s.diff = ((s.diff + 1) % 3) as Difficulty;
-      else this.app.go(new MoveListScene(this.app));
+      else if (this.sel === 3) this.app.go(new MoveListScene(this.app));
+      else this.app.go(new WhatsNewScene(this.app));
     }
   }
 
@@ -104,7 +106,7 @@ export class TitleScene implements Scene {
       if (this.t % 50 < 34) drawText(ctx, 'PRESS START', W / 2, 140, '#fff', { scale: 2, align: 'center', outline: '#000' });
     } else {
       const s = this.app.settings;
-      const items = ['1 PLAYER VS CPU', '2 PLAYERS', `CPU: < ${DIFF_NAMES[s.diff]} >`, 'MOVE LIST'];
+      const items = ['1 PLAYER VS CPU', '2 PLAYERS', `CPU: < ${DIFF_NAMES[s.diff]} >`, 'MOVE LIST', "WHAT'S NEW"];
       items.forEach((it, i) => {
         const y = 120 + i * 14;
         const on = i === this.sel;

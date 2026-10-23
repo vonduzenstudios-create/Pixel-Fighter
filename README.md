@@ -15,10 +15,17 @@ image or audio files in the repo.
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # static build in dist/
+npm test         # checks CHANGELOG.md
 ```
 
 Pushing to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`
 (set **Settings → Pages → Source** to **GitHub Actions** once).
+
+## What's new
+
+`CHANGELOG.md` lists the notable changes, one section per day. The game bundles it into the
+**What's new** screen on the title menu, and the build also makes a standalone `whats-new.html`
+page. A nightly task adds new days by itself, so you don't need to edit it by hand.
 
 ## Controls
 
