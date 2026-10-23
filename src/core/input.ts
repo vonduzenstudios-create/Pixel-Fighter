@@ -79,11 +79,21 @@ export function readPlayer(slot: 0 | 1, shared: boolean): RawInput {
   return or(kb(slot), pad(slot));
 }
 
-/** Edge detector for menus. */
+/**
+ * Edge detector for menus. The first update only records a baseline, so a button
+ * still held from the previous screen doesn't count as a fresh press.
+ */
 export class Edge {
   prev: RawInput = { ...EMPTY };
   pressed: RawInput = { ...EMPTY };
+  private primed = false;
   update(cur: RawInput) {
+    if (!this.primed) {
+      this.primed = true;
+      this.prev = { ...cur };
+      this.pressed = { ...EMPTY };
+      return this.pressed;
+    }
     const p: any = {};
     for (const k in cur) p[k] = (cur as any)[k] && !(this.prev as any)[k];
     this.pressed = p;
