@@ -215,7 +215,11 @@ export class Fighter {
     } else if (s === 'thrown') {
       this.updateThrown(f);
       return;
-    } else if (s === 'victory' || s === 'dizzy' || s === 'fatal' || s === 'dead') {
+    } else if (s === 'dizzy') {
+      this.vx *= 0.8;
+      // reel from a hit, then go back to swaying
+      if (this.stun > 0 && --this.stun === 0) this.setAnim(AN.DIZZY_ANIM);
+    } else if (s === 'victory' || s === 'fatal' || s === 'dead') {
       this.vx *= 0.8;
     }
 
@@ -293,11 +297,11 @@ export class Fighter {
     const d = this.dir;
     const dist = Math.abs(this.opp.x - this.x);
     let m: Move;
-    if (d <= 3) m = b === 'lp' ? MV.CROUCH_PUNCH : b === 'hp' ? MV.UPPERCUT : b === 'lk' ? MV.CROUCH_KICK : MV.SWEEP;
+    if (d <= 3) m = b === 'lp' ? MV.CROUCH_PUNCH : b === 'hp' ? MV.UPPERCUT : b === 'lk' ? MV.CROUCH_KICK : MV.CROUCH_HIGH_KICK;
     else if (d === 4) m = b === 'lk' ? MV.SWEEP : b === 'hk' ? MV.ROUNDHOUSE : b === 'lp' ? MV.JAB : MV.HIGH_PUNCH;
-    else if (d === 6 && (b === 'lp' || b === 'hp') && dist < 34) {
+    else if (d === 6 && b === 'lp' && dist < 34) {
       if (f.tryThrow(this)) return true;
-      m = b === 'lp' ? MV.JAB : MV.HIGH_PUNCH;
+      m = MV.JAB;
     } else m = b === 'lp' ? MV.JAB : b === 'hp' ? MV.HIGH_PUNCH : b === 'lk' ? MV.LOW_KICK : MV.HIGH_KICK;
     this.startMove(m, f);
     return true;
@@ -450,6 +454,15 @@ export class Fighter {
     return low ? level !== 'overhead' : level !== 'low';
   }
 
+  /** Take a hit while dazed during the finisher window: reel, but stay on your feet. */
+  reel(from: Fighter, at: { x: number; y: number }) {
+    const away = this.x >= from.x ? 1 : -1;
+    this.setAnim(at.y > this.y + 52 ? AN.HITSTUN_HIGH : AN.HITSTUN_MID);
+    this.stun = 16;
+    this.shake = 6;
+    this.vx = away * 2.2;
+  }
+
   /** Apply a hit that connected. Returns 'block' or 'hit'. */
   receive(hit: HitDef, from: Fighter, f: Fight, at: { x: number; y: number }, projectile = false): 'block' | 'hit' {
     const away = this.x >= from.x ? 1 : -1;
@@ -475,9 +488,10 @@ export class Fighter {
       this.y = Math.max(this.y, 1);
       this.setState(eff === 'launch' ? 'launched' : 'fall', eff === 'launch' ? AN.TUMBLE : AN.FALL);
     } else if (eff === 'launch') {
-      this.vy = 7.4;
+      const [up, out] = hit.lift ?? [7.4, 1.7];
+      this.vy = up;
       this.y = 1;
-      this.vx = away * 1.7;
+      this.vx = away * out;
       this.juggle = 1;
       this.setState('launched', AN.TUMBLE);
     } else if (eff === 'knockdown' || eff === 'sweep') {
