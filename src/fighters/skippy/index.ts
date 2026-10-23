@@ -17,6 +17,7 @@ export default {
   make() {
     const c = skippy();
     c.selectSet ??= SETS.toyroom;
+    c.homeStage ??= 'playground';
     return c;
   },
   fx: {

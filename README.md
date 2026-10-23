@@ -139,7 +139,7 @@ needs to change: `npm test` checks that it registers and builds.
 | File | What goes in it |
 | --- | --- |
 | `index.ts` | Default-exports a `FighterModule` (`src/fighters/kit.ts`): `order` (select-screen position, lower first; pick a number not used yet), `make()` returning the `CharDef` (with `selectSet`, its character-select diorama from `SETS` in `src/scenes/sets.ts` or one of its own), and optionally `moveSounds`, `projectiles` and `fx`. |
-| `fighter.ts` | The `CharDef`: name, `Look` and alt colours, specials and finisher, props, `intro`, `portrait`, `quotes` / `quotesVs` taunts, optional `scale`, `fatality` and `fatalityDraw`. |
+| `fighter.ts` | The `CharDef`: name, `Look` and alt colours, specials and finisher, props, `intro`, `portrait`, `quotes` / `quotesVs` taunts, optional `scale`, `fatality` and `fatalityDraw`, and `homeStage`: the folder id of the fighter's home stage (`src/stages/<id>/`, e.g. `'spire'`). In 1P, stage select starts there when you face this fighter, and you can still scroll to the others. Without one, stage select starts on the last stage played. |
 | `intro.ts` | Optional round 1 entrance (`Intro`, see `src/game/intro.ts`). |
 | `projectiles.ts` | Optional `ProjDef`s by kind name: stats, sounds, `update`, `draw`, `onHit`. Kind names must be unique across fighters. |
 | `voice.json` | The fighter's Kokoro speaker (keyed by its id) and its lines, plus the announcer's `"<Name> wins"` line. |

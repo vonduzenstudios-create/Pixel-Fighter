@@ -8,6 +8,7 @@ export default {
   make() {
     const c = guyFieri();
     c.selectSet ??= SETS.flames;
+    c.homeStage ??= 'flavortown';
     return c;
   },
   moveSounds: {

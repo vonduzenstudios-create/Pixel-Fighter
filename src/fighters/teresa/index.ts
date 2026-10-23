@@ -5,7 +5,11 @@ import { TERESA_FX } from './sounds';
 
 export default {
   order: 215,
-  make: teresa,
+  make() {
+    const c = teresa();
+    c.homeStage ??= 'church';
+    return c;
+  },
   projectiles: PROJECTILES,
   fx: TERESA_FX,
 } satisfies FighterModule;
