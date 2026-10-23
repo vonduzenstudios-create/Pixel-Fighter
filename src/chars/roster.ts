@@ -1,4 +1,5 @@
 import { buildParts, Look } from './build';
+import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
@@ -396,6 +397,7 @@ export function roster(): CharDef[] {
       specials: chuckSpecials, voice: 100, props: {},
       finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 60] },
     },
+    aliDef(),
     lumpsum(),
     bobRoss(),
   ];

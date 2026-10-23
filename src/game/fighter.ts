@@ -467,6 +467,12 @@ export class Fighter {
   /** Apply a hit that connected. Returns 'block' or 'hit'. */
   receive(hit: HitDef, from: Fighter, f: Fight, at: { x: number; y: number }, projectile = false): 'block' | 'hit' {
     const away = this.x >= from.x ? 1 : -1;
+    const ctr = this.state === 'attack' ? this.move?.counter : undefined;
+    if (ctr && this.mf >= ctr.from && this.mf < ctr.to) {
+      this.faceOpp();
+      this.startMove(ctr.move, f);
+      return 'block';
+    }
     if (this.canBlockNow(hit.level)) {
       const low = this.crouching;
       this.setState('blockstun', low ? AN.CBLOCK_ANIM : AN.BLOCK_ANIM);

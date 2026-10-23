@@ -154,6 +154,14 @@ export const sfx = {
     const c = ac();
     if (c) tone({ type: 'square', freq: 784, dur: 0.12, vol: 0.1, at: c.currentTime + 0.07 });
   },
+  bell() {
+    // boxing ring bell: two bright metallic dings
+    const c = ac();
+    if (!c) return;
+    for (const at of [0, 0.22])
+      for (const [f, v] of [[1320, 0.22], [1980 * 1.01, 0.1], [3170, 0.06]])
+        tone({ type: 'sine', freq: f, to: f * 0.995, dur: 0.9, vol: v, attack: 0.002, at: c.currentTime + at });
+  },
   /** A squeaky falsetto "TOAST-EE!!" for the uppercut easter egg. */
   toasty() {
     const c = ac();
