@@ -1,11 +1,12 @@
 import { FLOOR, H, W } from '../core/consts';
 import { Edge, readPlayer, RawInput } from '../core/input';
 import { drawText } from '../gfx/font';
-import { makeCanvas, Painter } from '../gfx/painter';
+import { Painter } from '../gfx/painter';
 import { roster, partsFor } from '../chars/roster';
 import { buildBones } from '../gfx/bones';
 import { sample, IDLE, VICTORY_ANIM, STANCE } from '../game/anims';
-import { Arena, STAGES } from '../game/stages';
+import { Stage } from '../game/stage';
+import { arena, Arena, STAGES } from '../game/stages';
 import { Fighter, CharDef } from '../game/fighter';
 import { Fight } from '../game/fight';
 import { AICtrl, DIFF_NAMES, Difficulty, HumanCtrl } from '../game/ai';
@@ -17,12 +18,13 @@ import { drawFigure, Scene } from './common';
 export interface Settings {
   players: 1 | 2;
   diff: Difficulty;
+  stage: number; // index into STAGES, remembered between matches
 }
 
 export interface App {
   settings: Settings;
   go(s: Scene): void;
-  stage: Arena; // the stage picked last (also the title backdrop)
+  stage: Stage;
   back: boolean; // set by Escape key
 }
 
@@ -232,73 +234,60 @@ export class SelectScene implements Scene {
 }
 
 // ------------------------------------------------------------------ Stage select
-const [PREV, PREV_CTX] = makeCanvas(W, H);
-
 export class StageSelectScene implements Scene {
   t = 0;
-  cur: number;
   e = new Edge();
   constructor(private app: App, private a: CharDef, private b: CharDef) {
-    // start on the stage played last; the extra slot at the end is RANDOM
-    this.cur = Math.max(0, STAGES.findIndex((s) => s.make(bonesParts()) === app.stage));
+    this.e.update(readPlayer(0, app.settings.players === 1)); // a button still held from character select shouldn't pick
+  }
+
+  get cur() {
+    return arena(this.app.settings.stage, bonesParts());
   }
 
   update() {
     this.t++;
     playSong('title');
-    const n = STAGES.length + 1;
+    const s = this.app.settings;
+    const n = STAGES.length;
     const p = this.e.update(readPlayer(0, this.app.settings.players === 1));
-    if (p.l) (this.cur = (this.cur + n - 1) % n), sfx.menuMove();
-    if (p.r) (this.cur = (this.cur + 1) % n), sfx.menuMove();
-    if (cancel(p, this.app)) {
-      this.app.back = false;
-      this.app.go(new SelectScene(this.app));
-      return;
-    }
+    if (p.l) (s.stage = (s.stage + n - 1) % n), sfx.menuMove();
+    if (p.r) (s.stage = (s.stage + 1) % n), sfx.menuMove();
     if (confirm(p)) {
       sfx.menuPick();
-      const i = this.cur < STAGES.length ? this.cur : Math.floor(Math.random() * STAGES.length);
-      this.app.stage = STAGES[i].make(bonesParts());
-      this.app.go(new VersusScene(this.app, this.a, this.b));
+      this.app.go(new VersusScene(this.app, this.a, this.b, this.cur));
+    } else if (cancel(p, this.app)) {
+      this.app.back = false;
+      this.app.go(new SelectScene(this.app));
     }
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.drawImage(selectBg(), 0, 0);
-    drawText(ctx, 'CHOOSE A STAGE', W / 2, 10, '#fff', { scale: 2, align: 'center', grad: ['#fff4b0', '#c03010'], outline: '#000' });
-    const random = this.cur >= STAGES.length;
-    const pw = 160, ph = 140, px = (W - pw) / 2, py = 34;
-    ctx.fillStyle = '#000';
-    ctx.fillRect(px - 3, py - 3, pw + 6, ph + 6);
-    ctx.fillStyle = this.t % 30 < 22 ? '#e0c050' : '#a07030';
-    ctx.fillRect(px - 2, py - 2, pw + 4, ph + 4);
-    if (random) {
-      ctx.fillStyle = '#100408';
-      ctx.fillRect(px, py, pw, ph);
-      drawText(ctx, '?', W / 2, py + ph / 2 - 14, '#fff', { scale: 4, align: 'center', grad: ['#ffe0a0', '#c02010'], outline: '#000' });
-    } else {
-      // live, slowly panning preview of the stage scaled into the frame
-      const st = STAGES[this.cur].make(bonesParts());
-      st.draw(PREV_CTX, 128 + Math.sin(this.t * 0.01) * 120, this.t);
-      st.drawFront(PREV_CTX, 128 + Math.sin(this.t * 0.01) * 120, this.t);
-      ctx.drawImage(PREV, 0, 0, W, H, px, py, pw, ph);
-    }
-    const name = random ? 'RANDOM' : STAGES[this.cur].name;
-    const blurb = random ? 'LET FATE DECIDE' : STAGES[this.cur].make(bonesParts()).blurb ?? '';
-    drawText(ctx, `< ${name} >`, W / 2, py + ph + 10, '#ffe060', { scale: 1, align: 'center', outline: '#000' });
-    drawText(ctx, blurb, W / 2, py + ph + 22, '#c8a070', { align: 'center' });
-    drawText(ctx, `${this.cur + 1} / ${STAGES.length + 1}`, W / 2, H - 10, '#806060', { align: 'center' });
+    const st = this.cur;
+    const cam = 128 + Math.sin(this.t * 0.01) * 110;
+    st.draw(ctx, cam, this.t);
+    st.drawFront(ctx, cam, this.t);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, 0, W, 34);
+    ctx.fillRect(0, H - 44, W, 44);
+    drawText(ctx, 'SELECT STAGE', W / 2, 10, '#fff', { scale: 2, align: 'center', grad: ['#fff4b0', '#c03010'], outline: '#000' });
+    const pulse = this.t % 30 < 15 ? '#ff4020' : '#ffa060';
+    drawText(ctx, '<', 10, H - 30, pulse, { scale: 2, outline: '#000' });
+    drawText(ctx, '>', W - 20, H - 30, pulse, { scale: 2, outline: '#000' });
+    drawText(ctx, st.name, W / 2, H - 32, '#ffe060', { align: 'center', outline: '#000' });
+    drawText(ctx, `${this.app.settings.stage + 1} / ${STAGES.length}`, W / 2, H - 20, '#a09080', { align: 'center' });
+    if (st.blurb) drawText(ctx, st.blurb, W / 2, H - 10, '#c8a070', { align: 'center' });
   }
 }
 
 // ------------------------------------------------------------------ Versus splash, then the fight
 export class VersusScene implements Scene {
   t = 0;
-  constructor(private app: App, private a: CharDef, private b: CharDef) {}
+  constructor(private app: App, private a: CharDef, private b: CharDef, private stage: Arena) {}
   update() {
     this.t++;
     if (this.t === 1) sfx.gong();
-    if (this.t >= 130) this.app.go(new FightScene(this.app, this.a, this.b));
+    if (this.t >= 130) this.app.go(new FightScene(this.app, this.a, this.b, this.stage));
   }
   draw(ctx: CanvasRenderingContext2D) {
     ctx.drawImage(selectBg(), 0, 0);
@@ -308,7 +297,7 @@ export class VersusScene implements Scene {
     drawText(ctx, this.a.name, 64, 14, '#fff', { align: 'center', scale: 1, outline: '#000' });
     drawText(ctx, this.b.name, W - 64, 14, '#fff', { align: 'center', scale: 1, outline: '#000' });
     if (this.t > 25) drawText(ctx, 'VS', W / 2, 90, '#fff', { scale: 4, align: 'center', grad: ['#fff0a0', '#d01010'], outline: '#000', shadow: '#000' });
-    drawText(ctx, this.app.stage.name, W / 2, H - 14, '#c8a070', { align: 'center' });
+    drawText(ctx, this.stage.name, W / 2, H - 14, '#c8a070', { align: 'center' });
   }
 }
 
@@ -317,12 +306,12 @@ export const bonesParts = () => (bonesCache ??= buildBones());
 
 export class FightScene implements Scene {
   fight: Fight;
-  constructor(private app: App, a: CharDef, b: CharDef) {
+  constructor(private app: App, a: CharDef, b: CharDef, stage: Arena = app.stage) {
     const two = app.settings.players === 2;
     const bones = bonesParts();
     const f1 = new Fighter(a, partsFor(a), bones, new HumanCtrl(0, !two), 0);
     const f2 = new Fighter(b, partsFor(b, a === b), bones, two ? new HumanCtrl(1, false) : new AICtrl(app.settings.diff), 1);
-    this.fight = new Fight([f1, f2], app.stage, [true, two], () => app.go(new SelectScene(app)));
+    this.fight = new Fight([f1, f2], stage, [true, two], () => app.go(new SelectScene(app)));
   }
   update() {
     this.fight.update();

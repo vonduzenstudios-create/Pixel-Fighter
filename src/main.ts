@@ -1,7 +1,7 @@
 import { H, W } from './core/consts';
 import { onKey } from './core/input';
 import { initAudio } from './audio/audio';
-import { STAGES } from './game/stages';
+import { Stage } from './game/stage';
 import { App, Settings, TitleScene, FightScene, bonesParts } from './scenes/menus';
 import { AICtrl } from './game/ai';
 import { roster } from './chars/roster';
@@ -25,11 +25,11 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-const settings: Settings = { players: 1, diff: 1 };
+const settings: Settings = { players: 1, diff: 1, stage: 0 };
 let scene: Scene;
 const app: App = {
   settings,
-  stage: STAGES[0].make(bonesParts()),
+  stage: new Stage(bonesParts()),
   back: false,
   go(s: Scene) {
     scene = s;

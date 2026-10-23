@@ -208,7 +208,7 @@ function space(): HTMLCanvasElement {
 
 export class MoonStage {
   name = 'SEA OF SILENCE';
-  blurb = 'LOW GRAVITY  -  UPPERCUT THEM INTO ORBIT';
+  blurb = 'LOW GRAVITY - UPPERCUT INTO ORBIT';
   song: SongName = 'moon';
   gravity = 0.19;
   pit = null;

@@ -2,16 +2,17 @@ import type { SongName } from '../audio/music';
 import type { PartSet } from '../gfx/rig';
 import { MoonStage } from './moon';
 import { Stage } from './stage';
+import { TrainStage } from './train';
 
-/** What a fight needs from a stage: its look, its music and its stage finish. */
+/** Anything the fight can be staged in. */
 export interface Arena {
   name: string;
   song: SongName;
-  /** Spike-pit backdrop; the uppercut pit finish only exists when this is set. */
+  /** Backdrop for the uppercut stage finish; null if the stage has none. */
   pit: HTMLCanvasElement | null;
   /** Fighter gravity in px/frame^2; defaults to GRAV. */
   gravity?: number;
-  /** Deep-space backdrop for the launch-them-off-the-moon uppercut finish. */
+  /** Deep-space backdrop for the launch-them-off-the-moon uppercut finish (used when pit is null). */
   space?: HTMLCanvasElement;
   /** One line shown on stage select. */
   blurb?: string;
@@ -25,14 +26,17 @@ interface StageEntry {
   make: (bones: PartSet) => Arena;
 }
 
-const cache = new Map<string, Arena>();
-const lazy = (id: string, f: (bones: PartSet) => Arena) => (bones: PartSet) => {
-  let a = cache.get(id);
-  if (!a) cache.set(id, (a = f(bones)));
-  return a;
-};
-
 export const STAGES: StageEntry[] = [
-  { id: 'gorge', name: 'THE THORN GORGE', make: lazy('gorge', (b) => new Stage(b)) },
-  { id: 'moon', name: 'SEA OF SILENCE', make: lazy('moon', () => new MoonStage()) },
+  { id: 'gorge', name: 'THE THORN GORGE', make: (b) => new Stage(b) },
+  { id: 'train', name: 'THE MIDNIGHT EXPRESS', make: (b) => new TrainStage(b) },
+  { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
+
+// Stages paint themselves at construction, so build each one only when first needed.
+const cache = new Map<string, Arena>();
+export function arena(i: number, bones: PartSet): Arena {
+  const s = STAGES[i];
+  let a = cache.get(s.id);
+  if (!a) cache.set(s.id, (a = s.make(bones)));
+  return a;
+}

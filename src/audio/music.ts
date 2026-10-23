@@ -4,7 +4,7 @@ import { ac, midi, musicOut, noise, tone } from './audio';
 // progressions that drive generated bass, string pads and percussion.
 // All compositions here are original.
 
-type Inst = 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat';
+type Inst = 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle';
 interface Note { step: number; inst: Inst; n: number; len: number; vol?: number }
 interface Song { bpm: number; steps: number; notes: Note[] }
 
@@ -88,6 +88,57 @@ function fightSong(): Song {
   return { bpm: 118, steps: bars * 16, notes };
 }
 
+// The Midnight Express: a driving E minor gallop over a clickety-clack rail rhythm.
+function trainSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['Em', 'C', 'D', 'B', 'Em', 'C', 'Am', 'B', 'C', 'D', 'Em', 'Em', 'Am', 'C', 'B', 'B'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch);
+    const root = tones[0];
+    const low = 36 + root - (root > 7 ? 12 : 0); // bass root around E2
+    // pumping octave bass, like pistons
+    for (let st = 0; st < 16; st += 2) notes.push({ step: s + st, inst: 'bass', n: low + (st % 4 === 2 ? 12 : 0), len: 1 });
+    tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 59 + ((t + 1) % 12), len: 16, vol: 0.04 }));
+    // the rails: a double clack on every beat, accented on the one
+    for (let st = 0; st < 16; st += 4) {
+      notes.push({ step: s + st, inst: 'clack', n: 0, len: 1, vol: st === 0 ? 1 : 0.6 });
+      notes.push({ step: s + st + 1, inst: 'clack', n: 0, len: 1, vol: 0.45 });
+    }
+    notes.push({ step: s, inst: 'kick', n: 0, len: 1 });
+    notes.push({ step: s + 8, inst: 'kick', n: 0, len: 1 });
+    notes.push({ step: s + 4, inst: 'snare', n: 0, len: 1 });
+    notes.push({ step: s + 12, inst: 'snare', n: 0, len: 1 });
+    for (let h = 2; h < 16; h += 4) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+    if (b % 4 === 3) [14, 15].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1, vol: 0.6 }));
+    if (b >= 8) [0, 3, 6].forEach((st) => tones.forEach((t) => notes.push({ step: s + st, inst: 'brass', n: 52 + ((t + 8) % 12), len: 2 })));
+    if (b === 8 || b === 12) notes.push({ step: s, inst: 'timp', n: 40, len: 4 });
+  });
+  // the whistle blows as the loop comes around
+  notes.push({ step: 0, inst: 'whistle', n: 76, len: 10 });
+  notes.push({ step: 128, inst: 'whistle', n: 76, len: 6 });
+  const lead = [
+    'E5 - - - B4 - E5 - G5 - - - F#5 - E5 -',
+    'G5 - - - E5 - - - C5 - D5 - E5 - - -',
+    'F#5 - - - D5 - - - A4 - D5 - F#5 - A5 -',
+    'G5 - F#5 - D#5 - - - B4 - - - - - - -',
+    'E5 - - - B4 - E5 - G5 - - - A5 - B5 -',
+    'C6 - - - B5 - A5 - G5 - - - E5 - - -',
+    'A5 - - - G5 - E5 - C5 - E5 - A5 - - -',
+    'F#5 - - - D#5 - - - B4 - - - . . . .',
+    'G5 - - - - - E5 - G5 - - - C6 - - -',
+    'A5 - - - - - F#5 - D5 - - - A5 - - -',
+    'B5 - - - G5 - - - E5 - G5 - B5 - - -',
+    'E6 - - - - - - - D6 - C6 - B5 - - -',
+    'C6 - B5 - A5 - - - E5 - - - A5 - - -',
+    'G5 - A5 - G5 - E5 - C5 - - - E5 - G5 -',
+    'F#5 - - - - - - - D#5 - - - F#5 - - -',
+    'B5 - - - - - - - A5 - G5 - F#5 - D#5 -',
+  ];
+  lead.forEach((l, i) => notes.push(...line(l, 'lead', i * 16)));
+  return { bpm: 152, steps: prog.length * 16, notes };
+}
+
 function titleSong(): Song {
   const notes: Note[] = [];
   const prog = ['Dm', 'Bb', 'Gm', 'A', 'Dm', 'F', 'C', 'A'];
@@ -161,7 +212,7 @@ function moonSong(): Song {
   return { bpm: 84, steps: prog.length * 16, notes };
 }
 
-export const SONGS = { fight: fightSong(), title: titleSong(), victory: victorySong(), moon: moonSong() };
+export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), moon: moonSong() };
 export type SongName = keyof typeof SONGS;
 
 function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
@@ -204,6 +255,16 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
       break;
     case 'hat':
       noise({ dur: 0.04, vol: 0.05, type: 'highpass', freq: 7000, at, out });
+      break;
+    case 'clack':
+      noise({ dur: 0.03, vol: 0.16 * vol, type: 'bandpass', freq: 2600, q: 3, at, out });
+      tone({ type: 'square', freq: 420, to: 300, dur: 0.03, vol: 0.05 * vol, at, out, filter: { type: 'lowpass', freq: 1800 } });
+      break;
+    case 'whistle':
+      // steam whistle: a sour chord of breathy pipes that sag in pitch as the steam runs out
+      for (const k of [1, 1.19, 1.5])
+        tone({ type: 'triangle', freq: f * k, to: f * k * 0.97, dur, vol: 0.05, at, out, attack: 0.06 });
+      noise({ dur, vol: 0.05, type: 'bandpass', freq: f * 1.2, q: 6, at, out, attack: 0.06 });
       break;
   }
 }
