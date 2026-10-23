@@ -355,6 +355,48 @@ export const FX: Record<string, () => void> = {
   steam() {
     noise({ dur: 0.7, vol: 0.08, type: 'highpass', freq: 2600, to: 4200, attack: 0.15 });
   },
+  // ---------------------------------------------------------------- street magic
+  /** A deck riffled through the thumb: a quick run of paper ticks. */
+  cardRiffle() {
+    const t = now();
+    for (let i = 0; i < 14; i++) noise({ dur: 0.012, vol: 0.09 + i * 0.004, type: 'bandpass', freq: 3200 * vary(0.25), q: 3, at: t + i * 0.018 });
+  },
+  /** One card snapped off the fingertips. */
+  cardFlick() {
+    noise({ dur: 0.04, vol: 0.25, type: 'highpass', freq: 2800 });
+    noise({ dur: 0.12, vol: 0.1, type: 'bandpass', freq: 2400, to: 5000, q: 2, attack: 0.02 });
+  },
+  /** Thin, fast whir of a spinning card. */
+  cardWhir() {
+    noise({ dur: 0.1, vol: 0.06, type: 'bandpass', freq: 4200 * vary(), to: 3000, q: 6 });
+  },
+  /** A card edge slicing in: a paper-cut zip and a thin sting. */
+  cardSlice() {
+    noise({ dur: 0.07, vol: 0.3, type: 'highpass', freq: 4000, to: 1800, q: 2 });
+    tone({ type: 'sine', freq: 3600 * vary(), to: 2400, dur: 0.12, vol: 0.04 });
+  },
+  /** Levitation: a hushed, airy shimmer drifting upward. */
+  levitate() {
+    tone({ type: 'sine', freq: 330, to: 660, dur: 0.9, vol: 0.06, attack: 0.4 });
+    tone({ type: 'sine', freq: 495, to: 990, dur: 0.9, vol: 0.04, attack: 0.5, detune: 8 });
+    noise({ dur: 0.8, vol: 0.05, type: 'bandpass', freq: 1200, to: 3000, q: 4, attack: 0.4 });
+  },
+  /** Cold hiss of ice forming around a body. */
+  freeze() {
+    noise({ dur: 0.6, vol: 0.14, type: 'highpass', freq: 5000, to: 2500, attack: 0.2 });
+    tone({ type: 'sine', freq: 1900, to: 2600, dur: 0.5, vol: 0.03, attack: 0.3 });
+  },
+  /** Ice under strain: a sharp crack with a creak. */
+  iceCrack() {
+    noise({ dur: 0.03, vol: 0.35, type: 'highpass', freq: 2500 });
+    tone({ type: 'square', freq: 700 * vary(), to: 180, dur: 0.08, vol: 0.06, filter: { type: 'bandpass', freq: 1500, q: 3 } });
+  },
+  /** A block of ice bursting apart: glassy partials and a dull thump. */
+  iceShatter() {
+    FX.shatter();
+    tone({ type: 'sine', freq: 120, to: 50, dur: 0.25, vol: 0.3 });
+    noise({ dur: 0.3, vol: 0.2, type: 'bandpass', freq: 3000, to: 1200, q: 1 });
+  },
   // ---------------------------------------------------------------- the tomb
   /** A swarm of beetles: fast clicking over a papery buzz. */
   buzz() {
@@ -742,6 +784,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
   grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
   steak: { travel: { every: 12, cue: 'sizzle' }, impact: ['meatSlap', 'sizzle'], blocked: 'meatSlap' },
+  card: { travel: { every: 6, cue: 'cardWhir' }, impact: 'cardSlice', blocked: 'cardFlick' },
   robot: { travel: { every: 12, cue: 'tinTick' }, impact: 'tinClank', blocked: 'tinClank', clash: 'tinClank' },
   scarab: { travel: { every: 12, cue: 'buzz' }, impact: ['buzz', 'crunch'], blocked: 'buzz' },
   sarcophagus: { impact: ['stoneGrind', 'crunch'], blocked: 'stoneGrind' },

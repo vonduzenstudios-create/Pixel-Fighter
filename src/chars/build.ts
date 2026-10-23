@@ -48,6 +48,8 @@ export interface Look {
   bareChest?: boolean;
   /** Cloth wraps on the wrists and hands. */
   wraps?: string;
+  /** Short dark stubble along the jaw and upper lip (stubble colour). */
+  stubble?: string;
   /** Thick-rimmed glasses (frame colour). */
   glasses?: string;
   /** Rides a jointed mech-chair: the legs become hydraulic struts and the seated legs are part of the chair. */
@@ -360,6 +362,9 @@ function head(L: Look): Painter {
     p.line(5, 19, 11, 17, hl);
     p.line(12, 19, 16, 22, hl);
     p.line(2, 30, 3, 35, lighten(L.hair, 0.22));
+  }
+  if (L.stubble) {
+    for (const [x, y] of [[8, 33], [9, 35], [10, 37], [12, 38], [14, 38], [16, 37], [11, 36], [13, 36], [15, 35], [16, 33], [14, 32], [16, 32], [9, 32]]) p.set(x, y, L.stubble);
   }
   if (L.freckles) for (const [x, y] of [[12, 30], [14, 31], [16, 30], [11, 32]]) p.set(x, y, L.freckles);
   if (L.mustache) p.poly([[13, 32], [17, 32], [17, 33.5], [12.5, 34]], L.hair);

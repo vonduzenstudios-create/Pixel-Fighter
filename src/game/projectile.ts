@@ -11,11 +11,12 @@ import { drawSmolder } from '../chars/glare';
 import { drawTinRobot } from '../chars/buster';
 import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
+import { drawCard } from '../chars/blaine';
 import { drawBasketball } from '../chars/shaq';
 import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
 import { ANIMALS, drawAnimal, updateAnimal } from '../chars/irwin';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball' | 'croc' | 'roo' | 'snake' | 'smolder' | 'steak';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball' | 'croc' | 'roo' | 'snake' | 'smolder' | 'card' | 'steak';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -47,6 +48,8 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   // lobbed in an arc (vy set by the thrower), then burns on the floor where it lands
   grease: { dmg: 75, level: 'mid', effect: 'heavy', r: 7, speed: 2.6 },
   steak: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 4.4 },
+  // a playing card flicked edge-first: quick and flat
+  card: { dmg: 70, level: 'high', effect: 'heavy', r: 6, speed: 6.6 },
   // wind-up toy that waddles along the floor: block low
   robot: { dmg: 80, level: 'low', effect: 'sweep', r: 8, speed: 1.9 },
   // a buzzing swarm that weaves as it flies
@@ -124,6 +127,10 @@ export class Projectile {
       case 'gift':
         // a little trail of confetti behind the present
         if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 6, y: this.y + rand(-4, 4), vx: -this.vx * 0.1, vy: 0.4, grav: 0.05, life: 24, max: 24, size: 2, color: ['#f04878', '#f0c020', '#40b8f0', '#60d070'][(this.t / 3) % 4] });
+        break;
+      case 'card':
+        this.y += Math.sin(this.t * 0.4) * 0.4;
+        if (this.t % 4 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 5, y: this.y, life: 8, max: 8, color: '#ffffff', floor: false });
         break;
       case 'holy':
         p.fire(this.x - Math.sign(this.vx) * 4, this.y, 2, 3);
@@ -339,6 +346,9 @@ export class Projectile {
         break;
       case 'grease':
         drawGrease(ctx, this.t, this.landed > 0);
+        break;
+      case 'card':
+        drawCard(ctx, this.t);
         break;
       case 'scarab': {
         // a cluster of beetles: each one bobs on its own little orbit
