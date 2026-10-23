@@ -3,6 +3,7 @@ import { JACKSON_ALT, JACKSON_FINISHER, JACKSON_INTRO, JACKSON_LOOK, JACKSON_SPE
 import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { oprah } from './oprah';
+import { buster } from './buster';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { colonelCrisp } from './colonel';
@@ -481,6 +482,7 @@ export function roster(): CharDef[] {
       quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
     },
     oprah(),
+    buster(),
     kingTut(),
     guyFieri(),
   ];

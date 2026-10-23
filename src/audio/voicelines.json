@@ -16,6 +16,7 @@
     "hawking":    { "voice": "am_eric",    "speed": 0.88, "robot": true },
     "oprah":      { "voice": "af_heart",   "speed": 0.95, "pitch": 0.94 },
     "colonel":    { "voice": "am_santa",   "speed": 0.82, "pitch": 0.94 },
+    "buster":     { "voice": "am_santa",   "speed": 1.12, "pitch": 1.28 },
     "kingtut":    { "voice": "bm_fable",   "speed": 0.88, "pitch": 0.92 },
     "fieri":      { "voice": "am_fenrir",  "speed": 1.12, "pitch": 1.03, "gain": 1.05 }
   },
@@ -31,6 +32,7 @@
     { "file": "lumpsum-intro", "who": "lumpsum", "text": "Your payments are about to END!", "spoken": "Your payments... are about to end!" },
     { "file": "bobross-intro", "who": "bobross", "text": "Easy now. Nice, soft strokes." },
     { "file": "jackson-intro", "who": "jackson", "text": "Hee hee! Try to keep up." },
+    { "file": "buster-intro", "who": "buster", "text": "Ready or not, here I come! Hee hoo hoo!", "spoken": "Ready or not, here I come! Hee hee, hoo hoo!" },
     { "file": "hawking-intro", "who": "hawking", "text": "Let us test the laws of physics." },
     { "file": "colonel-intro", "who": "colonel", "text": "Evening, friend. I'll have you golden brown by suppertime.", "spoken": "Evening, friend... I'll have you golden brown, by suppertime." },
     { "file": "kingtut-intro", "who": "kingtut", "text": "The boy king wakes. Kneel, or be buried." },
@@ -56,6 +58,7 @@
     { "file": "ann-wins-chuck", "who": "announcer", "text": "Chuck Norris wins" },
     { "file": "ann-wins-hawking", "who": "announcer", "text": "Stephen Hawking wins" },
     { "file": "ann-wins-jackson", "who": "announcer", "text": "Michael Jackson wins" },
+    { "file": "ann-wins-buster", "who": "announcer", "text": "Buster Giggleby wins" },
     { "file": "ann-wins-ali", "who": "announcer", "text": "Muhammad Ali wins" },
     { "file": "ann-wins-lumpsum", "who": "announcer", "text": "J.G. Spentworth wins", "spoken": "J. G. Spentworth wins" },
     { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" },
