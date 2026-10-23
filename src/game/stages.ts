@@ -20,6 +20,7 @@ import { RunwayStage } from './runway';
 import { BeachStage } from './beach';
 import { LabStage } from './lab';
 import { HillsStage } from './hills';
+import { ChurchStage } from './church';
 
 /** A custom bottom-of-the-pit landing for the uppercut stage finish, in place of the spikes. */
 export interface PitLanding {
@@ -98,6 +99,7 @@ export const STAGES: StageEntry[] = [
   { id: 'beach', name: 'CORAL COVE', make: () => new BeachStage() },
   { id: 'lab', name: 'THE COIL WORKS', make: (b) => new LabStage(b) },
   { id: 'hills', name: 'BUTTERCUP HILLS', make: () => new HillsStage() },
+  { id: 'church', name: 'THE ECHO CATHEDRAL', make: (b) => new ChurchStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
