@@ -1,6 +1,7 @@
 import { buildParts, Look } from './build';
 import { JACKSON_ALT, JACKSON_FINISHER, JACKSON_LOOK, JACKSON_SPECIALS } from './jackson';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
+import { lumpsum } from './lumpsum';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
 import type { Move, Special } from '../game/types';
@@ -313,6 +314,7 @@ export function roster(): CharDef[] {
       specials: leeSpecials, voice: 180, props: { nunchaku: props.nunchaku },
       finisher: { name: 'Hundred-Fist Finale', cmd: [4, 6, 4, 6], btn: 'lp', text: 'B, F, B, F + LP (close)', range: [0, 70] },
     },
+    lumpsum(),
     {
       id: 'jackson', name: 'Michael Jackson', short: 'JACKSON', title: 'The Gloved One', look: JACKSON_LOOK, alt: JACKSON_ALT,
       specials: JACKSON_SPECIALS, voice: 230, props: {}, finisher: JACKSON_FINISHER,

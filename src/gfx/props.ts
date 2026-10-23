@@ -102,3 +102,51 @@ export function skull(): HTMLCanvasElement {
   p.outline(OUT);
   return p.canvas();
 }
+
+/** Oversized novelty cheque, held by its top edge. */
+export function bigCheck(): Part {
+  const p = new Painter(16, 36);
+  p.rect(1, 2, 14, 32, '#e8f0d8');
+  p.rect(1, 2, 14, 3, '#3a8a4a');
+  p.line(3, 9, 12, 9, '#9ab08a');
+  p.line(3, 14, 12, 14, '#9ab08a');
+  p.line(3, 27, 9, 27, '#2a3a60');
+  p.line(4, 26, 8, 28, '#2a3a60');
+  // "$" box
+  p.rect(9, 18, 5, 6, '#d8e8c0');
+  p.line(11, 18, 11, 23, '#2a7a3a');
+  p.line(10, 19, 12, 19, '#2a7a3a');
+  p.line(10, 21, 12, 21, '#2a7a3a');
+  p.line(10, 23, 12, 23, '#2a7a3a');
+  p.rect(6, 0, 4, 3, '#5a3418');
+  return done(p, 8, 1);
+}
+
+/** A banded brick of bank notes. */
+export function cashBrick(): HTMLCanvasElement {
+  const p = new Painter(16, 10);
+  p.rect(1, 2, 14, 7, '#3e8a4a');
+  p.line(1, 2, 14, 2, '#8ad08a');
+  p.line(1, 5, 14, 5, '#2a6a36');
+  p.rect(6, 1, 4, 9, '#f0e8c8');
+  p.set(7, 4, '#c09030'); p.set(8, 5, '#c09030');
+  p.outline(OUT);
+  return p.canvas();
+}
+
+export function bill(): HTMLCanvasElement {
+  const p = new Painter(7, 4);
+  p.rect(0, 0, 7, 4, '#5aa060');
+  p.rect(1, 1, 5, 2, '#8ad08a');
+  p.set(3, 1, '#2a6a36'); p.set(3, 2, '#2a6a36');
+  return p.canvas();
+}
+
+export function musicNote(color = '#ffe8a0'): HTMLCanvasElement {
+  const p = new Painter(7, 9);
+  p.ellipse(2, 7, 2, 1.5, color);
+  p.line(4, 1, 4, 7, color);
+  p.line(4, 1, 6, 3, color);
+  p.outline(OUT);
+  return p.canvas();
+}
