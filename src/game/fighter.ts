@@ -28,6 +28,8 @@ export interface CharDef {
   /** Pitch of grunts. */
   voice: number;
   props: Partial<Record<PropName, Part>>;
+  /** Custom body sprites (non-human fighters), used instead of the parts built from the Look. */
+  sprites?: (look: Look) => PartSet;
   /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
   fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
   /** Extra drawing for that finishing move: called behind the fighters, then again in front (front = true). */

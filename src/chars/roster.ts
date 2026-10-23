@@ -13,7 +13,8 @@ export function partsFor(c: CharDef, alt = false) {
   const k = c.id + (alt ? '_alt' : '');
   let p = partCache.get(k);
   if (!p) {
-    p = buildParts(alt ? c.alt : c.look);
+    const L = alt ? c.alt : c.look;
+    p = c.sprites ? c.sprites(L) : buildParts(L);
     partCache.set(k, p);
   }
   return p;
