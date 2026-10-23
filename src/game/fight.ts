@@ -234,7 +234,6 @@ export class Fight {
       if (this.phase === 'entrance' && this.pt > 10 && (e.start || e.lp || e.hp || e.lk || e.hk)) this.endEntrances();
     }
     if (this.paused) return;
-    this.pt++;
     for (const b of this.banners) b.t++;
     this.banners = this.banners.filter((b) => b.t < b.dur);
     this.particles.update();
@@ -249,6 +248,9 @@ export class Fight {
     }
     tickPoseClock();
     this.stage.update?.(this);
+    // the phase clock only runs outside hitstop, so the exact-frame cues below (KO -> round end,
+    // banners) can't be skipped when a hit lands on that frame, e.g. the winner still kicking the body
+    this.pt++;
 
     switch (this.phase) {
       case 'entrance':
@@ -820,9 +822,11 @@ export class Fight {
             D.vy += 0.22;
             D.y += D.vy;
             D.rot = (D.rot ?? 0) - 6;
-            if (D.y >= 150) {
+            const rest = this.stage.pitLanding?.rest ?? 150;
+            this.stage.pitLanding?.fall?.(this, Math.min(D.y, rest));
+            if (D.y >= rest) {
               D.impaled = true;
-              D.y = 150;
+              D.y = rest;
               sfx.scream();
               this.shake(10);
               if (this.stage.pitLanding) this.stage.pitLanding.land(this);
@@ -846,7 +850,7 @@ export class Fight {
               if (D.it % 10 === 0) this.pitParticles.sparks(128 + rand(-20, 20), H - 152, 2, '#ffe070');
               if (D.it % 30 === 0) sfx.fire();
             } else if (D.it % 6 === 0) this.pitParticles.blood(128 + rand(-8, 8), H - 152, rand(-1, 1), 2, 0.6);
-            if (D.it > 150) done();
+            if (D.it > (this.stage.pitLanding?.length ?? 150)) done();
           }
         }
         break;
@@ -993,6 +997,8 @@ export class Fight {
     for (const f of this.f) if (f.alpha > 0) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
+    const ownFatal = this.fatal && this.winner?.ch.id === this.fatal.kind ? this.winner.ch.fatalityDraw : undefined;
+    ownFatal?.(ctx, this, cam, false);
     for (const f of order) {
       if (this.fatal?.kind === 'chuck' && f === this.loser && this.fatal.data.sink > 0.5) {
         // hammered into the deck: only what is above the planks shows, over a splintered hole
@@ -1037,6 +1043,7 @@ export class Fight {
       ctx.fillRect(0, 0, W, H);
     }
     if (this.fatal?.kind === 'hawking') drawHawkingFatality(ctx, this, cam);
+    ownFatal?.(ctx, this, cam, true);
     this.particles.draw(ctx, cam);
     ctx.restore();
     this.stage.drawFront(ctx, cam, this.t);
@@ -1073,6 +1080,7 @@ export class Fight {
     if (vat) ctx.drawImage(vat, 0, 0);
     if (landing) {
       if (D.impaled) landing.draw(ctx, D.it ?? 0);
+      else landing.drawFall?.(ctx);
     } else if (!vat && D.impaled) {
       ctx.fillStyle = this.stage.stakeColor ?? '#8a8290';
       ctx.fillRect(127, D.y - 22, 2, 14);
