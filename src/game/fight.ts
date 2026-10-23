@@ -1,4 +1,4 @@
-import { FLOOR, H, MAX_HP, STAGE_W, W } from '../core/consts';
+import { FLOOR, GRAV, H, MAX_HP, STAGE_W, W } from '../core/consts';
 import { Edge, readPlayer } from '../core/input';
 import { rand } from '../core/rng';
 import { drawText } from '../gfx/font';
@@ -11,13 +11,16 @@ import * as AN from './anims';
 import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
-import { Stage } from './stage';
+import type { Arena } from './stages';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
 
 type Phase = 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
 
 interface Banner { text: string; t: number; dur: number; scale: number; grad: [string, string] }
+
+// Where the moon-launch victim meets the Earth's atmosphere on the space backdrop.
+const SPACE_END: [number, number] = [140, 60];
 
 const SKULL = (() => { let s: HTMLCanvasElement | null = null; return () => (s ??= skull()); })();
 const KEG = (() => { let s: HTMLCanvasElement | null = null; return () => (s ??= kegSprite()); })();
@@ -46,10 +49,11 @@ export class Fight {
   hadFatality = false;
   startEdges = [new Edge(), new Edge()];
 
-  constructor(public f: [Fighter, Fighter], public stage: Stage, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
+  constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
     f[1].opp = f[0];
     this.particles.floorY = 0;
+    this.particles.gravScale = (stage.gravity ?? GRAV) / GRAV;
     this.pitParticles.floorY = -200;
     this.resetRound();
   }
@@ -178,6 +182,27 @@ export class Fight {
     stopSong();
   }
 
+  /** Moon stage finish: the uppercut sends them clean off the moon toward the Earth. */
+  startSpaceFatality(w: Fighter) {
+    const l = this.loser!;
+    this.phase = 'fatal';
+    this.pt = 0;
+    this.fatal = { kind: 'space', t: 0, data: { it: 0, rot: 0, fade: 0 } };
+    this.hadFatality = true;
+    w.locked = true;
+    l.setState('fatal', AN.TUMBLE);
+    l.vy = 8;
+    l.y = Math.max(l.y, 4);
+    l.vx = 0;
+    this.particles.blood(l.x, 70, w.facing, 30, 1.4);
+    for (let i = 0; i < 16; i++) this.particles.smoke(l.x + rand(-14, 14), rand(0, 6), 1, '#9a9aa4');
+    sfx.hit(true);
+    sfx.scream();
+    this.shake(8);
+    this.banners = [];
+    stopSong();
+  }
+
   // ------------------------------------------------------------- main update
   update() {
     this.t++;
@@ -206,7 +231,7 @@ export class Fight {
           sfx.gong();
           this.banner(`ROUND ${this.round}`, 70, 3, ['#ffffff', '#c0a060']);
           announce(`Round ${this.round}`);
-          playSong('fight');
+          playSong(this.stage.song);
         }
         if (this.pt === 72) {
           this.banner('FIGHT!', 40, 4, ['#fff080', '#e01010']);
@@ -388,8 +413,9 @@ export class Fight {
 
   resolveHit(a: Fighter, d: Fighter, hit: HitDef, at: { x: number; y: number }, projectile = false) {
     if (this.phase === 'finish' && d === this.loser) {
-      if (a.move?.id === 'uppercut') {
-        this.startPitFatality(a);
+      if (a.move?.id === 'uppercut' && (this.stage.pit || this.stage.space)) {
+        if (this.stage.pit) this.startPitFatality(a);
+        else this.startSpaceFatality(a);
         return;
       }
       d.receive({ ...hit, effect: 'knockdown' }, a, this, at, projectile);
@@ -565,6 +591,36 @@ export class Fight {
         }
         break;
       }
+      case 'space': {
+        if (!this.pitView) {
+          l.y += l.vy;
+          l.vy -= 0.02;
+          l.animT++;
+          w.update(this);
+          w.computePose();
+          l.computePose();
+          if (tt % 2 === 0) this.particles.blood(l.x, l.y + 40, rand(-1, 1), 1, 0.5);
+          if (l.y > 260) {
+            this.pitView = true;
+            D.fade = 20;
+          }
+          this.updateCamera();
+        } else {
+          if (D.fade > 0) D.fade--;
+          D.it++;
+          D.rot -= 5;
+          if (D.it === 110) {
+            sfx.fire();
+            sfx.zap(0.25);
+          }
+          if (D.it >= 110 && D.it < 150) {
+            const [x, y] = SPACE_END;
+            this.pitParticles.fire(x + rand(-1, 1), H - y, 2, 1);
+          }
+          if (D.it > 200) done();
+        }
+        break;
+      }
     }
   }
 
@@ -605,7 +661,7 @@ export class Fight {
     const shy = this.shakeT > 0 ? Math.round(rand(-2, 2)) : 0;
     ctx.save();
     ctx.translate(sh, shy);
-    if (this.pitView) this.drawPit(ctx);
+    if (this.pitView) this.fatal?.kind === 'space' ? this.drawSpace(ctx) : this.drawPit(ctx);
     else this.drawArena(ctx);
     ctx.restore();
     this.drawHUD(ctx);
@@ -654,7 +710,7 @@ export class Fight {
 
   drawPit(ctx: CanvasRenderingContext2D) {
     const D = this.fatal?.data ?? { y: 150, rot: -90, impaled: true };
-    ctx.drawImage(this.stage.pit, 0, 0);
+    ctx.drawImage(this.stage.pit!, 0, 0);
     const l = this.loser!;
     const pose = D.impaled ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
     l.hidden.clear();
@@ -677,6 +733,55 @@ export class Fight {
       ctx.fillRect(128, D.y - 26, 1, 4);
       ctx.fillStyle = '#c01010';
       ctx.fillRect(127, D.y - 14, 2, 6);
+    }
+    this.pitParticles.draw(ctx, 0, H);
+    if (D.fade > 0) {
+      ctx.fillStyle = `rgba(0,0,0,${D.fade / 20})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+  }
+
+  /** The launched loser shrinks away toward the Earth and burns up on re-entry. */
+  drawSpace(ctx: CanvasRenderingContext2D) {
+    const D = this.fatal!.data;
+    ctx.drawImage(this.stage.space!, 0, 0);
+    const l = this.loser!;
+    const [ex, ey] = SPACE_END;
+    if (D.it < 110) {
+      const e = 1 - Math.pow(1 - D.it / 110, 2.2);
+      const x = 112 + (ex - 112) * e, y = H + 40 + (ey - H - 40) * e;
+      const s = 1.6 * (1 - e) + 0.06;
+      l.hidden.clear();
+      l.alpha = 1;
+      l.tint = null;
+      l.showBones = false;
+      l.poseOverride = AN.P(AN.LAUNCHED, { rot: D.rot });
+      l.y = 0;
+      l.vy = 0;
+      l.computePose();
+      const savedX = l.x;
+      l.x = 0;
+      l.G = 0;
+      ctx.save();
+      ctx.translate(Math.round(x), Math.round(y));
+      ctx.scale(s, s);
+      l.draw(ctx, 0, 0);
+      ctx.restore();
+      l.x = savedX;
+    } else {
+      // re-entry: a bright streak into the atmosphere, then a single glint
+      const b = D.it - 110;
+      if (b < 40) {
+        for (let i = 0; i < 8; i++) {
+          ctx.fillStyle = i < 2 ? '#ffffff' : i < 5 ? '#ffd060' : '#ff6020';
+          ctx.fillRect(ex + Math.round(i * 0.6 + b * 0.15), ey + Math.round(i + b * 0.35), 1, 1);
+        }
+      } else if (b < 70) {
+        const r = b < 50 ? 2 : 1;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(ex + 6 - r, ey + 14, r * 2 + 1, 1);
+        ctx.fillRect(ex + 6, ey + 14 - r, 1, r * 2 + 1);
+      }
     }
     this.pitParticles.draw(ctx, 0, H);
     if (D.fade > 0) {
@@ -732,7 +837,7 @@ export class Fight {
       drawText(ctx, f.ch.finisher.text, W - 16, y, '#f99', { align: 'right' });
       y += 14;
     }
-    drawText(ctx, 'STAGE FINISH: UPPERCUT (D+HP) WHEN THEY ARE DAZED', W / 2, y, '#fa8', { align: 'center' });
+    if (this.stage.pit || this.stage.space) drawText(ctx, 'STAGE FINISH: UPPERCUT (D+HP) WHEN THEY ARE DAZED', W / 2, y, '#fa8', { align: 'center' });
     drawText(ctx, 'PRESS START TO RESUME', W / 2, H - 16, '#fff', { align: 'center' });
   }
 }
