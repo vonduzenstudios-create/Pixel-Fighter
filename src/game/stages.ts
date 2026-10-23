@@ -12,6 +12,7 @@ import { UndergroundStage } from './underground';
 import { BurgerStage } from './burger';
 import { ConcertStage } from './concert';
 import type { Particles } from './particles';
+import { FlavortownStage } from './flavortown';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -57,6 +58,7 @@ export const STAGES: StageEntry[] = [
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
   { id: 'concert', name: 'THE DECIBEL DOME', make: (b) => new ConcertStage(b) },
+  { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 

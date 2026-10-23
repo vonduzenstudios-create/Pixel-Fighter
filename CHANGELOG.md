@@ -7,7 +7,7 @@ The notable changes to the game, newest first, one section per day (US Eastern t
 *Opening night: a full roster of brawlers, six stages and a lot of noise.*
 
 - **Pixel Fighter is here.** A 16-bit style fighting game where every pixel, sound and note of music is made in code. Pick from Abe Lincoln, Nikola Tesla, Joan of Arc and Blackbeard and battle a CPU on three difficulty levels, or a friend.
-- **Seven new fighters.** Chuck Norris, Bruce Lee, Muhammad Ali, Michael Jackson, Bob Ross, Stephen Hawking and the operatic cash man Monty Lumpsum join the fight, each with three special moves and a finishing move of their own.
+- **Seven new fighters.** Chuck Norris, Bruce Lee, Muhammad Ali, Michael Jackson, Bob Ross, Stephen Hawking and the operatic cash man J.G. Spentworth join the fight, each with three special moves and a finishing move of their own.
 - **Five new stages.** Fight on the roof of a speeding night train, a neon skyscraper in the code rain, a storm tossed ghost ship, a glowing mushroom forest, and the low gravity Moon. Each one has its own music and its own deadly stage finish.
 - **Stage select.** After picking fighters you now choose where to fight, or let RANDOM decide.
 - **Grand entrances.** Every fighter makes a dramatic entrance with a spoken line before round one. Press any button to skip.
