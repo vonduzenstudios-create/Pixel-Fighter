@@ -3,15 +3,20 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { manifest } from '../src/audio/voicemanifest';
 import { roster } from '../src/chars/roster';
-import { HAWKING_LINES } from '../src/fighters/hawking/fighter';
-import { IRWIN_LINES } from '../src/fighters/irwin/fighter';
 import { DEFAULT_INTRO } from '../src/game/intro';
-import { RAMSAY_LINES } from '../src/fighters/ramsay/fighter';
 
 // roster() paints its prop sprites, so give it a canvas that accepts and ignores every call
 const inert: any = new Proxy(() => inert, { get: (_, k) => (k === Symbol.toPrimitive ? () => 0 : inert), apply: () => inert });
 vi.stubGlobal('document', { createElement: () => ({ getContext: () => inert }) });
 vi.stubGlobal('ImageData', class {});
+
+// A fighter's spoken finisher line: an exported `<NAME>_LINES` with a `finisher` string in its fighter.ts.
+const fighterFiles = import.meta.glob<Record<string, unknown>>('../src/fighters/*/fighter.ts', { eager: true });
+const finisherLines = Object.values(fighterFiles).flatMap((m) =>
+  Object.entries(m)
+    .filter(([k, v]) => k.endsWith('_LINES') && typeof (v as { finisher?: unknown })?.finisher === 'string')
+    .map(([, v]) => (v as { finisher: string }).finisher),
+);
 
 const texts = new Set(manifest.lines.map((l) => l.text));
 const clip = (file: string) => new URL(`../public/voices/${file}.mp3`, import.meta.url);
@@ -35,7 +40,7 @@ describe('voice lines', () => {
   });
 
   it('covers every intro, finisher line and announcer call', () => {
-    const want = [DEFAULT_INTRO.line, HAWKING_LINES.finisher, IRWIN_LINES.finisher, RAMSAY_LINES.finisher, 'Fight!', 'End them!', 'Obliteration!', 'Round 1', 'Round 2', 'Round 3'];
+    const want = [DEFAULT_INTRO.line, ...finisherLines, 'Fight!', 'End them!', 'Obliteration!', 'Round 1', 'Round 2', 'Round 3'];
     for (const c of roster()) {
       if (c.intro) want.push(c.intro.line);
       want.push(`${c.name} wins`);
