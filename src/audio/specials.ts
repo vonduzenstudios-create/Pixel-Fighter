@@ -14,6 +14,12 @@ import type { ProjKind } from '../game/projectile';
 const vary = (amt = 0.06) => 1 + (Math.random() * 2 - 1) * amt;
 const now = () => ac()?.currentTime ?? 0;
 
+function snort(delay: number) {
+  const t = now() + delay;
+  noise({ dur: 0.14, vol: 0.3, type: 'bandpass', freq: 380, to: 220, q: 3, at: t });
+  tone({ type: 'sawtooth', freq: 85, to: 70, dur: 0.12, vol: 0.08, at: t, filter: { type: 'lowpass', freq: 600 } });
+}
+
 /** Sound building blocks used only by specials. */
 export const FX: Record<string, () => void> = {
   // ---------------------------------------------------------------- generic windups
@@ -308,6 +314,79 @@ export const FX: Record<string, () => void> = {
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
     noise({ dur: 0.2, vol: 0.15, type: 'highpass', freq: 4000 });
   },
+  // ---------------------------------------------------------------- toys and tantrums
+  /** Winding a clockwork key: a run of tightening ratchet clicks. */
+  windUp() {
+    const t = now();
+    for (let i = 0; i < 6; i++) {
+      tone({ type: 'square', freq: 1800 + i * 140, dur: 0.02, vol: 0.06, at: t + i * 0.055, filter: { type: 'bandpass', freq: 2500, q: 5 } });
+      noise({ dur: 0.015, vol: 0.08, type: 'highpass', freq: 4000, at: t + i * 0.055 });
+    }
+  },
+  /** Clockwork tick-tock of a tin toy walking. */
+  tinTick() {
+    const t = now();
+    tone({ type: 'square', freq: 3100 * vary(), dur: 0.015, vol: 0.05, at: t });
+    tone({ type: 'square', freq: 2300 * vary(), dur: 0.015, vol: 0.05, at: t + 0.09 });
+  },
+  /** Tin robot bashing into shins: hollow can clatter. */
+  tinClank() {
+    for (const [f, d] of [[740, 0.25], [1180, 0.2], [1960, 0.15]]) tone({ type: 'triangle', freq: f * vary(), to: f * 0.9, dur: d, vol: 0.07 });
+    noise({ dur: 0.1, vol: 0.25, type: 'bandpass', freq: 2600, q: 2 });
+    FX.windUp();
+  },
+  /** Handlebar bell: two bright dings. */
+  bikeBell() {
+    const t = now();
+    for (const at of [0, 0.16])
+      for (const [f, v] of [[2650, 0.08], [3980, 0.05], [5300, 0.025]]) tone({ type: 'sine', freq: f, dur: 0.35, vol: v, at: t + at, attack: 0.002 });
+  },
+  /** Pedalling hard: chain whirr and freewheel clicks. */
+  pedal() {
+    const t = now();
+    noise({ dur: 0.25, vol: 0.07, type: 'bandpass', freq: 1500, to: 2400, q: 3 });
+    for (let i = 0; i < 5; i++) noise({ dur: 0.01, vol: 0.06, type: 'highpass', freq: 5000, at: t + i * 0.045 });
+  },
+  /** Bicycle ploughing into somebody: frame clang, a thud and a last wobbly ding. */
+  bikeCrash() {
+    FX.clang();
+    sfx.thud();
+    tone({ type: 'sine', freq: 2650, to: 2500, dur: 0.4, vol: 0.05, at: now() + 0.12 });
+  },
+  /** A whiny, rising-then-falling "waaah". */
+  wail() {
+    voice(430 * vary(), 640, 0.25, 0.22, [850, 1350, 2800]);
+    voice(640 * vary(), 380, 0.4, 0.22, [850, 1350, 2800], 0.25);
+  },
+  /** A sneaker stamped down mid-tantrum. */
+  tantrumStomp() {
+    FX.stomp();
+    voice(300 * vary(), 240, 0.08, 0.12, [600, 1100, 2500]);
+  },
+  /** Spring boing with a warble as it settles. */
+  boing() {
+    const t = now();
+    tone({ type: 'sine', freq: 140, to: 560, dur: 0.12, vol: 0.22 });
+    for (let i = 0; i < 6; i++) tone({ type: 'triangle', freq: i % 2 ? 300 : 420, dur: 0.05, vol: 0.1 * (1 - i / 7), at: t + 0.12 + i * 0.05 });
+  },
+  /** A little tinkling music-box phrase (an original tune) as the crank turns. */
+  musicBox() {
+    const t = now();
+    const tune = [79, 84, 86, 88, 86, 84, 81, 83, 79];
+    tune.forEach((n, i) => {
+      const f = 440 * Math.pow(2, (n - 69) / 12);
+      tone({ type: 'sine', freq: f, dur: 0.5, vol: 0.06, at: t + i * 0.17, attack: 0.002 });
+      tone({ type: 'sine', freq: f * 4.07, dur: 0.12, vol: 0.015, at: t + i * 0.17, attack: 0.002 });
+    });
+  },
+  /** High giggle, three quick "hee"s tumbling down, capped by a snort. */
+  giggle() {
+    for (let i = 0; i < 3; i++) voice((880 - i * 90) * vary(), 700 - i * 90, 0.09, 0.2, [400, 2300, 3100], i * 0.12);
+    snort(0.4);
+  },
+  snort() {
+    snort(0);
+  },
 };
 
 /** Per-special sound design, keyed by character id then move id. */
@@ -368,6 +447,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     proj_grease: { frames: { 1: 'clang', 9: 'heave' } },
     canethrash: { frames: { 0: 'caneTap', 1: 'warCry' }, impact: ['clack', 'caneTap'], blocked: 'clack' },
   },
+  buster: {
+    proj_robot: { frames: { 2: 'windUp', 9: 'windUp' } },
+    bikedash: { frames: { 2: 'bikeBell', 10: 'pedal', 18: 'pedal', 26: 'pedal' }, impact: 'bikeCrash', blocked: 'clang' },
+    tantrum: { frames: { 1: 'wail', 10: 'tantrumStomp', 22: 'tantrumStomp', 34: 'tantrumStomp' }, impact: 'glovePop' },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
@@ -407,6 +491,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
   drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
   grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
+  robot: { travel: { every: 12, cue: 'tinTick' }, impact: 'tinClank', blocked: 'tinClank', clash: 'tinClank' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */
