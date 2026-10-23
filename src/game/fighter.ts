@@ -13,6 +13,7 @@ import type { PortraitStyle } from '../gfx/portrait';
 import { chance } from '../core/rng';
 import { strengthOf } from '../audio/sfx';
 import { moveSounds, playCue } from '../audio/specials';
+import type { SetPainter } from '../scenes/sets';
 
 export interface CharDef {
   id: string;
@@ -33,6 +34,8 @@ export interface CharDef {
   fatalityDraw?: (ctx: CanvasRenderingContext2D, fight: Fight, cam: number, front: boolean) => void;
   /** Size relative to the standard frame (1). Big fighters reach further and are easier to hit. */
   scale?: number;
+  /** Little diorama the fighter stands in on character select (see scenes/sets.ts). */
+  selectSet?: SetPainter;
   /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
   intro?: Intro;
   /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
