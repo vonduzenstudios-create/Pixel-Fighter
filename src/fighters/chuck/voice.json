@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "chuck-intro", "who": "chuck", "text": "I came here to finish. Fighting is optional." },
-    { "file": "ann-wins-chuck", "who": "announcer", "text": "Chuck Norris wins" }
+    { "file": "ann-wins-chuck", "who": "announcer", "text": "Chuck Norris wins" },
+    { "file": "chuck-win-1", "who": "chuck", "text": "Count to ten? I only needed one.", "win": true },
+    { "file": "chuck-win-2", "who": "chuck", "text": "Next time, bring a bigger stunt double.", "win": true },
+    { "file": "chuck-win-3", "who": "chuck", "text": "You blinked. That was your mistake.", "win": true },
+    { "file": "chuck-win-vs-brucelee", "who": "chuck", "text": "Good fight, old friend. Same ending as always.", "win": "brucelee" }
   ]
 }

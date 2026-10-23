@@ -5,6 +5,10 @@
   "lines": [
     { "file": "hawking-intro", "who": "hawking", "text": "Let us test the laws of physics." },
     { "file": "hawking-finisher", "who": "hawking", "text": "You have crossed the event horizon." },
-    { "file": "ann-wins-hawking", "who": "announcer", "text": "Stephen Hawking wins" }
+    { "file": "ann-wins-hawking", "who": "announcer", "text": "Stephen Hawking wins" },
+    { "file": "hawking-win-1", "who": "hawking", "text": "Gravity always wins. I simply help it along.", "win": true },
+    { "file": "hawking-win-2", "who": "hawking", "text": "I ran the numbers. You never stood a chance.", "win": true },
+    { "file": "hawking-win-3", "who": "hawking", "text": "The universe tends toward disorder. So did your defense.", "win": true },
+    { "file": "hawking-win-vs-tesla", "who": "hawking", "text": "Brilliant ideas, Tesla. Shame about the follow-through.", "win": "tesla" }
   ]
 }

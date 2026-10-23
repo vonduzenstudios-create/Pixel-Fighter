@@ -77,11 +77,10 @@ const chuckSpecials: Special[] = [
     },
   },
 ];
-// TODO(intro + post-match hooks): wire these once the intro animation and post-match screen
-// APIs land. Original lines written for this parody, not quotes from any film or show.
+// TODO(intro hook): wire these once the intro animation API lands. Win lines live in voice.json.
+// Original lines written for this parody, not quotes from any film or show.
 export const CHUCK_LINES = {
   intro: ['I came here to finish. Fighting is optional.', 'My feet will be doing the talking.'],
-  win: ['Count to ten? I only needed one.', 'Next time, bring a bigger stunt double.', 'You blinked. That was your mistake.'],
 };
 
 export function chuckNorris(): CharDef {
@@ -90,13 +89,6 @@ export function chuckNorris(): CharDef {
     id: 'chuck', name: 'Chuck Norris', short: 'NORRIS', title: 'The Unblinking Beard', look: CHUCK_LOOK,
     alt: { ...CHUCK_LOOK, coat: '#2a2a2e', pants: '#1c1c22', boots: '#2a1a10', hair: '#c8b8a8', chestHair: '#a89888' },
     specials: chuckSpecials, voice: 100, props: {},
-    quotes: [
-      'I DID NOT WIN. YOU JUST RAN OUT OF FIGHT.',
-      'MY BEARD HAS MORE WINS THAN YOUR WHOLE FAMILY.',
-      'I COUNTED TO INFINITY TWICE. YOU DID NOT LAST THAT LONG, {L}.',
-      'WHEN I KICK, THE GROUND FLINCHES.',
-    ],
-    quotesVs: { brucelee: 'GOOD FIGHT, OLD FRIEND. SAME RESULT AS LAST TIME.' },
     finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 90] },
   };
 }

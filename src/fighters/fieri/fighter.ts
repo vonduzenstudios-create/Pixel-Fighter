@@ -383,17 +383,5 @@ export function guyFieri(): CharDef {
     specials, voice: 125, props: { spatula: spatula() },
     finisher: { name: 'Flat-Top Finale', cmd: [4, 6, 6], btn: 'hk', text: 'B, F, F + HK (any range)', range: [0, 400] },
     fatality: flatTopFinale, intro: FIERI_INTRO, portrait: FIERI_PORTRAIT,
-    quotes: [
-      'THAT BEATDOWN WAS SEASONED TO PERFECTION, {L}.',
-      'YOU GOT SEARED. EXTRA CRISPY ON THE EDGES.',
-      'TURN UP THE HEAT AND THEY ALWAYS FOLD.',
-      'ROLL THE TOP DOWN. IT SMELLS LIKE A WIN OUT HERE.',
-      'TELL THE KITCHEN: ONE {L}, WELL DONE.',
-    ],
-    quotesVs: {
-      bobross: 'NICE LITTLE TREES. I USED THEM FOR KINDLING.',
-      lumpsum: 'KEEP THE CASH, BIG GUY. I GET PAID IN BURGERS.',
-      tesla: 'YOUR COIL MAKES A DECENT GRILL LIGHTER.',
-    },
   };
 }

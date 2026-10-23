@@ -385,18 +385,5 @@ export function ramsay(): CharDef {
     specials: RAMSAY_SPECIALS, voice: 150, props: { skillet: skillet(), cleaver: cleaver() },
     finisher: { name: "Chef's Table", cmd: [4, 6, 4], btn: 'lp', text: 'B, F, B + LP (close)', range: [0, 90] },
     fatality: chefsTable, intro: RAMSAY_INTRO, portrait: RAMSAY_PORTRAIT,
-    quotes: [
-      'YOU CALL THAT A FIGHT? I HAVE SEEN TOUGHER SOUFFLES.',
-      'SEARED, SEASONED AND SERVED, {L}. NEXT!',
-      'THAT WAS UNDERCOOKED. BACK TO THE PREP LINE.',
-      'MY NAN HITS HARDER, AND SHE ONLY BAKES SCONES.',
-      'WAKE UP, {L}! THE TICKETS ARE PILING UP!',
-    ],
-    quotesVs: {
-      bobross: 'LOVELY LITTLE TREE. I AM USING IT AS GARNISH.',
-      lumpsum: 'KEEP THE CHANGE. THE SERVICE WAS SHOCKING.',
-      jackson: 'ONE GLOVE? GOOD. NOW WASH YOUR HANDS.',
-      colonel: 'YOUR CHICKEN IS DRY, COLONEL. SO IS YOUR FIGHTING.',
-    },
   };
 }

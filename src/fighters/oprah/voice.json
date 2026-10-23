@@ -5,6 +5,10 @@
   "lines": [
     { "file": "oprah-intro", "who": "oprah", "text": "Welcome to the show! Today's topic: your defeat.", "spoken": "Welcome to the show! Today's topic... your defeat." },
     { "file": "oprah-finisher", "who": "oprah", "text": "You get a car! And you get a car! And you get a car!" },
-    { "file": "ann-wins-oprah", "who": "announcer", "text": "Oprah Winfrey wins" }
+    { "file": "ann-wins-oprah", "who": "announcer", "text": "Oprah Winfrey wins" },
+    { "file": "oprah-win-1", "who": "oprah", "text": "You came on as a guest. You leave as a cautionary tale.", "win": true },
+    { "file": "oprah-win-2", "who": "oprah", "text": "The audience stood up for you. To watch you leave.", "win": true },
+    { "file": "oprah-win-3", "who": "oprah", "text": "That was a teachable moment. Class dismissed.", "win": true },
+    { "file": "oprah-win-vs-lumpsum", "who": "oprah", "text": "Keep your big check. I give away bigger ones on Tuesdays.", "win": "lumpsum" }
   ]
 }

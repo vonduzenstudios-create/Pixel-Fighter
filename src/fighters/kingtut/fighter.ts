@@ -321,15 +321,5 @@ export function kingTut(): CharDef {
     specials: tutSpecials, voice: 150, props: { crook: crook() },
     finisher: { name: 'Eternal Embalming', cmd: [2, 4, 6], btn: 'hk', text: 'D, B, F + HK (mid range)', range: [0, 160] },
     fatality: eternalEmbalming, intro: TUT_INTRO, portrait: TUT_PORTRAIT,
-    quotes: [
-      'THREE THOUSAND YEARS IN A BOX, AND I STILL GOT UP FASTER THAN YOU, {L}.',
-      'YOUR TOMB IS READY. I HAD IT DUG THIS MORNING.',
-      'BOW TO THE BOY KING. YOU ARE ALREADY ON THE FLOOR, SO THAT HELPS.',
-      'THE CURSE IS REAL. ASK YOUR TEETH.',
-    ],
-    quotesVs: {
-      hawking: 'I HAVE BEEN DEAD FOR AGES, PROFESSOR. TIME IS ON MY SIDE.',
-      lincoln: 'A TALL HAT IS NO MATCH FOR A GOLD ONE.',
-    },
   };
 }

@@ -518,18 +518,5 @@ export function skippy(): CharDef {
     specials: SKIPPY_SPECIALS, voice: 210, props: {}, intro: SKIPPY_INTRO, portrait: SKIPPY_PORTRAIT,
     finisher: { name: 'Jack-in-the-Box Surprise', cmd: [6, 4, 2], btn: 'lk', text: 'F, B, D + LK (close)', range: [0, 90] },
     fatality: skippyFatality,
-    quotes: [
-      'I WIN! I WIN! I WIN! NO TAKE-BACKSIES, {L}!',
-      'FINDERS KEEPERS. YOU LOST YOUR TEETH, I FOUND THEM.',
-      'YOU HAVE TO SAY "UNCLE" NOW. THOSE ARE THE RULES.',
-      'MY ROBOT SAYS YOU NEED A NAP.',
-      'HEE-HONK! THAT IS THE SOUND OF YOU LOSING, {L}.',
-      'RECESS IS OVER, {L}. YOU GO SIT IN THE CORNER.',
-    ],
-    quotesVs: {
-      bobross: 'I COLOURED OUTSIDE THE LINES ON YOUR FACE. HEE-HONK!',
-      hawking: 'I HAVE WHEELS TOO, BUT MINE HAVE STREAMERS.',
-      lincoln: 'YOUR HAT IS TALLER BUT MINE HAS A PROPELLER.',
-    },
   };
 }

@@ -60,13 +60,6 @@ export function joan(): CharDef {
     id: 'joan', name: 'Joan of Arc', short: 'JOAN', title: 'Maid of the Flame', look: JOAN_LOOK,
     alt: { ...JOAN_LOOK, hair: '#c8a040', armor: { metal: '#8a8a96', tabard: '#8a1a1a', trim: '#e8e8e8' }, pants: '#8a8a96' },
     specials: joanSpecials, voice: 260, props: { sword: sword() }, intro: JOAN_INTRO,
-    quotes: [
-      'THE VOICES TOLD ME YOU WOULD FALL. THEY WERE RIGHT.',
-      'KNEEL, {L}. IT SUITS YOU.',
-      'I HAVE FACED ARMIES. YOU WERE A LIGHT WARM-UP.',
-      'GO WITH GOD. GO QUICKLY.',
-    ],
-    quotesVs: { tesla: 'I AM NOT AFRAID OF FIRE, AND I AM NOT AFRAID OF SPARKS.' },
     finisher: { name: 'Purifying Pyre', cmd: [6, 2, 6], btn: 'hk', text: 'F, D, F + HK (mid range)', range: [20, 180] },
   };
 }

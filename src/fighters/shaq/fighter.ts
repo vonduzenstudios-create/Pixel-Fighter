@@ -473,24 +473,11 @@ export const SHAQ_PORTRAIT: PortraitStyle = {
   },
 };
 
-// ------------------------------------------------------------------ win-screen taunts
-export const SHAQ_QUOTES = [
-  'I POSTED YOU UP, {L}. THEN I POSTED YOU DOWN.',
-  'YOU CAN NOT STOP WHAT YOU CAN NOT SEE OVER.',
-  'FREE THROWS ARE HARD. YOU WERE EASY.',
-  'MOVE YOUR FEET, LOSE YOUR SEAT. YOU LOST BOTH.',
-];
-export const SHAQ_TAUNTS_VS: Record<string, string> = {
-  lincoln: 'NICE HAT, MR PRESIDENT. I STILL SEE OVER IT.',
-  brucelee: 'GOOD FEET, LITTLE DRAGON. BIGGER IS BETTER.',
-  ali: 'YOU FLOAT, CHAMP. I JUST STAND HERE AND YOU BOUNCE OFF.',
-};
-
 export function shaqDef(): CharDef {
   return {
     id: 'shaq', name: "Shaquille O'Neal", short: 'SHAQ', title: 'The Big Diesel', look: SHAQ_LOOK, alt: SHAQ_ALT,
     specials: SHAQ_SPECIALS, voice: 80, props: { bball: ballPart() }, scale: SCALE,
     finisher: SHAQ_FINISHER, fatality: rimWrecker, fatalityDraw: drawHoop,
-    intro: SHAQ_INTRO, portrait: SHAQ_PORTRAIT, quotes: SHAQ_QUOTES, quotesVs: SHAQ_TAUNTS_VS,
+    intro: SHAQ_INTRO, portrait: SHAQ_PORTRAIT,
   };
 }

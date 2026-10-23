@@ -378,16 +378,5 @@ export function colonelCrisp(): CharDef {
     fatality: extraCrispy,
     intro: CRISP_INTRO,
     portrait: CRISP_PORTRAIT,
-    quotes: [
-      'GOLDEN BROWN ON THE OUTSIDE, TENDER ON THE INSIDE. JUST LIKE YOU, {L}.',
-      'I HAVE BEEN BREADING FOLKS LIKE YOU SINCE BEFORE YOUR DADDY WAS BORN.',
-      'MIND YOUR MANNERS, SON. AND YOUR BLOCK.',
-      'NOW THAT IS WHAT I CALL A PROPER SOUTHERN WHUPPIN.',
-      'THE SECRET INGREDIENT, {L}? IT WAS PAIN.',
-    ],
-    quotesVs: {
-      lumpsum: 'KEEP YOUR CHECK, SON. I PAY IN DRUMSTICKS.',
-      bobross: 'A HAPPY LITTLE FRYER, MY FRIEND. NOTHING MORE.',
-    },
   };
 }

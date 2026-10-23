@@ -226,16 +226,6 @@ export function drawMiniHole(ctx: CanvasRenderingContext2D, t: number) {
   pxCircle(ctx, 0, 0, 4.5);
 }
 
-// Post-match taunts. {L} is replaced with the loser's short name.
-export const HAWKING_QUOTES = [
-  'Gravity always wins, {L}. I simply help it along.',
-  'I ran the numbers. You never stood a chance.',
-  'The universe tends toward disorder. So did your defense.',
-];
-export const HAWKING_QUOTES_VS: Record<string, string> = {
-  tesla: 'Brilliant ideas, Tesla. Shame about the follow-through.',
-};
-
 // ------------------------------------------------------------------ round-one entrance
 // Rockets in from off screen on the chair's thrusters, touches down, and runs a quick systems check.
 export const HAWKING_INTRO: Intro = {
@@ -297,6 +287,5 @@ export function hawking(): CharDef {
   return {
     id: 'hawking', name: 'Stephen Hawking', short: 'HAWKING', title: 'Spacetime Bender', look: HAWKING_LOOK, alt: HAWKING_ALT,
     specials: hawkingSpecials, voice: 120, props: {}, finisher: HAWKING_FINISHER, intro: HAWKING_INTRO, portrait: HAWKING_PORTRAIT,
-    quotes: HAWKING_QUOTES, quotesVs: HAWKING_QUOTES_VS,
   };
 }

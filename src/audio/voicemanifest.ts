@@ -18,6 +18,8 @@ export interface VoiceLine {
   text: string;
   /** What the TTS reads, when the subtitle text would read badly. */
   spoken?: string;
+  /** Win-screen line: true for any opponent, or the id of the one opponent it is written for. */
+  win?: true | string;
 }
 
 interface VoiceFile {

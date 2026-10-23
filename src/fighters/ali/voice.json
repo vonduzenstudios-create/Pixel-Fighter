@@ -4,6 +4,11 @@
   },
   "lines": [
     { "file": "ali-intro", "who": "ali", "text": "Step into my ring!" },
-    { "file": "ann-wins-ali", "who": "announcer", "text": "Muhammad Ali wins" }
+    { "file": "ann-wins-ali", "who": "announcer", "text": "Muhammad Ali wins" },
+    { "file": "ali-win-1", "who": "ali", "text": "Your feet stopped moving. Mine never did.", "win": true },
+    { "file": "ali-win-2", "who": "ali", "text": "I called the round before the bell. Pay attention next time.", "win": true },
+    { "file": "ali-win-3", "who": "ali", "text": "Quick hands, pretty hands, and you met them both.", "win": true },
+    { "file": "ali-win-vs-chuck", "who": "ali", "text": "Beard or no beard, my jab got there first.", "win": "chuck" },
+    { "file": "ali-win-vs-shaq", "who": "ali", "text": "The bigger they are, the more ring there is to dance around.", "win": "shaq" }
   ]
 }

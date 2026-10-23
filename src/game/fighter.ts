@@ -55,10 +55,6 @@ export interface CharDef {
   intro?: Intro;
   /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
   portrait?: PortraitStyle;
-  /** Win-screen taunts. {L} becomes the loser's short name. */
-  quotes?: string[];
-  /** Taunts for beating one particular opponent, keyed by their id. */
-  quotesVs?: Record<string, string>;
 }
 
 export interface Controller {

@@ -148,7 +148,6 @@ function finalBell(fight: Fight, w: Fighter, l: Fighter, tt: number, D: any): bo
 
 // TODO: hook these into the round intro and post-match screens once those land.
 export const ALI_INTRO_LINES = ['Step into my ring!', "You can't hit what you can't catch!"];
-export const ALI_TAUNTS = ['Too quick, too pretty. Next!', 'I danced. You fell down. Simple.'];
 
 export function aliDef(): CharDef {
   return {
@@ -156,7 +155,5 @@ export function aliDef(): CharDef {
     specials: aliSpecials, voice: 120, props: {},
     finisher: { name: 'Final Bell', cmd: [2, 4, 6], btn: 'hp', text: 'D, B, F + HP (close)', range: [0, 90] },
     fatality: finalBell,
-    quotes: [...ALI_TAUNTS.map((t) => t.toUpperCase()), 'FLOAT LIKE A FEATHER, HIT LIKE A FREIGHT TRAIN. STAY DOWN, {L}.', 'I AM THE GREATEST. YOU ARE THE FLOOR.'],
-    quotesVs: { chuck: 'NO BEARD IS FASTER THAN THESE HANDS.' },
   };
 }

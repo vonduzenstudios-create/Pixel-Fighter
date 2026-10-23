@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "lincoln-intro", "who": "lincoln", "text": "Honest Abe never pulls a punch." },
-    { "file": "ann-wins-lincoln", "who": "announcer", "text": "Abe Lincoln wins" }
+    { "file": "ann-wins-lincoln", "who": "announcer", "text": "Abe Lincoln wins" },
+    { "file": "lincoln-win-1", "who": "lincoln", "text": "I split rails taller than you before breakfast.", "win": true },
+    { "file": "lincoln-win-2", "who": "lincoln", "text": "I have argued tougher cases with a mule.", "win": true },
+    { "file": "lincoln-win-3", "who": "lincoln", "text": "Stay down there and think about your choices. I will wait.", "win": true },
+    { "file": "lincoln-win-vs-blackbeard", "who": "lincoln", "text": "I have freed you of your final tooth, pirate.", "win": "blackbeard" }
   ]
 }

@@ -5,6 +5,11 @@
   "lines": [
     { "file": "blaine-intro", "who": "blaine", "text": "Watch closely. You won't see how this ends." },
     { "file": "blaine-finisher", "who": "blaine", "text": "And that... was your card.", "spoken": "And that, was your card." },
-    { "file": "ann-wins-blaine", "who": "announcer", "text": "David Blaine wins" }
+    { "file": "ann-wins-blaine", "who": "announcer", "text": "David Blaine wins" },
+    { "file": "blaine-win-1", "who": "blaine", "text": "The real trick was making your guard disappear.", "win": true },
+    { "file": "blaine-win-2", "who": "blaine", "text": "I have held my breath longer than you held your ground.", "win": true },
+    { "file": "blaine-win-3", "who": "blaine", "text": "Nothing up my sleeve. Everything in your ribs.", "win": true },
+    { "file": "blaine-win-vs-tesla", "who": "blaine", "text": "I have stood inside a storm of sparks. Your coil tickles.", "win": "tesla" },
+    { "file": "blaine-win-vs-hawking", "who": "blaine", "text": "I made gravity vanish too, professor. No chalkboard needed.", "win": "hawking" }
   ]
 }

@@ -327,15 +327,5 @@ export function glare(): CharDef {
     specials, voice: 150, props: {},
     finisher: { name: 'Overexposed', cmd: [6, 4, 6], btn: 'hk', text: 'F, B, F + HK (close)', range: [0, 90] },
     fatality: overexposed, intro: GLARE_INTRO, portrait: GLARE_PORTRAIT,
-    quotes: [
-      'I WAS NOT FIGHTING, {L}. I WAS MODELING THE CONCEPT OF WINNING.',
-      'NOT THE FACE. NEVER THE FACE. THE FACE IS INSURED.',
-      'YOU WANTED MY GOOD SIDE? I DO NOT HAVE A BAD ONE.',
-      'THAT WAS NOT A KNOCKOUT. THAT WAS A PHOTO OP.',
-    ],
-    quotesVs: {
-      jackson: 'NICE GLOVE. I ACCESSORIZE WITH MY CHEEKBONES.',
-      bobross: 'YOU PAINT LANDSCAPES. I AM ONE.',
-    },
   };
 }

@@ -358,15 +358,5 @@ export function oprah(): CharDef {
     specials, voice: 210, props: { book: hardcover() }, intro: OPRAH_INTRO, portrait: OPRAH_PORTRAIT,
     finisher: { name: 'Grand Prize Reveal', cmd: [6, 4, 6], btn: 'lk', text: 'F, B, F + LK (any range)', range: [0, 400] },
     fatality: grandPrize,
-    quotes: [
-      'YOU CAME ON AS A GUEST, {L}. YOU LEAVE AS A CAUTIONARY TALE.',
-      'LOOK UNDER YOUR SEAT. THAT IS A BRUISE.',
-      'THE AUDIENCE GAVE YOU A STANDING OVATION. FOR LEAVING.',
-      'THAT WAS A TEACHABLE MOMENT. CLASS DISMISSED.',
-    ],
-    quotesVs: {
-      lumpsum: 'KEEP YOUR BIG CHECK. I GIVE AWAY BIGGER ONES ON TUESDAYS.',
-      bobross: 'LOVELY LITTLE TREES. NOW SIT DOWN FOR THE COMMERCIAL BREAK.',
-    },
   };
 }

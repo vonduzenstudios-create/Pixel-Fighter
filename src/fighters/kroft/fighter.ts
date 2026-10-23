@@ -694,16 +694,5 @@ export function kroft(): CharDef {
     specials, voice: 250, props: { pick: climbingPick() }, intro: KROFT_INTRO, portrait: KROFT_PORTRAIT,
     finisher: { name: 'Curse of the Idol', cmd: [4, 6, 4], btn: 'hp', text: 'B, F, B + HP (any range)', range: [0, 400] },
     fatality: curseOfTheIdol, fatalityDraw: curseDraw,
-    quotes: [
-      'X MARKS THE SPOT, {L}. THE SPOT WAS YOUR JAW.',
-      'I HAVE SURVIVED SEVEN CURSES AND ONE VERY BAD MAP. YOU WERE NUMBER EIGHT.',
-      'EVERY RUIN HAS A TRAP. TODAY, THE RUIN WAS YOU.',
-      'MIND THE LOOSE FLAGSTONE. AH. TOO LATE.',
-    ],
-    quotesVs: {
-      kingtut: 'YOUR TOMB WAS EASIER TO CRACK THAN YOUR GUARD, PHARAOH.',
-      irwin: 'YOU WRESTLE CROCODILES. I DODGE TEMPLE SNAKES. CLOSE, BUT NOT THE SAME.',
-      joan: 'A FELLOW WOMAN OF ACTION. SADLY FOR YOU, I PACKED A PICK.',
-    },
   };
 }

@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "colonel-intro", "who": "colonel", "text": "Evening, friend. I'll have you golden brown by suppertime.", "spoken": "Evening, friend... I'll have you golden brown, by suppertime." },
-    { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" }
+    { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" },
+    { "file": "colonel-win-1", "who": "colonel", "text": "Golden brown outside, tender inside. Just like you, son.", "win": true },
+    { "file": "colonel-win-2", "who": "colonel", "text": "Mind your manners, and mind your block.", "win": true },
+    { "file": "colonel-win-3", "who": "colonel", "text": "The secret ingredient was a good old Southern whupping.", "win": true },
+    { "file": "colonel-win-vs-ramsay", "who": "colonel", "text": "You send back my chicken? I just sent back you, chef.", "win": "ramsay" }
   ]
 }

@@ -5,6 +5,11 @@
   "lines": [
     { "file": "fieri-intro", "who": "fieri", "text": "Fire up the grill. You are on the menu!", "spoken": "Fire up the grill! You're on the menu!" },
     { "file": "fieri-finisher", "who": "fieri", "text": "Extra crispy. Just how I like it." },
-    { "file": "ann-wins-fieri", "who": "announcer", "text": "Guy Fieri wins" }
+    { "file": "ann-wins-fieri", "who": "announcer", "text": "Guy Fieri wins" },
+    { "file": "fieri-win-1", "who": "fieri", "text": "That beatdown came out seasoned to perfection.", "win": true },
+    { "file": "fieri-win-2", "who": "fieri", "text": "Turn the heat up, and everybody folds.", "win": true },
+    { "file": "fieri-win-3", "who": "fieri", "text": "One order of you, well done, extra crispy on the edges.", "win": true },
+    { "file": "fieri-win-vs-ramsay", "who": "fieri", "text": "You yell at the kitchen. I set it on fire.", "win": "ramsay" },
+    { "file": "fieri-win-vs-bobross", "who": "fieri", "text": "Nice little trees. I used them for kindling.", "win": "bobross" }
   ]
 }

@@ -600,19 +600,6 @@ const RINK: SetPainter = (g) => {
   g.r(0, g.floor + (g.h - g.floor) * 0.75, g.w, u, '#18a8b8');
 };
 
-// ------------------------------------------------------------------ win-screen taunts
-export const LEGS_QUOTES = [
-  'I KEPT YOU AT ARM\'S LENGTH, {L}. WELL. LEG\'S LENGTH.',
-  'YOU NEVER GOT CLOSE ENOUGH TO LOSE PROPERLY.',
-  'I HAVE NO IDEA WHAT MY HANDS ARE FOR.',
-  'NEXT TIME, BRING A LADDER.',
-];
-export const LEGS_TAUNTS_VS: Record<string, string> = {
-  shaq: 'FINALLY, SOMEONE I CAN LOOK IN THE KNEE.',
-  brucelee: 'ONE KICK TEN THOUSAND TIMES? I ONLY NEEDED ONE KICK.',
-  chuck: 'YOUR ROUNDHOUSE IS CUTE. MINE HAS A POSTCODE.',
-};
-
 export function legsMcGee(): CharDef {
   return {
     id: 'legs', name: 'Legs McGee', short: 'LEGS', title: 'The Long Haul', look: LEGS_LOOK, alt: LEGS_ALT,
@@ -623,6 +610,6 @@ export function legsMcGee(): CharDef {
       cp: CROUCH_POKE, ck: CROUCH_KICK, chk: CROUCH_HIGH, uppercut: SKY_KICK, jp: JUMP_STAB, jk: JUMP_KICK, throw: HOIST,
     },
     finisher: LEGS_FINISHER, fatality: longDivision, fatalityDraw: drawHalves,
-    intro: LEGS_INTRO, portrait: LEGS_PORTRAIT, selectSet: RINK, quotes: LEGS_QUOTES, quotesVs: LEGS_TAUNTS_VS,
+    intro: LEGS_INTRO, portrait: LEGS_PORTRAIT, selectSet: RINK,
   };
 }

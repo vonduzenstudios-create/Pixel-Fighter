@@ -539,12 +539,5 @@ export function irwin(): CharDef {
     finisher: { name: "Big Girl's Supper", cmd: [4, 4, 6], btn: 'hk', text: 'B, B, F + HK (any range)', range: [0, 400] },
     fatality: supper,
     fatalityDraw: drawSupper,
-    quotes: [
-      'NEVER CORNER A CROC, MATE. OR ME.',
-      'SHE WAS ONLY PLAYING, {L}. YOU SHOULD SEE HER CRANKY.',
-      'GORGEOUS DAY FOR IT! SHAME ABOUT YOUR FOOTWORK.',
-      'EVERY CREATURE DESERVES RESPECT. EVEN YOU, {L}.',
-    ],
-    quotesVs: { bobross: 'LOVELY LITTLE CRITTERS IN YOUR TREES, MATE. MINE BITE BACK.' },
   };
 }

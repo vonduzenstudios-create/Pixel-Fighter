@@ -133,13 +133,6 @@ export function lumpsum(check = bigCheck()): CharDef {
     specials, voice: 130, props: { check },
     finisher: { name: 'Grand Finale', cmd: [2, 4, 6], btn: 'hp', text: 'D, B, F + HP (any range)', range: [0, 400] },
     fatality: grandFinale,
-    quotes: [
-      'IT IS YOUR MONEY, {L}, AND I JUST TOOK IT!',
-      'CALL ME NOW, AND I WILL BEAT YOU AGAIN FOR FREE!',
-      'STRUCTURED SETTLEMENT? MORE LIKE STRUCTURED BEATDOWN!',
-      'HOLD THE NOTE... HOLD IT... AND YOU ARE DOWN.',
-    ],
-    quotesVs: { chuck: 'YOU NEVER BLINK? THEN WATCH ME CASH YOU OUT.' },
   };
 }
 

@@ -455,18 +455,5 @@ export function teresa(): CharDef {
     selectSet: MISSION_SET,
     finisher: { name: 'Heavenly Send-Off', cmd: [6, 2, 6], btn: 'lp', text: 'F, D, F + LP (any range)', range: [0, 400] },
     fatality: sendOff, fatalityDraw: drawSendOff,
-    quotes: [
-      'I WILL PRAY FOR YOU, {L}. YOU NEED IT MORE THAN MOST.',
-      'KINDNESS IS FREE. SO WAS THAT BEATING.',
-      'SIT. REST. I WILL FETCH YOU SOME SOUP AND A SPLINT.',
-      'I FORGIVE YOU. MY ELBOWS DO NOT.',
-      'SMALL THINGS WITH GREAT LOVE. AND ONE BIG SHOVE.',
-    ],
-    quotesVs: {
-      oprah: 'YOU GIVE AWAY CARS. I GIVE SECOND CHANCES. THIS WAS NOT ONE.',
-      lumpsum: 'MONEY CANNOT BUY YOU A BETTER BLOCK.',
-      ramsay: 'SUCH LANGUAGE. GO WASH YOUR MOUTH OUT WITH MY SOUP.',
-      joan: 'A FELLOW SAINT. A SLOWER ONE.',
-    },
   };
 }

@@ -54,13 +54,6 @@ export function lincoln(): CharDef {
     id: 'lincoln', name: 'Abe Lincoln', short: 'LINCOLN', title: 'The Rail Splitter', look: LINCOLN_LOOK,
     alt: { ...LINCOLN_LOOK, coat: '#4a2c1a', pants: '#3a2a1e', hatColor: '#4a2c1a', bowtie: '#7a1010' },
     specials: lincolnSpecials, voice: 110, props: { axe: axe() }, intro: LINCOLN_INTRO,
-    quotes: [
-      'FOUR SCORE AND SEVEN SECONDS AGO, YOU STILL HAD TEETH.',
-      'A HOUSE DIVIDED CANNOT STAND. NEITHER, IT SEEMS, CAN YOU.',
-      'I SPLIT RAILS TALLER THAN YOU BEFORE BREAKFAST.',
-      'GO HOME, {L}. THE NATION NEEDS ITS FLOORS SWEPT.',
-    ],
-    quotesVs: { blackbeard: 'I HAVE FREED YOU OF YOUR FINAL TOOTH, PIRATE.' },
     portrait: { front: (p, c) => { if (!c.beaten) p.set(c.geom.mouth[0] - 6, c.geom.mouth[1] - 6, '#7a4a30'); } },
     finisher: { name: 'Emancipation Cleave', cmd: [6, 4, 6], btn: 'hp', text: 'F, B, F + HP (close)', range: [0, 90] },
   };

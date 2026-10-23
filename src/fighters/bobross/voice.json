@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "bobross-intro", "who": "bobross", "text": "Easy now. Nice, soft strokes." },
-    { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" }
+    { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" },
+    { "file": "bobross-win-1", "who": "bobross", "text": "Every picture needs a little shadow. Today, you volunteered.", "win": true },
+    { "file": "bobross-win-2", "who": "bobross", "text": "Just a soft tap with the fan brush, and down you go.", "win": true },
+    { "file": "bobross-win-3", "who": "bobross", "text": "We will put a nice fluffy cloud right here. You can rest on it.", "win": true },
+    { "file": "bobross-win-vs-lumpsum", "who": "bobross", "text": "Slow down, friend. There is no prize for rushing a canvas.", "win": "lumpsum" }
   ]
 }

@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "tesla-intro", "who": "tesla", "text": "Stand back. Science is about to happen." },
-    { "file": "ann-wins-tesla", "who": "announcer", "text": "Nikola Tesla wins" }
+    { "file": "ann-wins-tesla", "who": "announcer", "text": "Nikola Tesla wins" },
+    { "file": "tesla-win-1", "who": "tesla", "text": "Your resistance was low. My current was not.", "win": true },
+    { "file": "tesla-win-2", "who": "tesla", "text": "I saw this defeat in a vision. It was funnier in person.", "win": true },
+    { "file": "tesla-win-3", "who": "tesla", "text": "Even a pigeon puts up a better fight.", "win": true },
+    { "file": "tesla-win-vs-lincoln", "who": "tesla", "text": "A fine hat, mister president. A shame it conducts so well.", "win": "lincoln" }
   ]
 }

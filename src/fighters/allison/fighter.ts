@@ -621,17 +621,5 @@ export function allison(): CharDef {
     finisher: { name: 'Cut the Deck', cmd: [4, 6, 4, 6], btn: 'hp', text: 'B, F, B, F + HP (any range)', range: [0, 400] },
     fatality: cutTheDeck,
     fatalityDraw: drawFinisher,
-    quotes: [
-      'I HAVE SEEN A GREAT MANY IMPOSSIBLE THINGS TODAY. YOU WINNING WAS NOT ONE OF THEM.',
-      'EVERYONE HERE IS MAD, {L}. YOU ARE JUST LOSING.',
-      'THAT WAS RATHER RUDE OF YOUR FACE TO GET IN THE WAY OF MY SHOE.',
-      'I WAS LATE FOR TEA. NOW I AM NOT.',
-    ],
-    quotesVs: {
-      blaine: 'YOUR CARDS VANISH. MINE CARRY HALBERDS.',
-      kingtut: 'I HAVE FALLEN DOWN DEEPER HOLES THAN YOUR TOMB.',
-      shaq: 'ONE SIP AND I WAS TALLER THAN YOU. HOW CURIOUS.',
-      ramsay: 'YOUR TEA WAS STEWED. SO ARE YOU.',
-    },
   };
 }

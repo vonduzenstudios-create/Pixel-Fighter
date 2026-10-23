@@ -5,6 +5,11 @@
   "lines": [
     { "file": "ramsay-intro", "who": "ramsay", "text": "Right! Let's turn up the heat." },
     { "file": "ramsay-finisher", "who": "ramsay", "text": "Plated, seasoned, and served." },
-    { "file": "ann-wins-ramsay", "who": "announcer", "text": "Gordon Ramsay wins" }
+    { "file": "ann-wins-ramsay", "who": "announcer", "text": "Gordon Ramsay wins" },
+    { "file": "ramsay-win-1", "who": "ramsay", "text": "You call that a fight? I have seen tougher souffles.", "win": true },
+    { "file": "ramsay-win-2", "who": "ramsay", "text": "Seared, seasoned, and served. Next!", "win": true },
+    { "file": "ramsay-win-3", "who": "ramsay", "text": "My nan hits harder, and she only bakes scones.", "win": true },
+    { "file": "ramsay-win-vs-colonel", "who": "ramsay", "text": "Your chicken is dry, Colonel. So is your fighting.", "win": "colonel" },
+    { "file": "ramsay-win-vs-fieri", "who": "ramsay", "text": "Bleached hair and burnt food. Sit down.", "win": "fieri" }
   ]
 }

@@ -166,12 +166,5 @@ export function bobRoss(): CharDef {
     specials: rossSpecials, voice: 105, props: { brush: brush(), knife: paletteKnife() },
     finisher: { name: 'Palette Knife Landscape', cmd: [4, 6, 4], btn: 'hp', text: 'B, F, B + HP (close)', range: [0, 90] },
     fatality: rossFatality,
-    quotes: [
-      'WE DO NOT MAKE MISTAKES. YOU JUST HAD A HAPPY LITTLE ACCIDENT.',
-      'LET US PUT A HAPPY LITTLE BRUISE RIGHT THERE.',
-      'EVERY PAINTING NEEDS A LITTLE DARK, {L}. TODAY THAT WAS YOU.',
-      'BEAT THE DEVIL OUT OF IT. THERE, ALL CLEAN.',
-    ],
-    quotesVs: { lumpsum: 'TAKE YOUR TIME. THERE IS NO PAYOUT FOR RUSHING.' },
   };
 }
