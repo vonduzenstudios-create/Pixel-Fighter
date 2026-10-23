@@ -122,7 +122,7 @@ export class AICtrl implements Controller {
       if (chance(P.jumpIn)) return this.macro(self, [{ d: 9, n: 2 }, { d: 5, n: 18 }, { d: 5, b: 'hk', n: 2 }]);
       return this.holdFor(self, 6, 20 + Math.floor(rand(0, 20)));
     }
-    if (dist > 45) {
+    if (dist > (self.ch.reach ?? 45)) {
       const r = Math.random();
       if (r < P.special) return this.special(self, Math.floor(rand(0, self.ch.specials.length)));
       if (r < P.special + P.jumpIn) return this.macro(self, [{ d: 9, n: 2 }, { d: 5, n: 14 }, { d: 5, b: chance(0.5) ? 'hk' : 'hp', n: 2 }]);

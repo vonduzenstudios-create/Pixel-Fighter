@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "legs": { "voice": "af_jessica", "speed": 1.05 }
+  },
+  "lines": [
+    { "file": "legs-intro", "who": "legs", "text": "Long story short? I'm not short." },
+    { "file": "legs-finisher", "who": "legs", "text": "And that is long division." },
+    { "file": "ann-wins-legs", "who": "announcer", "text": "Legs McGee wins" }
+  ]
+}

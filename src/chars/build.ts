@@ -103,6 +103,12 @@ export interface Look {
    * the outline, so a new fighter can add a look without editing this file.
    */
   paint?: LookPainters;
+  /**
+   * Builds the whole part set instead of the standard builder (bodies with other proportions, such as
+   * extra-long legs; set PartSet.limbs to match). It gets this look without `parts`, so it can call
+   * buildParts for the pieces it keeps.
+   */
+  parts?: (look: Look) => PartSet;
 }
 
 /** Per-part painting hooks for Look.paint. Each part's canvas size and pivot are noted in its builder below. */
@@ -769,6 +775,7 @@ function chairFront(L: Look): Painter {
 }
 
 export function buildParts(L: Look): PartSet {
+  if (L.parts) return L.parts({ ...L, parts: undefined });
   const t = torso(L), h = head(L), ua = upperArm(L), faF = foreArm(L, true), faB = foreArm(L, false);
   const th = thigh(L), sh = shin(L), ft = foot(L);
   const part = (p: Painter, px: number, py: number, dim = false): Part => ({ img: finish(p, dim), px, py });
