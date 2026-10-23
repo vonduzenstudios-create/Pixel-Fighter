@@ -1,6 +1,6 @@
 import type { Look } from './build';
 import { A, P, STANCE, CROUCH, BLOCK, HIT_HIGH, DIZZY, LAUNCHED } from '../game/anims';
-import type { CharDef } from '../game/fighter';
+import type { CharDef, Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
 import type { Move, Special } from '../game/types';
 import { sfx } from '../audio/sfx';
@@ -95,8 +95,7 @@ const aliSpecials: Special[] = [
 ];
 
 /** Final Bell: a rapid combination, then an uppercut that sends the loser off the top of the screen. */
-function finalBell(fight: Fight, tt: number, D: any, done: () => void) {
-  const w = fight.winner!, l = fight.loser!;
+function finalBell(fight: Fight, w: Fighter, l: Fighter, tt: number, D: any): boolean {
   const face = () => ({ x: l.wx(l.skel.neck[0]), y: l.wy(l.skel.neck[1]) + 10 });
   if (tt === 0) sfx.bell();
   if (tt < 20) {
@@ -131,6 +130,7 @@ function finalBell(fight: Fight, tt: number, D: any, done: () => void) {
   }
   if (tt >= 126 && D.boom == null) {
     l.y += D.vy;
+    l.vy = 0; // the flight is scripted here, not by the fighter's own physics
     D.vy -= 0.22;
     l.poseOverride = P(LAUNCHED, { rot: -(tt - 126) * 14 });
     if (l.y <= 0) {
@@ -143,10 +143,7 @@ function finalBell(fight: Fight, tt: number, D: any, done: () => void) {
     }
   }
   if (D.boom != null && tt === D.boom + 30) sfx.bell();
-  w.update(fight);
-  w.computePose();
-  l.computePose();
-  if (D.boom != null && tt >= D.boom + 100) done();
+  return D.boom != null && tt >= D.boom + 100;
 }
 
 // TODO: hook these into the round intro and post-match screens once those land.
@@ -158,6 +155,6 @@ export function aliDef(): CharDef {
     id: 'ali', name: 'Muhammad Ali', short: 'ALI', title: 'The Dancing Champ', look: ALI_LOOK, alt: ALI_ALT,
     specials: aliSpecials, voice: 120, props: {},
     finisher: { name: 'Final Bell', cmd: [2, 4, 6], btn: 'hp', text: 'D, B, F + HP (close)', range: [0, 70] },
-    runFinisher: finalBell,
+    fatality: finalBell,
   };
 }

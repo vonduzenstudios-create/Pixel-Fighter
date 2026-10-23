@@ -1,6 +1,7 @@
 import { buildParts, Look } from './build';
 import { aliDef } from './ali';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
+import { lumpsum } from './lumpsum';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
 import type { Move, Special } from '../game/types';
@@ -314,6 +315,7 @@ export function roster(): CharDef[] {
       finisher: { name: 'Hundred-Fist Finale', cmd: [4, 6, 4, 6], btn: 'lp', text: 'B, F, B, F + LP (close)', range: [0, 70] },
     },
     aliDef(),
+    lumpsum(),
   ];
   return cache;
 }

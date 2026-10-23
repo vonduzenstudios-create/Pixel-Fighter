@@ -25,7 +25,7 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-const settings: Settings = { players: 1, diff: 1 };
+const settings: Settings = { players: 1, diff: 1, stage: 0 };
 let scene: Scene;
 const app: App = {
   settings,

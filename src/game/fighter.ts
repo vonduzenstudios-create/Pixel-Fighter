@@ -6,7 +6,7 @@ import { drawRig, fk, groundOffset, Part, PartName, PartSet, Pose, propTip, Skel
 import * as AN from './anims';
 import * as MV from './moves';
 import type { Fight } from './fight';
-import type { Anim, Btn, Finisher, HitDef, Move, Special } from './types';
+import type { Anim, Btn, Finisher, HitDef, Move, PropName, Special } from './types';
 import type { Look } from '../chars/build';
 import { chance } from '../core/rng';
 import { strengthOf } from '../audio/sfx';
@@ -23,9 +23,9 @@ export interface CharDef {
   finisher: Finisher;
   /** Pitch of grunts. */
   voice: number;
-  props: Partial<Record<'axe' | 'sword' | 'cutlass' | 'nunchaku', Part>>;
-  /** Scripted finisher, run once per frame while it plays. Built-in fighters are handled in Fight.runFatality. */
-  runFinisher?: (fight: Fight, t: number, data: any, done: () => void) => void;
+  props: Partial<Record<PropName, Part>>;
+  /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
+  fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
 }
 
 export interface Controller {
