@@ -385,6 +385,7 @@ export class Fight {
         p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
+        if (p.kind === 'cash') sfx.kaching();
         if (p.kind === 'cannon' || p.kind === 'keg') {
           sfx.cannon();
           this.particles.smoke(p.x, p.y, 10);
@@ -450,6 +451,13 @@ export class Fight {
     const neck = () => ({ x: l.wx(l.skel.neck[0]), y: l.wy(l.skel.neck[1]) });
 
     switch (F.kind) {
+      default: {
+        // characters that bring their own finishing move
+        const over = w.ch.fatality?.(this, w, l, tt, D) ?? true;
+        tick();
+        if (over) done();
+        break;
+      }
       case 'lincoln': {
         if (tt < 18) {
           w.x += ((l.x - l.facing * -1 * 0 - w.facing * 30) - w.x) * 0.2;
