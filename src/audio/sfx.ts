@@ -153,6 +153,12 @@ export const sfx = {
   scream() {
     voice(520, 160, 1.2, 0.3, [800, 1200, 2600]);
   },
+  /** Splintering planks: a woody crack over a low thump. */
+  crunch() {
+    noise({ dur: 0.22, vol: 0.45, type: 'bandpass', freq: 1800, to: 500, q: 2 });
+    tone({ type: 'square', freq: 140, to: 50, dur: 0.18, vol: 0.18, filter: { type: 'lowpass', freq: 700 } });
+    sfx.thud();
+  },
   menuMove() {
     tone({ type: 'square', freq: 660, dur: 0.05, vol: 0.08 });
   },
