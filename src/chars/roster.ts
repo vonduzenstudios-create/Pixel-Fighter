@@ -4,6 +4,7 @@ import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { oprah } from './oprah';
 import { buster } from './buster';
+import { irwin } from './irwin';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { colonelCrisp } from './colonel';
@@ -487,6 +488,7 @@ export function roster(): CharDef[] {
     kingTut(),
     guyFieri(),
     shaqDef(),
+    irwin(),
   ];
   for (const c of cache) c.intro ??= INTROS[c.id];
   return cache;

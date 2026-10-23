@@ -301,6 +301,16 @@ export const FX: Record<string, () => void> = {
     tone({ type: 'sawtooth', freq: 1900, to: 1500, dur: 0.7, vol: 0.06, filter: { type: 'bandpass', freq: 2200, q: 6 } });
     noise({ dur: 0.7, vol: 0.08, type: 'bandpass', freq: 3000, to: 2000, q: 4 });
   },
+  /** Short skid as a car slides to a halt (Guy Fieri's entrance calls it). */
+  skid() {
+    noise({ dur: 0.35, vol: 0.08, type: 'bandpass', freq: 2600, to: 1800, q: 4 });
+    tone({ type: 'sawtooth', freq: 1700, to: 1300, dur: 0.3, vol: 0.04, filter: { type: 'bandpass', freq: 2000, q: 6 } });
+  },
+  /** Single horn honk (Guy Fieri's entrance calls it). */
+  honk() {
+    tone({ type: 'square', freq: 392, dur: 0.22, vol: 0.06, filter: { type: 'lowpass', freq: 1800 } });
+    tone({ type: 'square', freq: 494, dur: 0.22, vol: 0.05, filter: { type: 'lowpass', freq: 1800 } });
+  },
   /** Two-tone car horn: beep beep. */
   horn() {
     const t = now();
@@ -376,6 +386,75 @@ export const FX: Record<string, () => void> = {
     const t = now();
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
     noise({ dur: 0.2, vol: 0.15, type: 'highpass', freq: 4000 });
+  },  // ---------------------------------------------------------------- wildlife
+  /** Two-finger whistle calling the animals in: a quick rise, then a long falling note. */
+  callWhistle() {
+    const t = now();
+    tone({ type: 'sine', freq: 1500 * vary(0.03), to: 2600, dur: 0.12, vol: 0.09, at: t });
+    tone({ type: 'sine', freq: 2700 * vary(0.03), to: 1700, dur: 0.38, vol: 0.1, attack: 0.02, at: t + 0.13 });
+    noise({ dur: 0.5, vol: 0.03, type: 'bandpass', freq: 2400, q: 6, at: t });
+  },
+  /** Leaves and dry grass shuffling as something moves underneath. */
+  rustle() {
+    const t = now();
+    for (let i = 0; i < 5; i++) noise({ dur: 0.05, vol: 0.07, type: 'bandpass', freq: 3500 * vary(0.3), q: 1.5, at: t + i * 0.05 * vary(0.4) });
+  },
+  /** A croc's warning: a long breathy hiss over a low growl. */
+  crocHiss() {
+    noise({ dur: 0.55, vol: 0.16, type: 'highpass', freq: 2200, to: 3200, attack: 0.05 });
+    tone({ type: 'sawtooth', freq: 55 * vary(), to: 42, dur: 0.5, vol: 0.08, filter: { type: 'lowpass', freq: 300 } });
+  },
+  /** Claws scrabbling over the ground. */
+  scuttle() {
+    const t = now();
+    for (let i = 0; i < 4; i++) noise({ dur: 0.02, vol: 0.08, type: 'bandpass', freq: 1800 * vary(0.3), q: 3, at: t + i * 0.045 });
+  },
+  /** Jaws slamming shut: a hollow wooden clap with a bony crack. */
+  jawSnap() {
+    tone({ type: 'square', freq: 320 * vary(), to: 120, dur: 0.06, vol: 0.16, filter: { type: 'bandpass', freq: 900, q: 3 } });
+    noise({ dur: 0.07, vol: 0.35, type: 'bandpass', freq: 1400 * vary(), q: 2 });
+    tone({ type: 'sine', freq: 90, to: 40, dur: 0.15, vol: 0.25 });
+  },
+  /** A deep croc bellow that rattles the floor. */
+  bellow() {
+    tone({ type: 'sawtooth', freq: 48, to: 36, dur: 0.9, vol: 0.14, attack: 0.08, filter: { type: 'lowpass', freq: 220 } });
+    tone({ type: 'sine', freq: 31, dur: 0.9, vol: 0.3, attack: 0.08 });
+    noise({ dur: 0.8, vol: 0.08, type: 'lowpass', freq: 400, to: 150, attack: 0.1 });
+  },
+  /** Springy take-off of a kangaroo hop. */
+  rooSpring() {
+    tone({ type: 'triangle', freq: 180 * vary(), to: 420, dur: 0.12, vol: 0.06 });
+  },
+  /** Big hind feet landing a hop. */
+  hopThump() {
+    tone({ type: 'sine', freq: 110 * vary(), to: 55, dur: 0.09, vol: 0.2 });
+    noise({ dur: 0.04, vol: 0.08, type: 'lowpass', freq: 700 });
+  },
+  /** Both hind feet driving into a body. */
+  rooKick() {
+    FX.bootThud();
+    tone({ type: 'sine', freq: 70, to: 35, dur: 0.2, vol: 0.3 });
+    noise({ dur: 0.06, vol: 0.25, type: 'bandpass', freq: 900, q: 1.5 });
+  },
+  /** Snake hiss with a forked flicker on top. */
+  snakeHiss() {
+    noise({ dur: 0.45, vol: 0.14, type: 'highpass', freq: 4500, to: 6500, attack: 0.04 });
+    noise({ dur: 0.08, vol: 0.06, type: 'bandpass', freq: 7000, q: 6, at: now() + 0.3 });
+  },
+  /** A python lashing up and wrapping on: whipping air and a heavy coil. */
+  snakeStrike() {
+    noise({ dur: 0.12, vol: 0.25, type: 'bandpass', freq: 1200, to: 3200, q: 1.5 });
+    tone({ type: 'sine', freq: 140, to: 60, dur: 0.18, vol: 0.22 });
+  },
+  /** A very satisfied croc. */
+  burp() {
+    voice(95 * vary(), 70, 0.45, 0.3, [400, 800, 2000]);
+    tone({ type: 'sawtooth', freq: 60, to: 45, dur: 0.4, vol: 0.08, filter: { type: 'lowpass', freq: 400 } });
+  },
+  /** Something big going down in one swallow. */
+  gulp() {
+    tone({ type: 'sine', freq: 260, to: 90, dur: 0.18, vol: 0.25 });
+    noise({ dur: 0.12, vol: 0.1, type: 'lowpass', freq: 600, to: 200 });
   },
   // ---------------------------------------------------------------- basketball
   /** Rubber ball slapping a hardwood floor: a hollow low thump with a ping. */
@@ -576,6 +655,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     backboard: { frames: { 0: 'squeak', 2: 'heave', 18: 'bigStomp' }, impact: ['rimRattle', 'boneCrack'], blocked: 'clang' },
     postup: { frames: { 1: 'squeak', 12: 'squeak', 24: 'squeak' }, impact: 'bodyBump', blocked: 'bodyBump' },
   },
+  irwin: {
+    proj_croc: { frames: { 2: 'callWhistle', 10: 'rustle' } },
+    proj_roo: { frames: { 2: 'callWhistle' } },
+    proj_snake: { frames: { 1: 'rustle', 8: 'rustle' } },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
@@ -621,6 +705,9 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   burger: { travel: { every: 12, cue: 'fireCrackle' }, impact: ['splat', 'flameBurst'] },
   ragtop: { launch: ['horn', 'screech'], travel: { every: 16, cue: 'engineRev' }, impact: 'carCrash', blocked: 'carCrash' },
   bball: { impact: ['dribble', 'bodyBump'], blocked: 'dribble', clash: 'dribble' },
+  croc: { launch: 'crocHiss', travel: { every: 10, cue: 'scuttle' }, impact: ['jawSnap', 'boneCrack'], blocked: 'jawSnap' },
+  roo: { launch: 'rooSpring', impact: ['rooKick', 'boneCrack'], blocked: 'hopThump' },
+  snake: { launch: 'snakeHiss', travel: { every: 9, cue: 'rustle' }, impact: ['snakeStrike', 'snakeHiss'], blocked: 'snakeStrike' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */

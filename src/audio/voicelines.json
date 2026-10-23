@@ -19,7 +19,8 @@
     "buster":     { "voice": "am_santa",   "speed": 1.12, "pitch": 1.28 },
     "kingtut":    { "voice": "bm_fable",   "speed": 0.88, "pitch": 0.92 },
     "fieri":      { "voice": "am_fenrir",  "speed": 1.12, "pitch": 1.03, "gain": 1.05 },
-    "shaq":       { "voice": "am_onyx",    "speed": 0.92, "pitch": 0.84 }
+    "shaq":       { "voice": "am_onyx",    "speed": 0.92, "pitch": 0.84 },
+    "irwin":      { "voice": "bm_fable",   "speed": 1.1 }
   },
   "lines": [
     { "file": "default-intro", "who": "default", "text": "Let's settle this." },
@@ -44,6 +45,8 @@
     { "file": "fieri-finisher", "who": "fieri", "text": "Extra crispy. Just how I like it." },
     { "file": "shaq-intro", "who": "shaq", "text": "Big man on the floor. Clear the lane!" },
     { "file": "shaq-finisher", "who": "shaq", "text": "Too big. Too strong. Nothing but net." },
+    { "file": "irwin-intro", "who": "irwin", "text": "Easy, mate. She only bites when I ask her to." },
+    { "file": "irwin-finisher", "who": "irwin", "text": "Good girl! She was hungry, that one." },
 
     { "file": "ann-round-1", "who": "announcer", "text": "Round 1", "spoken": "Round one!" },
     { "file": "ann-round-2", "who": "announcer", "text": "Round 2", "spoken": "Round two!" },
@@ -69,6 +72,7 @@
     { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" },
     { "file": "ann-wins-kingtut", "who": "announcer", "text": "King Tut wins" },
     { "file": "ann-wins-fieri", "who": "announcer", "text": "Guy Fieri wins" },
-    { "file": "ann-wins-shaq", "who": "announcer", "text": "Shaquille O'Neal wins", "spoken": "Shaquille O'Neal wins!" }
+    { "file": "ann-wins-shaq", "who": "announcer", "text": "Shaquille O'Neal wins", "spoken": "Shaquille O'Neal wins!" },
+    { "file": "ann-wins-irwin", "who": "announcer", "text": "Steve Irwin wins" }
   ]
 }
