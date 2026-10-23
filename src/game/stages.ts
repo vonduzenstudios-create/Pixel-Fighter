@@ -1,6 +1,7 @@
 import type { SongName } from '../audio/music';
 import type { PartSet, Pose } from '../gfx/rig';
 import type { Fight } from './fight';
+import type { Fighter } from './fighter';
 import { MoonStage } from './moon';
 import { Stage } from './stage';
 import { TrainStage } from './train';
@@ -15,6 +16,7 @@ import type { Particles } from './particles';
 import { FlavortownStage } from './flavortown';
 import { DojoStage } from './dojo';
 import { RunwayStage } from './runway';
+import { LabStage } from './lab';
 
 /** A custom bottom-of-the-pit landing for the uppercut stage finish, in place of the spikes. */
 export interface PitLanding {
@@ -26,6 +28,8 @@ export interface PitLanding {
   tick(f: Fight, it: number): void;
   /** Drawn over the victim in the close-up. */
   draw(ctx: CanvasRenderingContext2D, it: number): void;
+  /** Per-frame changes to the landed victim before they are drawn (pose, x-ray, tint); returns a y offset. */
+  victim?(l: Fighter, it: number): number;
 }
 
 /** Anything the fight can be staged in. */
@@ -79,6 +83,7 @@ export const STAGES: StageEntry[] = [
   { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'dojo', name: 'IRONWOOD DOJO', make: (b) => new DojoStage(b) },
   { id: 'runway', name: 'THE RUNWAY', make: (b) => new RunwayStage(b) },
+  { id: 'lab', name: 'THE COIL WORKS', make: (b) => new LabStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
