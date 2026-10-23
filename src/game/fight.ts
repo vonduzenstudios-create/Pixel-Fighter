@@ -380,9 +380,11 @@ export class Fight {
           this.particles.sparks((p.x + q.x) / 2, p.y, 16, '#ffffff');
           sfx.block();
         }
-      if (p.dead || d.invulnerable) continue;
+      if (p.dead || p.spent || d.invulnerable) continue;
       if (circleRect(p.x, p.y, p.r, d.hurtbox())) {
-        p.dead = true;
+        // a sprouted tree stays standing after it hits; everything else breaks
+        if (p.kind === 'tree') p.spent = true;
+        else p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
         if (p.kind === 'cash') sfx.kaching();
@@ -548,6 +550,64 @@ export class Fight {
           this.explode(l);
         }
         tick();
+        if (tt >= 300) done();
+        break;
+      }
+      case 'chuck': {
+        // a blur of boots, then three heel drops that hammer them down through the bridge deck like a nail
+        const kick = (k: number) =>
+          k % 2
+            ? AN.P(AN.STANCE, { lb: -128, kb: -4, fb: -40, t: -36, h: 10, af: -10, ef: -40, ab: 10, lf: 6, kf: 4 })
+            : AN.P(AN.STANCE, { lf: -120, kf: -4, ff: -30, t: -26, h: 10, af: -30, ef: -70, ab: 30 });
+        const RAISE = AN.P(AN.STANCE, { lf: -172, kf: -2, ff: -20, t: -14, h: 6, af: -40, ef: -60, ab: 30, eb: -40, lb: 6, kb: 4 });
+        const DROP = AN.P(AN.STANCE, { lf: -52, kf: 4, ff: 20, t: 22, h: 8, af: -20, ef: -60, ab: 20, eb: -40, lb: 20, kb: 20 });
+        D.sink ??= 0;
+        D.target ??= 0;
+        if (tt < 16) {
+          w.x += (l.x - w.facing * 38 - w.x) * 0.2;
+          w.poseOverride = AN.P(AN.STANCE, { af: -80, ef: -120, ab: -70, eb: -125, t: -4, h: -6 });
+        } else if (tt < 64) {
+          const k = Math.floor((tt - 16) / 4);
+          w.poseOverride = kick(k);
+          if ((tt - 16) % 4 === 1) {
+            const hy = rand(30, 70);
+            l.poseOverride = k % 2 ? AN.HIT_HIGH : AN.HIT_MID;
+            l.shake = 3;
+            this.particles.blood(l.x - w.facing * 4, hy, w.facing, 6, 1.1);
+            this.particles.sparks(l.x - w.facing * 6, hy, 2, '#ffffff');
+            sfx.hit(k % 3 === 0);
+            if (k % 4 === 0) sfx.whoosh();
+          }
+          if (tt === 40) sfx.scream();
+        } else if (tt < 190) {
+          // drops land at 84, 124 and 164; each one drives them further into the planks
+          const ph = (tt - 64) % 40;
+          l.poseOverride = AN.P(AN.DIZZY, { af: -20, ab: -10 });
+          w.poseOverride = ph < 14 ? RAISE : ph < 20 ? AN.P(RAISE, { lf: -120 }) : DROP;
+          if (ph === 20) {
+            const n = (tt - 84) / 40;
+            D.target = [26, 52, 92][n];
+            sfx.crunch();
+            sfx.hit(true);
+            this.shake(n === 2 ? 14 : 8);
+            this.particles.blood(l.x, Math.max(6, 70 - D.target), w.facing, n === 2 ? 40 : 14, n === 2 ? 1.6 : 1);
+            this.particles.sparks(l.x, 2, 8, '#a8743a');
+            this.particles.smoke(l.x, 2, 6, '#6a5040');
+            if (n === 1) sfx.scream();
+          }
+        }
+        D.sink += (D.target - D.sink) * 0.35;
+        l.y = 0;
+        l.vy = 0;
+        if (tt >= 166 && tt < 260 && tt % 5 === 0) {
+          // what is left gushes out of the hole
+          this.particles.blood(l.x + rand(-4, 4), 2, rand(-1, 1), 4, 1.3);
+          if (tt % 20 === 0) sfx.blood();
+        }
+        if (tt === 200) w.poseOverride = AN.P(AN.STANCE, { af: -70, ef: -125, ab: -60, eb: -125, t: 0, h: -10 });
+        w.update(this);
+        w.computePose();
+        l.computePose();
         if (tt >= 300) done();
         break;
       }
@@ -744,7 +804,24 @@ export class Fight {
     for (const f of this.f) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
-    for (const f of order) f.draw(ctx, cam);
+    for (const f of order) {
+      if (this.fatal?.kind === 'chuck' && f === this.loser && this.fatal.data.sink > 0.5) {
+        // hammered into the deck: only what is above the planks shows, over a splintered hole
+        const sink = Math.round(this.fatal.data.sink), hx = Math.round(f.x - cam);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, W, FLOOR + 1);
+        ctx.clip();
+        f.draw(ctx, cam, FLOOR + sink);
+        ctx.restore();
+        ctx.fillStyle = '#100808';
+        ctx.fillRect(hx - 9, FLOOR, 18, 2);
+        ctx.fillStyle = '#a8743a';
+        for (const [dx, h] of [[-10, 3], [-6, 2], [5, 3], [9, 2]]) ctx.fillRect(hx + dx, FLOOR - h + 1, 1, h);
+        continue;
+      }
+      f.draw(ctx, cam);
+    }
     for (const f of this.f) if (f.state === 'dizzy' || (this.fatal && f === this.loser && f.poseOverride === AN.DIZZY)) this.drawStars(ctx, f, cam);
     for (const p of this.projectiles) p.draw(ctx, cam);
     if (this.fatal?.kind === 'blackbeard' && this.fatal.data.kx != null) {
