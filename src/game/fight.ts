@@ -544,6 +544,74 @@ export class Fight {
         if (tt >= 300) done();
         break;
       }
+      case 'brucelee': {
+        // a blur of fists and nunchaku, a beat of stillness, then one short punch that sends them into orbit
+        if (tt < 14) {
+          w.x += (l.x - w.facing * 26 - w.x) * 0.25;
+          w.poseOverride = AN.P(AN.STANCE, { af: -70, ef: -80, t: 4 });
+        } else if (tt < 74) {
+          const k = tt % 6;
+          w.propOverride = tt >= 44 ? w.ch.props.nunchaku ?? null : null;
+          w.poseOverride = tt < 44
+            ? AN.P(AN.STANCE, k < 3 ? { af: -92, ef: -4, ab: -40, eb: -100, t: 20 } : { af: -40, ef: -100, ab: -90, eb: -6, t: 18 })
+            : AN.P(AN.STANCE, { af: k < 3 ? -150 : -100, ef: -30, t: 10, pa: tt * 50 });
+          if (k === 0 || k === 3) {
+            l.shake = 4;
+            l.poseOverride = AN.P(k ? AN.HIT_HIGH : AN.HIT_MID, { h: rand(-30, 20), t: k ? rand(-30, -14) : rand(20, 34) });
+            const hx = l.x - w.facing * 4, hy = rand(36, 66);
+            this.particles.blood(hx, hy, w.facing, 6, 1.2);
+            this.particles.sparks(hx, hy, 2, '#ffffff');
+            sfx.hit(tt % 12 === 0);
+          }
+          if (tt === 20 || tt === 50) sfx.kiai(360 + rand(-20, 20));
+        } else if (tt < 100) {
+          w.propOverride = null;
+          w.poseOverride = AN.P(AN.STANCE, { af: -86, ef: -14, ab: -30, eb: -110, t: 12, lf: -36, kf: 34 });
+          l.poseOverride = AN.DIZZY;
+          l.shake = 0;
+          if (tt === 76) this.particles.blood(l.x, 60, -w.facing, 20, 0.6);
+          if (tt === 92) sfx.kiai(420);
+        }
+        if (tt === 100) {
+          w.poseOverride = AN.P(AN.STANCE, { af: -92, ef: -2, ab: -20, eb: -120, t: 26, h: -8, lf: -44, kf: 42, lb: 28, kb: 6 });
+          sfx.hit(true);
+          sfx.boom();
+          sfx.scream();
+          this.shake(18);
+          this.hitstop = 10;
+          this.particles.blood(l.x, 50, w.facing, 70, 2);
+          this.particles.sparks(l.x - w.facing * 6, 50, 14, '#fff2c0');
+          l.poseOverride = null;
+          l.setAnim(AN.TUMBLE);
+          D.vx = w.facing * 3.5;
+          D.vy = 8.5;
+        }
+        if (tt === 150) w.poseOverride = AN.P(AN.STANCE, { af: -60, ef: -95, t: 6, h: 4 });
+        w.update(this);
+        w.computePose();
+        if (tt > 100 && D.vx != null) {
+          // fly up and away, ignoring the stage walls
+          l.x += D.vx;
+          l.y += D.vy;
+          D.vy -= 0.05;
+          l.animT++;
+          if (tt % 2 === 0) this.particles.blood(l.x, l.y + 40, -w.facing, 2, 0.6);
+          const sx = l.x - this.camX;
+          if (D.gone == null && (sx < -40 || sx > W + 40 || l.y > FLOOR + 40)) {
+            D.gone = tt;
+            D.sx = Math.max(10, Math.min(W - 10, sx)) + this.camX;
+            l.alpha = 0;
+          }
+        }
+        l.computePose();
+        if (D.gone != null && tt === D.gone + 20) {
+          this.particles.sparks(D.sx, FLOOR - 16, 12, '#ffffff');
+          this.particles.sparks(D.sx, FLOOR - 16, 6, '#ffe060');
+          sfx.twinkle();
+        }
+        if (tt >= 280) done();
+        break;
+      }
       case 'pit': {
         if (!this.pitView) {
           l.y += l.vy;

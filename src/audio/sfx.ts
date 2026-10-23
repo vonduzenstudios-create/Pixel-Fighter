@@ -127,6 +127,16 @@ export const sfx = {
   grunt() {
     voice(160 + Math.random() * 40, 110, 0.18, 0.22, [600, 1000, 2400]);
   },
+  /** Sharp martial-arts shout: a high yelp that bends upward then cracks off. */
+  kiai(pitch = 330) {
+    voice(pitch, pitch * 1.7, 0.32, 0.26, [900, 1500, 2900]);
+    noise({ dur: 0.12, vol: 0.08, type: 'highpass', freq: 3000 });
+  },
+  twinkle() {
+    const c = ac();
+    if (!c) return;
+    for (const [i, f] of [1568, 2093, 2637].entries()) tone({ type: 'square', freq: f, dur: 0.08, vol: 0.06, at: c.currentTime + i * 0.07 });
+  },
   scream() {
     voice(520, 160, 1.2, 0.3, [800, 1200, 2600]);
   },

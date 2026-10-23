@@ -39,6 +39,19 @@ export function cutlass(): Part {
   return done(p, 6, 2);
 }
 
+export function nunchaku(): Part {
+  // two lacquered sticks joined by a short chain; the swinging stick hangs past the fist
+  const p = new Painter(8, 31);
+  p.rect(3, 0, 3, 11, '#2a1a10');
+  p.line(3, 1, 3, 10, '#5a3a20');
+  for (const y of [12, 14, 16]) p.set(4, y, '#a8acb4');
+  for (const y of [13, 15]) p.set(5, y, '#70747c');
+  p.rect(3, 17, 3, 12, '#2a1a10');
+  p.line(3, 18, 3, 28, '#5a3a20');
+  p.rect(3, 22, 3, 1, '#c8a040');
+  return done(p, 4, 2);
+}
+
 export function stovepipeHat(): HTMLCanvasElement {
   const p = new Painter(17, 24);
   p.rect(2, 1, 13, 19, '#141218');
