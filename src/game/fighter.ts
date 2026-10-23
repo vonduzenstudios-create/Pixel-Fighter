@@ -8,6 +8,7 @@ import * as MV from './moves';
 import type { Fight } from './fight';
 import type { Anim, Btn, Finisher, HitDef, Move, Special } from './types';
 import type { Look } from '../chars/build';
+import type { PortraitStyle } from '../gfx/portrait';
 import { chance } from '../core/rng';
 import { strengthOf } from '../audio/sfx';
 
@@ -24,6 +25,12 @@ export interface CharDef {
   /** Pitch of grunts. */
   voice: number;
   props: Partial<Record<'axe' | 'sword' | 'cutlass' | 'nunchaku', Part>>;
+  /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
+  portrait?: PortraitStyle;
+  /** Win-screen taunts. {L} becomes the loser's short name. */
+  quotes?: string[];
+  /** Taunts for beating one particular opponent, keyed by their id. */
+  quotesVs?: Record<string, string>;
 }
 
 export interface Controller {

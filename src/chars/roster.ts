@@ -284,24 +284,69 @@ export function roster(): CharDef[] {
       id: 'lincoln', name: 'Abe Lincoln', short: 'LINCOLN', title: 'The Rail Splitter', look: LINCOLN_LOOK,
       alt: { ...LINCOLN_LOOK, coat: '#4a2c1a', pants: '#3a2a1e', hatColor: '#4a2c1a', bowtie: '#7a1010' },
       specials: lincolnSpecials, voice: 110, props: { axe: props.axe },
+      quotes: [
+        'FOUR SCORE AND SEVEN SECONDS AGO, YOU STILL HAD TEETH.',
+        'A HOUSE DIVIDED CANNOT STAND. NEITHER, IT SEEMS, CAN YOU.',
+        'I SPLIT RAILS TALLER THAN YOU BEFORE BREAKFAST.',
+        'GO HOME, {L}. THE NATION NEEDS ITS FLOORS SWEPT.',
+      ],
+      quotesVs: { blackbeard: 'I HAVE FREED YOU OF YOUR FINAL TOOTH, PIRATE.' },
+      portrait: { front: (p, c) => { if (!c.beaten) p.set(c.geom.mouth[0] - 6, c.geom.mouth[1] - 6, '#7a4a30'); } },
       finisher: { name: 'Emancipation Cleave', cmd: [6, 4, 6], btn: 'hp', text: 'F, B, F + HP (close)', range: [0, 60] },
     },
     {
       id: 'tesla', name: 'Nikola Tesla', short: 'TESLA', title: 'Wizard of Current', look: TESLA_LOOK,
       alt: { ...TESLA_LOOK, coat: '#3e2a46', pants: '#2c2232', necktie: '#d0a020', glove: '#2a2a2a' },
       specials: teslaSpecials, voice: 140, props: {},
+      quotes: [
+        'YOUR RESISTANCE WAS LOW. MY CURRENT WAS NOT.',
+        'I SAW THIS DEFEAT IN A VISION. IT WAS FUNNIER IN PERSON.',
+        'ALTERNATING BLOWS, {L}. YOU ONLY BLOCKED THE FIRST ONE.',
+        'EVEN A PIGEON PUTS UP A BETTER FIGHT.',
+      ],
+      quotesVs: { lincoln: 'A FINE HAT, MR PRESIDENT. A SHAME IT CONDUCTS SO WELL.' },
+      portrait: {
+        front: (p, c) => {
+          // static crackling off the hair
+          if (c.beaten) for (const [x, y] of [[30, 18], [44, 12], [62, 13]]) p.line(x, y, x + 3, y - 4, '#a0e0ff'), p.line(x + 3, y - 4, x + 1, y - 7, '#e0f8ff');
+        },
+      },
       finisher: { name: 'Grand Discharge', cmd: [2, 6, 2, 6], btn: 'lp', text: 'D, F, D, F + LP (any range)', range: [0, 400] },
     },
     {
       id: 'joan', name: 'Joan of Arc', short: 'JOAN', title: 'Maid of the Flame', look: JOAN_LOOK,
       alt: { ...JOAN_LOOK, hair: '#c8a040', armor: { metal: '#8a8a96', tabard: '#8a1a1a', trim: '#e8e8e8' }, pants: '#8a8a96' },
       specials: joanSpecials, voice: 260, props: { sword: props.sword },
+      quotes: [
+        'THE VOICES TOLD ME YOU WOULD FALL. THEY WERE RIGHT.',
+        'KNEEL, {L}. IT SUITS YOU.',
+        'I HAVE FACED ARMIES. YOU WERE A LIGHT WARM-UP.',
+        'GO WITH GOD. GO QUICKLY.',
+      ],
+      quotesVs: { tesla: 'I AM NOT AFRAID OF FIRE, AND I AM NOT AFRAID OF SPARKS.' },
       finisher: { name: 'Purifying Pyre', cmd: [6, 2, 6], btn: 'hk', text: 'F, D, F + HK (mid range)', range: [30, 160] },
     },
     {
       id: 'blackbeard', name: 'Blackbeard', short: 'BLACKBEARD', title: 'Terror of the Seas', look: BEARD_LOOK,
       alt: { ...BEARD_LOOK, coat: '#1c3c2a', coatTrim: '#c0c0c8', pants: '#2a2a30', beardRibbon: '#20a0e0' },
       specials: beardSpecials, voice: 95, props: { cutlass: props.cutlass },
+      quotes: [
+        'DEAD MEN TELL NO TALES, AND YOU WILL NOT BE TELLING THIS ONE.',
+        'I HAVE SCRAPED TOUGHER THINGS OFF MY HULL.',
+        'YOUR SHARE OF THE LOOT IS ONE BLACK EYE, {L}.',
+        'WALK THE PLANK, OR CRAWL IT. YOUR CHOICE.',
+      ],
+      quotesVs: { joan: 'EVEN SAINTS SINK, LASS.' },
+      portrait: {
+        front: (p, c) => {
+          // the lit fuses tucked under his hat brim
+          const pts = c.beaten ? [[22, 26], [82, 20]] : [[20, 34], [86, 30]];
+          for (const [x, y] of pts) {
+            p.line(x, y, x, y + 8, '#d0b890');
+            p.set(x, y - 1, '#ffd040'), p.set(x, y - 2, '#ff6020'), p.set(x + 1, y - 3, '#a0a0a0');
+          }
+        },
+      },
       finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 70] },
     },
     {
@@ -310,6 +355,11 @@ export function roster(): CharDef[] {
       id: 'brucelee', name: 'Bruce Lee', short: 'BRUCE LEE', title: 'The Little Dragon', look: LEE_LOOK,
       alt: { ...LEE_LOOK, pants: '#e4e0d4', boots: '#d8d4c8', sash: '#b01818', wraps: '#2a2a30' },
       specials: leeSpecials, voice: 180, props: { nunchaku: props.nunchaku },
+      quotes: [
+        'BE LIKE WATER. YOU WERE MORE LIKE A PUDDLE.',
+        'BOARDS DO NOT HIT BACK. NEITHER, IT TURNS OUT, DO YOU.',
+        'I FEAR THE MAN WHO PRACTISED ONE KICK TEN THOUSAND TIMES. NOT YOU, {L}.',
+      ],
       finisher: { name: 'Hundred-Fist Finale', cmd: [4, 6, 4, 6], btn: 'lp', text: 'B, F, B, F + LP (close)', range: [0, 70] },
     },
   ];
