@@ -5,7 +5,7 @@ import { updateAnimal, drawAnimal } from './fighter';
 
 export const PROJECTILES: Record<string, ProjDef> = {
   croc: {
-    // summoned wildlife (chars/irwin.ts): they hit once, then head home instead of breaking (sturdy)
+    // summoned wildlife (./fighter.ts): they hit once, then head home instead of breaking (sturdy)
     stats: { dmg: 85, level: 'low', effect: 'sweep', r: 10, speed: 2.9, sturdy: true },
     sounds: { launch: 'crocHiss', travel: { every: 10, cue: 'scuttle' }, impact: ['jawSnap', 'boneCrack'], blocked: 'jawSnap' },
     selfMoving: true,

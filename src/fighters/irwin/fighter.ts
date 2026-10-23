@@ -26,7 +26,7 @@ const IRWIN_LOOK: Look = {
 };
 const IRWIN_ALT: Look = { ...IRWIN_LOOK, shirt: '#7a8a58', pants: '#56643e', socks: '#8a8a7a', hair: '#c89c50', boots: '#2a2018' };
 
-// Original lines. Kokoro clips in public/voices (src/audio/voicelines.json).
+// Original lines. Kokoro clips in public/voices (./voice.json).
 export const IRWIN_LINES = {
   intro: 'Easy, mate. She only bites when I ask her to.',
   finisher: 'Good girl! She was hungry, that one.',

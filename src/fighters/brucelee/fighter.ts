@@ -78,7 +78,7 @@ const leeSpecials: Special[] = [
 export function bruceLee(): CharDef {
   return {
     intro: BRUCE_LEE_INTRO,
-    // TODO: a detailed winner/loser portrait once the portrait API lands on main. Entrance: chars/intros.ts.
+    // TODO: a detailed winner/loser portrait once the portrait API lands on main. Entrance: ./intro.ts.
     id: 'brucelee', name: 'Bruce Lee', short: 'BRUCE LEE', title: 'The Little Dragon', look: LEE_LOOK,
     alt: { ...LEE_LOOK, pants: '#e4e0d4', boots: '#d8d4c8', sash: '#b01818', wraps: '#2a2a30' },
     specials: leeSpecials, voice: 180, props: { nunchaku: nunchaku() },

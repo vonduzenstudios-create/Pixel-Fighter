@@ -63,7 +63,7 @@ export interface Move {
   propBehind?: boolean;
   onFrame?: (self: Fighter, fight: Fight, frame: number) => void;
   whoosh?: boolean;
-  /** Per-move sound design; falls back to MOVE_SOUNDS[id] in src/audio/specials.ts. */
+  /** Per-move sound design; falls back to the fighter's FighterModule.moveSounds[id]. */
   sounds?: MoveSounds;
   /** Frames during which the fighter is not drawn and cannot be hit. */
   invisible?: [number, number];
