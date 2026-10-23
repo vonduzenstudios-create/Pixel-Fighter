@@ -140,6 +140,12 @@ export const sfx = {
   scream() {
     voice(520, 160, 1.2, 0.3, [800, 1200, 2600]);
   },
+  /** Splintering planks: a woody crack over a low thump. */
+  crunch() {
+    noise({ dur: 0.22, vol: 0.45, type: 'bandpass', freq: 1800, to: 500, q: 2 });
+    tone({ type: 'square', freq: 140, to: 50, dur: 0.18, vol: 0.18, filter: { type: 'lowpass', freq: 700 } });
+    sfx.thud();
+  },
   menuMove() {
     tone({ type: 'square', freq: 660, dur: 0.05, vol: 0.08 });
   },
@@ -159,6 +165,31 @@ export const sfx = {
     noise({ dur: 0.1, vol: 0.25, type: 'highpass', freq: 5000, at: t + 0.2 });
     noise({ dur: 0.03, vol: 0.3, type: 'highpass', freq: 3000, at: t + 0.3 });
     voice(980, 1250, 0.35, 0.3, [350, 2300, 3000], 0.32);
+  },
+  /** Cash register bell for money hits. */
+  kaching() {
+    const c = ac();
+    if (!c) return;
+    noise({ dur: 0.06, vol: 0.25, type: 'highpass', freq: 3000 });
+    tone({ type: 'square', freq: 1760, dur: 0.18, vol: 0.09, at: c.currentTime + 0.05 });
+    tone({ type: 'square', freq: 2637, dur: 0.35, vol: 0.08, at: c.currentTime + 0.1 });
+    tone({ type: 'sine', freq: 3520, dur: 0.4, vol: 0.06, at: c.currentTime + 0.1 });
+  },
+  /** A sung phrase: [semitones above A3, beats] pairs on an operatic "ah". */
+  sing(phrase: [number, number][] = [[0, 1], [4, 1], [7, 1], [12, 3]], beat = 0.16, vol = 0.24) {
+    const c = ac();
+    if (!c) return;
+    let at = 0;
+    for (const [st, b] of phrase) {
+      const f = 220 * 2 ** (st / 12);
+      voice(f, f * 1.003, b * beat * 1.05, vol, [800, 1150, 2900], at);
+      at += b * beat;
+    }
+  },
+  /** Short sonic burst for the aria blast. */
+  aria() {
+    sfx.sing([[12, 1], [19, 3]], 0.09, 0.26);
+    noise({ dur: 0.3, vol: 0.12, type: 'bandpass', freq: 1500, to: 600, q: 3 });
   },
   boom() {
     tone({ type: 'sine', freq: 60, to: 30, dur: 0.9, vol: 0.6 });
