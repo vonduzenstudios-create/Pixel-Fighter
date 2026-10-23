@@ -3,7 +3,7 @@ import { GraveyardStage } from './stage';
 import { graveyardSong } from './song';
 
 export default {
-  order: 156,
+  order: 157,
   name: 'HOLLOWMERE CEMETERY',
   make: (bones) => new GraveyardStage(bones),
   songs: { graveyard: graveyardSong },
