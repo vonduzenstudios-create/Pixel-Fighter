@@ -12,6 +12,7 @@ import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import { Stage } from './stage';
+import { Toasty } from './toasty';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
 
@@ -26,6 +27,7 @@ export class Fight {
   projectiles: Projectile[] = [];
   particles = new Particles();
   pitParticles = new Particles();
+  toasty = new Toasty();
   camX = (STAGE_W - W) / 2;
   shakeT = 0;
   hitstop = 0;
@@ -91,6 +93,7 @@ export class Fight {
 
   // ------------------------------------------------------------- round flow
   resetRound() {
+    this.toasty.reset();
     this.f[0].resetRound(STAGE_W / 2 - 50);
     this.f[1].resetRound(STAGE_W / 2 + 50);
     this.f[0].facing = 1;
@@ -192,6 +195,7 @@ export class Fight {
     this.banners = this.banners.filter((b) => b.t < b.dur);
     this.particles.update();
     this.pitParticles.update();
+    this.toasty.update();
     if (this.shakeT > 0) this.shakeT--;
     for (let i = 0; i < 2; i++) this.shownHp[i] += (this.f[i].hp - this.shownHp[i]) * (this.shownHp[i] > this.f[i].hp ? 0.04 : 1);
 
@@ -416,6 +420,7 @@ export class Fight {
     if (Math.random() < 0.5) sfx.blood();
     this.hitstop = heavy ? 7 : 4;
     if (heavy) this.shake(4);
+    if (a.move?.id === 'uppercut' && !projectile) this.toasty.roll();
   }
 
   // ------------------------------------------------------------- finishing moves
@@ -609,6 +614,7 @@ export class Fight {
     else this.drawArena(ctx);
     ctx.restore();
     this.drawHUD(ctx);
+    this.toasty.draw(ctx);
     for (const b of this.banners) {
       if (b.t < 0) continue;
       const y = b.text === 'PERFECT' ? 108 : 80;
