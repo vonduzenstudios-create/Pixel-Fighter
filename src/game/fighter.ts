@@ -22,7 +22,7 @@ export interface CharDef {
   finisher: Finisher;
   /** Pitch of grunts. */
   voice: number;
-  props: Partial<Record<'axe' | 'sword' | 'cutlass', Part>>;
+  props: Partial<Record<'axe' | 'sword' | 'cutlass' | 'nunchaku', Part>>;
 }
 
 export interface Controller {
