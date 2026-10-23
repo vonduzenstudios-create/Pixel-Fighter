@@ -741,6 +741,9 @@ export class Fight {
   drawArena(ctx: CanvasRenderingContext2D) {
     const cam = Math.round(this.camX);
     this.stage.draw(ctx, cam, this.t);
+    // a rocking stage moves its floor, and everything standing on it moves too
+    ctx.save();
+    ctx.translate(0, this.stage.bob?.(this.t) ?? 0);
     for (const f of this.f) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
@@ -770,6 +773,7 @@ export class Fight {
       ctx.fillRect(0, 0, W, H);
     }
     this.particles.draw(ctx, cam);
+    ctx.restore();
     this.stage.drawFront(ctx, cam, this.t);
   }
 
