@@ -1,8 +1,8 @@
 # Pixel Fighter
 
 A browser fighting game tech demo in the style of 16-bit console fighters. Every pixel of art,
-every sound effect and every note of music is generated in code at load time. There are no
-image or audio files in the repo.
+every sound effect and every note of music is generated in code at load time. The only files
+are the spoken voice lines in `public/voices/`, rendered from text by a script (see below).
 
 - **1 stage:** The Thorn Gorge, a plank bridge over a pit of spikes under a blood moon
 - **4 fighters:** Abe Lincoln, Nikola Tesla, Joan of Arc and Blackbeard
@@ -92,5 +92,10 @@ TypeScript + Vite + plain Canvas 2D at a native 256×224 resolution, scaled up w
   Hitboxes come from the posed fist or foot, so they always match what you see.
 - `src/game/stage.ts` builds the parallax stage and the spike pit.
 - `src/audio/` synthesises SFX with the Web Audio API and runs a small tracker for the
-  original music. The announcer uses the browser's speech synthesis.
+  original music.
+- Voice lines (intros, finisher lines, announcer) are listed in `src/audio/voicelines.json`
+  and rendered with the open-source [Kokoro TTS](https://github.com/hexgrad/kokoro) model,
+  using one of its stock voices per speaker, by `scripts/gen_voices.py` (setup steps are in
+  the script). After changing a line's text, re-run the script and commit the new MP3s. A line
+  with no clip falls back to the browser's speech synthesis.
 - `src/game/ai.ts` drives the CPU with the same inputs a player would press.

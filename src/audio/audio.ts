@@ -1,6 +1,6 @@
 // Everything audible is synthesised with the Web Audio API: no samples.
 let ctx: AudioContext | null = null;
-let master: GainNode, sfxBus: GainNode, musicBus: GainNode;
+let master: GainNode, sfxBus: GainNode, musicBus: GainNode, voiceBus: GainNode;
 let noiseBuf: AudioBuffer;
 let comp: DynamicsCompressorNode;
 
@@ -28,6 +28,10 @@ export function initAudio() {
   musicBus.gain.value = 0.55;
   sfxBus.connect(comp);
   musicBus.connect(comp);
+  // voice lines skip the compressor so a loud hit never ducks the words
+  voiceBus = ctx.createGain();
+  voiceBus.gain.value = 1;
+  voiceBus.connect(master);
   comp.connect(master);
   master.connect(ctx.destination);
   noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
@@ -37,6 +41,9 @@ export function initAudio() {
 
 export function ac() {
   return ctx;
+}
+export function voiceOut() {
+  return voiceBus;
 }
 export function musicOut() {
   return musicBus;
