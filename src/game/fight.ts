@@ -402,6 +402,7 @@ export class Fight {
     if (res === 'block') {
       sfx.block();
       this.particles.sparks(at.x, at.y, 6);
+      this.particles.flash(at.x, at.y, 4, '#a0d0ff');
       this.hitstop = 3;
       return;
     }
@@ -411,8 +412,7 @@ export class Fight {
     else sfx.hit(heavy);
     if (hit.sfx === 'zap') this.particles.zap(at.x, at.y, 8);
     if (projectile && (hit.dmg >= 80)) this.particles.fire(at.x, at.y, 6, 4);
-    this.particles.blood(at.x, at.y, a.facing, Math.round(hit.dmg / 6), heavy ? 1.3 : 1);
-    this.particles.sparks(at.x, at.y, 4, '#ffffff');
+    this.particles.impact(at.x, at.y, a.facing, hit.dmg, heavy);
     if (Math.random() < 0.5) sfx.blood();
     this.hitstop = heavy ? 7 : 4;
     if (heavy) this.shake(4);
