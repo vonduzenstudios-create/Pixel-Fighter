@@ -17,6 +17,8 @@ export interface HitDef {
   /** Frames between repeat hits for multi-hit moves. */
   rehit?: number;
   special?: boolean;
+  /** Launch arc for effect 'launch': [upward speed, speed away]. */
+  lift?: [number, number];
   sfx?: 'light' | 'heavy' | 'slash' | 'zap' | 'burn';
 }
 
