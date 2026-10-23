@@ -1,10 +1,10 @@
 import type { CharDef } from '../game/fighter';
 
 /**
- * Little dioramas ("sets") that each fighter stands in on the character select screen.
- * A painter draws the back wall and floor of one set into a box; the select screen clips
- * to the box and stands the fighter on the floor afterwards. The same painter is used for
- * the small roster tiles and the big preview panels, so draw in terms of w, h, floor and u.
+ * Little dioramas ("sets") that each fighter stands in on the character select screen's
+ * big preview panels. A painter draws the back wall and floor of one set into a box; the
+ * select screen clips to the box and stands the fighter on the floor afterwards. Draw in
+ * terms of w, h, floor and u so a set works at any panel size.
  *
  * A fighter picks its set with CharDef.selectSet (set in its src/fighters/<id>/index.ts); one
  * without gets a spotlight backdrop tinted from its outfit.
@@ -14,7 +14,7 @@ export interface SetGfx {
   h: number;
   /** Top of the floor, relative to the box. The fighter's feet sit a little below this. */
   floor: number;
-  /** Chunky pixel unit: 1 in roster tiles, 2 or more in the big panels. */
+  /** Chunky pixel unit, about one per 44 pixels of box height. */
   u: number;
   t: number;
   /** Fill a rect relative to the box (coordinates are rounded to whole pixels). */

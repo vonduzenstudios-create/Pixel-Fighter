@@ -125,16 +125,25 @@ export class TitleScene implements Scene {
 }
 
 // ------------------------------------------------------------------ Character select
-/** Roster tiles sit in two rows and scroll sideways, so the roster can grow without limit. */
-const ROWS = 2;
-const TILE_W = 32, TILE_H = 40, TILE_GAP = 3, GRID_Y = 129;
-const GRID_COLS = Math.floor((W - 10 + TILE_GAP) / (TILE_W + TILE_GAP));
-const GRID_X = Math.round((W - (GRID_COLS * (TILE_W + TILE_GAP) - TILE_GAP)) / 2);
-const PANEL_W = 118, PANEL_H = 86, PANEL_Y = 14;
+/** Portrait grid across the top: the whole roster on one screen, tiles shrinking as it grows. */
+const GRID_TOP = 15, GRID_H = 70, GRID_W = W - 8, GRID_GAP = 2;
+const PANEL_W = 118, PANEL_H = 104, PANEL_Y = 92;
 const P_COL = ['#ff3a28', '#3a8cff'];
 const P_LIGHT = ['#ff8a70', '#8ac0ff'];
 /** Cursor positions are remembered between visits to the screen. */
 const lastCur = [0, 3];
+
+/** Biggest square tile that fits n portraits in the grid area. */
+function gridLayout(n: number) {
+  let best = { cols: n, rows: 1, size: 0 };
+  for (let cols = 1; cols <= n; cols++) {
+    const rows = Math.ceil(n / cols);
+    const size = Math.floor(Math.min((GRID_W - GRID_GAP * (cols - 1)) / cols, (GRID_H - GRID_GAP * (rows - 1)) / rows, 40));
+    if (size > best.size) best = { cols, rows, size };
+  }
+  const step = best.size + GRID_GAP;
+  return { ...best, x0: Math.round((W - (best.cols * step - GRID_GAP)) / 2), y0: GRID_TOP + Math.round((GRID_H - (best.rows * step - GRID_GAP)) / 2), step };
+}
 
 let selBg: HTMLCanvasElement | null = null;
 function selectSceneBg() {
@@ -153,13 +162,10 @@ export class SelectScene implements Scene {
   picked: [number | null, number | null] = [null, null];
   /** Both fighters are chosen and the screen waits for P1 to confirm. */
   ready = false;
-  /** Leftmost visible roster column, eased toward the cursor. */
-  scroll = 0;
   e = [new Edge(), new Edge()];
   constructor(private app: App) {
     const n = roster().length;
     this.cur = this.cur.map((c) => Math.min(c, n - 1));
-    this.scroll = this.targetScroll();
   }
 
   get two() {
@@ -171,28 +177,16 @@ export class SelectScene implements Scene {
   }
 
   private move(i: number, p: RawInput, n: number) {
-    const cols = Math.ceil(n / ROWS);
-    let col = Math.floor(this.cur[i] / ROWS), row = this.cur[i] % ROWS;
+    const { cols } = gridLayout(n);
     const was = this.cur[i];
-    if (p.l) col = (col + cols - 1) % cols;
-    if (p.r) col = (col + 1) % cols;
-    if (p.u || p.d) row = (row + (p.d ? 1 : ROWS - 1)) % ROWS;
-    this.cur[i] = Math.min(n - 1, col * ROWS + row);
-    if (this.cur[i] !== was) sfx.menuMove();
-  }
-
-  private targetScroll() {
-    const cols = Math.ceil(roster().length / ROWS);
-    const max = Math.max(0, cols - GRID_COLS);
-    // keep whichever cursors are active in view, favouring the one that is moving
-    const active = this.two ? [0, 1] : [this.choosingCpu || this.picked[1] !== null ? 1 : 0];
-    let lo = this.scroll;
-    for (const i of active) {
-      const c = Math.floor(this.cur[i] / ROWS);
-      if (c < lo) lo = c;
-      if (c > lo + GRID_COLS - 1) lo = c - GRID_COLS + 1;
+    if (p.l) this.cur[i] = (this.cur[i] + n - 1) % n;
+    if (p.r) this.cur[i] = (this.cur[i] + 1) % n;
+    if (p.u || p.d) {
+      const rows = Math.ceil(n / cols), col = this.cur[i] % cols;
+      const row = (Math.floor(this.cur[i] / cols) + (p.d ? 1 : rows - 1)) % rows;
+      this.cur[i] = Math.min(n - 1, row * cols + col);
     }
-    return Math.max(0, Math.min(max, Math.round(lo)));
+    if (this.cur[i] !== was) sfx.menuMove();
   }
 
   update() {
@@ -202,8 +196,6 @@ export class SelectScene implements Scene {
     const n = roster().length;
     const back = this.app.back;
     this.app.back = false;
-    this.scroll += (this.targetScroll() - this.scroll) * 0.25;
-    if (Math.abs(this.targetScroll() - this.scroll) < 0.01) this.scroll = this.targetScroll();
     if (this.ready) {
       // both fighters chosen: P1 confirms the matchup or backs out to change it
       const p = this.e[0].update(readPlayer(0, !two));
@@ -270,7 +262,7 @@ export class SelectScene implements Scene {
       // empty slot waiting for P1 to pick
       ctx.fillStyle = '#100c1c';
       ctx.fillRect(x, y, PANEL_W, PANEL_H);
-      drawText(ctx, '?', x + PANEL_W / 2, y + 30, '#3a3050', { scale: 4, align: 'center' });
+      drawText(ctx, '?', x + PANEL_W / 2, y + 36, '#3a3050', { scale: 4, align: 'center' });
       drawText(ctx, tag, x + 4, y + 3, P_LIGHT[pl], { outline: '#000' });
       return;
     }
@@ -284,7 +276,7 @@ export class SelectScene implements Scene {
     ctx.clip();
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(x + PANEL_W / 2 - 18, feet - 1, 36, 3);
-    const sc = Math.min(1, (c.scale ?? 1) * 0.88);
+    const sc = Math.min(1.05, (c.scale ?? 1) * 0.95);
     drawFigure(ctx, partsFor(c, pl === 1 && this.cur[0] === this.cur[1]), sample(anim, this.t), x + PANEL_W / 2, feet, pl === 0 ? 1 : -1, sc);
     ctx.restore();
     // name plate
@@ -308,7 +300,6 @@ export class SelectScene implements Scene {
   draw(ctx: CanvasRenderingContext2D) {
     ctx.drawImage(selectSceneBg(), 0, 0);
     const ch = roster();
-    const n = ch.length;
     // header
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(0, 0, W, 11);
@@ -316,81 +307,59 @@ export class SelectScene implements Scene {
     drawText(ctx, head, 6, 2, '#fff', { grad: ['#fff4b0', '#ff7030'] });
     drawText(ctx, this.two ? '1P VS 2P' : '1P VS CPU', W - 6, 2, '#9a90b8', { align: 'right' });
 
-    for (let pl = 0; pl < 2; pl++) this.drawPanel(ctx, pl);
-    // VS badge between the panels
-    const vy = PANEL_Y + PANEL_H / 2 - 10;
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(W / 2, vy + 10, 13, 0, Math.PI * 2);
-    ctx.fill();
-    drawText(ctx, 'VS', W / 2, vy + 3, '#fff', { scale: 2, align: 'center', grad: ['#ffe0a0', '#e02010'], outline: '#000' });
-
-    // roster strip
-    const step = TILE_W + TILE_GAP;
-    const cols = Math.ceil(n / ROWS);
-    ctx.fillStyle = 'rgba(0,0,0,0.45)';
-    ctx.fillRect(0, GRID_Y - 4, W, ROWS * (TILE_H + TILE_GAP) + 5);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(GRID_X - 3, GRID_Y - 4, GRID_COLS * step + 3, ROWS * (TILE_H + TILE_GAP) + 5);
-    ctx.clip();
+    // portrait grid
+    const g = gridLayout(ch.length);
+    const cw = g.size, hs = cw / 23;
     ch.forEach((c, i) => {
-      const col = Math.floor(i / ROWS), row = i % ROWS;
-      const x = Math.round(GRID_X + (col - this.scroll) * step), y = GRID_Y + row * (TILE_H + TILE_GAP);
-      if (x < -TILE_W || x > W) return;
+      const x = g.x0 + (i % g.cols) * g.step, y = g.y0 + Math.floor(i / g.cols) * g.step;
       const on = [0, 1].filter((pl) => this.shows(pl) && this.cur[pl] === i);
-      const lift = on.length ? 1 : 0;
-      const ty = y - lift;
-      const feet = paintSet(ctx, c, x, ty, TILE_W, TILE_H, this.t + i * 17);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(x - 1, y - 1, cw + 2, cw + 2);
+      ctx.fillStyle = on.length ? '#3a2a50' : '#221a34';
+      ctx.fillRect(x, y, cw, cw);
+      ctx.fillStyle = on.length ? '#4a3462' : '#2a2040';
+      ctx.fillRect(x, y + Math.round(cw / 2), cw, cw - Math.round(cw / 2));
+      const head = partsFor(c).head;
       ctx.save();
       ctx.beginPath();
-      ctx.rect(x, ty, TILE_W, TILE_H);
+      ctx.rect(x, y, cw, cw);
       ctx.clip();
-      const sc = 0.4 * Math.min(1.15, c.scale ?? 1);
-      drawFigure(ctx, partsFor(c), on.length ? sample(IDLE, this.t + i * 9) : STANCE, x + TILE_W / 2, feet, row === 0 ? 1 : -1, sc);
+      ctx.drawImage(head.img, 0, 0, head.img.width, head.img.height, x + cw / 2 - 11 * hs, y + cw - 41 * hs, head.img.width * hs, head.img.height * hs);
       if (!on.length) {
-        ctx.fillStyle = 'rgba(8,6,20,0.38)';
-        ctx.fillRect(x, ty, TILE_W, TILE_H);
+        ctx.fillStyle = 'rgba(8,6,20,0.3)';
+        ctx.fillRect(x, y, cw, cw);
       }
       ctx.restore();
-      // frame: player colours on hovered tiles, flicking between the two when both are on it
-      let frame = '#2a2440';
-      if (on.length) {
-        const pl = on.length === 2 ? (this.t >> 3) % 2 : on[0];
-        const blink = this.picked[pl] === null && this.t % 24 < 4;
-        frame = blink ? '#ffffff' : P_COL[pl];
-      }
-      ctx.fillStyle = frame;
-      ctx.fillRect(x - 1, ty - 1, TILE_W + 2, 1);
-      ctx.fillRect(x - 1, ty + TILE_H, TILE_W + 2, 1);
-      ctx.fillRect(x - 1, ty - 1, 1, TILE_H + 2);
-      ctx.fillRect(x + TILE_W, ty - 1, 1, TILE_H + 2);
-      on.forEach((pl, k) => {
-        const tag = pl === 0 ? '1P' : this.two ? '2P' : 'CPU';
+      if (!on.length) return;
+      // frame in the player's colour, flicking between the two when both are on it
+      const pl = on.length === 2 ? (this.t >> 3) % 2 : on[0];
+      const blink = this.picked[pl] === null && this.t % 24 < 4;
+      ctx.fillStyle = blink ? '#ffffff' : P_COL[pl];
+      ctx.fillRect(x - 2, y - 2, cw + 4, 2);
+      ctx.fillRect(x - 2, y + cw, cw + 4, 2);
+      ctx.fillRect(x - 2, y - 2, 2, cw + 4);
+      ctx.fillRect(x + cw, y - 2, 2, cw + 4);
+      on.forEach((q, k) => {
+        const tag = q === 0 ? '1P' : this.two ? '2P' : 'CPU';
         const tw = tag.length * 6 + 1;
-        const tx = k === 0 ? x : x + TILE_W - tw;
-        ctx.fillStyle = P_COL[pl];
-        ctx.fillRect(tx, ty + TILE_H - 8, tw, 8);
-        drawText(ctx, tag, tx + 1, ty + TILE_H - 8, '#fff');
+        const tx = k === 0 ? x : x + cw - tw;
+        ctx.fillStyle = P_COL[q];
+        ctx.fillRect(tx, y + cw - 8, tw, 8);
+        drawText(ctx, tag, tx + 1, y + cw - 8, '#fff');
       });
     });
-    ctx.restore();
-    // scroll arrows and position dots once the roster is wider than the screen
-    if (cols > GRID_COLS) {
-      const ay = GRID_Y + TILE_H - 3, pulse = this.t % 30 < 15 ? '#ffa060' : '#ff5030';
-      if (this.scroll > 0.05) drawText(ctx, '<', 0, ay, pulse, { outline: '#000' });
-      if (this.scroll < cols - GRID_COLS - 0.05) drawText(ctx, '>', W - 6, ay, pulse, { outline: '#000' });
-      const pages = cols - GRID_COLS + 1, dy = H - 4;
-      const dw = Math.min(6, Math.floor(120 / pages));
-      const dx = W / 2 - (pages * dw) / 2;
-      for (let k = 0; k < pages; k++) {
-        ctx.fillStyle = Math.round(this.scroll) === k ? '#ffe060' : '#3a3450';
-        ctx.fillRect(Math.round(dx + k * dw), dy, dw - 2, 2);
-      }
-    }
+
+    for (let pl = 0; pl < 2; pl++) this.drawPanel(ctx, pl);
+    // VS badge between the panels
+    const vy = PANEL_Y + PANEL_H / 2;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(W / 2, vy, 13, 0, Math.PI * 2);
+    ctx.fill();
+    drawText(ctx, 'VS', W / 2, vy - 7, '#fff', { scale: 2, align: 'center', grad: ['#ffe0a0', '#e02010'], outline: '#000' });
+
     if (this.ready) {
-      // banner across the roster strip
-      const by = GRID_Y + TILE_H - 9;
+      const by = PANEL_Y + PANEL_H - 26;
       ctx.fillStyle = 'rgba(0,0,0,0.82)';
       ctx.fillRect(0, by, W, 20);
       ctx.fillStyle = '#ffe060';
