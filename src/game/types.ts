@@ -2,7 +2,7 @@ import type { Pose } from '../gfx/rig';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 
-export type PropName = 'axe' | 'sword' | 'cutlass' | 'nunchaku' | 'check' | 'brush' | 'knife';
+export type PropName = 'axe' | 'sword' | 'cutlass' | 'nunchaku' | 'check' | 'brush' | 'knife' | 'book' | 'cane' | 'skillet' | 'drumstick' | 'spatula' | 'crook' | 'bball';
 export type Level = 'high' | 'mid' | 'low' | 'overhead';
 export type Effect = 'light' | 'heavy' | 'knockdown' | 'launch' | 'sweep';
 export type Limb = 'handF' | 'handB' | 'toeF' | 'toeB' | 'kneeF' | 'prop' | 'body';
@@ -36,9 +36,18 @@ export interface MoveSounds {
   blocked?: Cue;
 }
 
+/**
+ * How a keyframe moves into the next one: smooth (ease in and out), lin (constant speed, for spins
+ * and swinging arcs), out (snaps away fast then settles, for strikes), in (starts slow and
+ * accelerates, for wind-ups), hold (stays put, then cuts to the next key).
+ */
+export type Ease = 'smooth' | 'lin' | 'in' | 'out' | 'hold';
+
 export interface Anim {
-  keys: [Pose, number][];
+  keys: [Pose, number, Ease?][];
   loop?: boolean;
+  /** Frames to cross-fade from the previous pose when this anim starts (0 snaps). */
+  blend?: number;
 }
 
 export interface Move {

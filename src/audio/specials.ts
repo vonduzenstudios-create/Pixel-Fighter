@@ -14,6 +14,12 @@ import type { ProjKind } from '../game/projectile';
 const vary = (amt = 0.06) => 1 + (Math.random() * 2 - 1) * amt;
 const now = () => ac()?.currentTime ?? 0;
 
+function snort(delay: number) {
+  const t = now() + delay;
+  noise({ dur: 0.14, vol: 0.3, type: 'bandpass', freq: 380, to: 220, q: 3, at: t });
+  tone({ type: 'sawtooth', freq: 85, to: 70, dur: 0.12, vol: 0.08, at: t, filter: { type: 'lowpass', freq: 600 } });
+}
+
 /** Sound building blocks used only by specials. */
 export const FX: Record<string, () => void> = {
   // ---------------------------------------------------------------- generic windups
@@ -75,6 +81,39 @@ export const FX: Record<string, () => void> = {
   popIn() {
     tone({ type: 'sine', freq: 2400, to: 300, dur: 0.18, vol: 0.18 });
     noise({ dur: 0.05, vol: 0.2, type: 'highpass', freq: 2500 });
+  },
+  // ---------------------------------------------------------------- the fried-chicken colonel
+  /** Startled hen: two quick nasal squawks. */
+  cluck() {
+    voice(620 * vary(0.1), 880, 0.07, 0.12, [900, 1900, 3200]);
+    voice(700 * vary(0.1), 520, 0.11, 0.12, [900, 1900, 3200], 0.09);
+  },
+  /** A spinning drumstick fluttering through the air. */
+  flutter() {
+    noise({ dur: 0.08, vol: 0.06, type: 'bandpass', freq: 1400 * vary(0.2), q: 3 });
+  },
+  /** Hot oil spitting: a hiss with popping droplets on top. */
+  sizzle() {
+    noise({ dur: 0.5, vol: 0.14, type: 'highpass', freq: 3800, to: 5200, attack: 0.02 });
+    const t = now();
+    for (let i = 0; i < 6; i++) noise({ dur: 0.012, vol: 0.12, type: 'bandpass', freq: 2500 + Math.random() * 3500, q: 6, at: t + Math.random() * 0.45 });
+  },
+  /** A tin of seasoning shaken twice. */
+  shaker() {
+    const t = now();
+    for (let i = 0; i < 2; i++) noise({ dur: 0.05, vol: 0.1, type: 'bandpass', freq: 6500 * vary(0.1), q: 2, at: t + i * 0.07 });
+  },
+  /** Cane tip rapping the floor: a woody knock with a little ring from the metal cap. */
+  caneTap() {
+    tone({ type: 'triangle', freq: 520 * vary(), to: 300, dur: 0.05, vol: 0.14 });
+    noise({ dur: 0.03, vol: 0.12, type: 'bandpass', freq: 2600 * vary(), q: 6 });
+    tone({ type: 'sine', freq: 3300 * vary(), dur: 0.12, vol: 0.02 });
+  },
+  /** Biting into a crisp crust. */
+  bite() {
+    const t = now();
+    for (let i = 0; i < 4; i++) noise({ dur: 0.03, vol: 0.16, type: 'bandpass', freq: 2400 + Math.random() * 1600, q: 3, at: t + i * 0.025 });
+    noise({ dur: 0.08, vol: 0.08, freq: 600, at: t + 0.08 });
   },
   // ---------------------------------------------------------------- fire and holy
   /** A short sung chord as holy power gathers. */
@@ -218,10 +257,323 @@ export const FX: Record<string, () => void> = {
     FX.creak();
     tone({ type: 'sine', freq: 80, to: 160, dur: 0.25, vol: 0.2 });
   },
+  // ---------------------------------------------------------------- talk show
+  /** Wrapping paper crinkling. */
+  giftRustle() {
+    const t = now();
+    for (let i = 0; i < 4; i++) noise({ dur: 0.04, vol: 0.08, type: 'bandpass', freq: 2500 + Math.random() * 2500, q: 2, at: t + i * 0.03 + Math.random() * 0.02 });
+  },
+  /** Party popper: a sharp pop and a glittery tail. */
+  confettiPop() {
+    noise({ dur: 0.05, vol: 0.35, type: 'bandpass', freq: 1800, q: 1.2 });
+    tone({ type: 'sine', freq: 500, to: 160, dur: 0.08, vol: 0.18 });
+    const t = now();
+    for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2600 + Math.random() * 2400, dur: 0.12, vol: 0.03, at: t + 0.05 + i * 0.04 });
+  },
+  /** A studio audience applauding: a wash of randomly timed hand claps. */
+  applause() {
+    const t = now();
+    for (let i = 0; i < 40; i++) noise({ dur: 0.02, vol: 0.05 + Math.random() * 0.04, type: 'bandpass', freq: 1000 + Math.random() * 2500, q: 1.5, at: t + Math.random() * 0.9 });
+    noise({ dur: 0.9, vol: 0.04, type: 'bandpass', freq: 1800, q: 0.8, attack: 0.15 });
+  },
+  /** One open-palm smack. */
+  clap() {
+    noise({ dur: 0.04, vol: 0.4, type: 'bandpass', freq: 1400 * vary(0.15), q: 1.4 });
+    tone({ type: 'sine', freq: 220 * vary(), to: 120, dur: 0.05, vol: 0.12 });
+  },
+  pageFlutter() {
+    const t = now();
+    for (let i = 0; i < 6; i++) noise({ dur: 0.03, vol: 0.07, type: 'bandpass', freq: 3200 * vary(0.25), q: 2, at: t + i * 0.025 });
+  },
+  /** A heavy hardcover landing flat on a skull. */
+  bookThump() {
+    tone({ type: 'sine', freq: 120 * vary(), to: 45, dur: 0.18, vol: 0.4 });
+    noise({ dur: 0.1, vol: 0.35, type: 'lowpass', freq: 1400, to: 300 });
+    noise({ dur: 0.04, vol: 0.2, type: 'bandpass', freq: 2600, q: 2 });
+  },
+  /** Big V8 revving past. */
+  engine() {
+    tone({ type: 'sawtooth', freq: 55 * vary(), to: 95, dur: 0.45, vol: 0.12, filter: { type: 'lowpass', freq: 700 } });
+    tone({ type: 'square', freq: 110 * vary(), to: 190, dur: 0.45, vol: 0.04, filter: { type: 'lowpass', freq: 900 } });
+  },
+  /** Tyres screeching to a stop. */
+  screech() {
+    tone({ type: 'sawtooth', freq: 1900, to: 1500, dur: 0.7, vol: 0.06, filter: { type: 'bandpass', freq: 2200, q: 6 } });
+    noise({ dur: 0.7, vol: 0.08, type: 'bandpass', freq: 3000, to: 2000, q: 4 });
+  },
+  /** Short skid as a car slides to a halt (Guy Fieri's entrance calls it). */
+  skid() {
+    noise({ dur: 0.35, vol: 0.08, type: 'bandpass', freq: 2600, to: 1800, q: 4 });
+    tone({ type: 'sawtooth', freq: 1700, to: 1300, dur: 0.3, vol: 0.04, filter: { type: 'bandpass', freq: 2000, q: 6 } });
+  },
+  /** Single horn honk (Guy Fieri's entrance calls it). */
+  honk() {
+    tone({ type: 'square', freq: 392, dur: 0.22, vol: 0.06, filter: { type: 'lowpass', freq: 1800 } });
+    tone({ type: 'square', freq: 494, dur: 0.22, vol: 0.05, filter: { type: 'lowpass', freq: 1800 } });
+  },
+  /** Two-tone car horn: beep beep. */
+  horn() {
+    const t = now();
+    for (const at of [0, 0.18]) {
+      tone({ type: 'square', freq: 392, dur: 0.13, vol: 0.06, at: t + at, filter: { type: 'lowpass', freq: 2000 } });
+      tone({ type: 'square', freq: 494, dur: 0.13, vol: 0.05, at: t + at, filter: { type: 'lowpass', freq: 2000 } });
+    }
+  },
+  // ---------------------------------------------------------------- the tomb
+  /** A swarm of beetles: fast clicking over a papery buzz. */
+  buzz() {
+    const t = now();
+    tone({ type: 'sawtooth', freq: 180 * vary(), to: 220, dur: 0.35, vol: 0.05, filter: { type: 'bandpass', freq: 1400, q: 3 } });
+    for (let i = 0; i < 8; i++) noise({ dur: 0.012, vol: 0.12, type: 'highpass', freq: 3500 + Math.random() * 2500, at: t + i * 0.04 * vary(0.3) });
+  },
+  /** Stone sliding on stone. */
+  stoneGrind() {
+    noise({ dur: 0.4, vol: 0.2, type: 'bandpass', freq: 220 * vary(), to: 160, q: 4 });
+    tone({ type: 'sawtooth', freq: 48 * vary(), to: 40, dur: 0.4, vol: 0.06, filter: { type: 'lowpass', freq: 400 } });
+  },
+  /** Linen bandage snapping taut. */
+  linenSnap() {
+    noise({ dur: 0.06, vol: 0.22, type: 'bandpass', freq: 2400 * vary(), to: 900, q: 2 });
+    noise({ dur: 0.03, vol: 0.12, type: 'highpass', freq: 5000 });
+  },
+  /** A low, ominous two-note chant from somewhere inside the tomb. */
+  curseChant() {
+    voice(98 * vary(0.02), 92, 0.5, 0.18, [500, 850, 2400]);
+    voice(73 * vary(0.02), 70, 0.7, 0.16, [450, 800, 2400], 0.45);
+    noise({ dur: 1.0, vol: 0.05, type: 'bandpass', freq: 300, to: 200, q: 3, attack: 0.3 });
+  },
+  /** Desert wind whipped into a twister. */
+  sandWind() {
+    noise({ dur: 0.5, vol: 0.16, type: 'bandpass', freq: 600, to: 1800, q: 1.5, attack: 0.15 });
+    noise({ dur: 0.4, vol: 0.08, type: 'highpass', freq: 4500, attack: 0.1 });
+  },
+  /** Grit sprayed into a face. */
+  sandHit() {
+    noise({ dur: 0.18, vol: 0.28, type: 'highpass', freq: 2500 * vary(), to: 1200 });
+    tone({ type: 'sine', freq: 160, to: 80, dur: 0.08, vol: 0.12 });
+  },
+  // ---------------------------------------------------------------- kitchen and hot rods
+  /** Grill flaring up: a whoomp of gas catching. */
+  flareUp() {
+    noise({ dur: 0.5, vol: 0.4, type: 'lowpass', freq: 300, to: 2400, attack: 0.04 });
+    tone({ type: 'sine', freq: 70, to: 140, dur: 0.35, vol: 0.3 });
+    FX.fireCrackle();
+  },
+  /** Spatula pressing a patty flat: a metal clank and a hiss. */
+  smashPress() {
+    tone({ type: 'square', freq: 700 * vary(), to: 420, dur: 0.05, vol: 0.08, filter: { type: 'bandpass', freq: 1600, q: 4 } });
+    noise({ dur: 0.18, vol: 0.12, type: 'highpass', freq: 4500 });
+  },
+  /** Two-finger whistle calling the car round. */
+  whistleCall() {
+    const t = now();
+    tone({ type: 'sine', freq: 1900, to: 2700, dur: 0.14, vol: 0.12 });
+    tone({ type: 'sine', freq: 2700, to: 2100, dur: 0.22, vol: 0.12, at: t + 0.16 });
+  },
+  /** V8 revving up. */
+  engineRev() {
+    tone({ type: 'sawtooth', freq: 45, to: 120, dur: 0.6, vol: 0.14, filter: { type: 'lowpass', freq: 500, to: 1200 } });
+    tone({ type: 'square', freq: 90, to: 240, dur: 0.6, vol: 0.05, filter: { type: 'lowpass', freq: 700 } });
+    noise({ dur: 0.6, vol: 0.06, type: 'bandpass', freq: 200, to: 600, q: 2 });
+  },
+  /** Car slamming into a body. */
+  carCrash() {
+    FX.clang();
+    sfx.thud();
+    noise({ dur: 0.3, vol: 0.3, type: 'lowpass', freq: 2000, to: 300 });
+  },
   shatter() {
     const t = now();
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
     noise({ dur: 0.2, vol: 0.15, type: 'highpass', freq: 4000 });
+  },  // ---------------------------------------------------------------- wildlife
+  /** Two-finger whistle calling the animals in: a quick rise, then a long falling note. */
+  callWhistle() {
+    const t = now();
+    tone({ type: 'sine', freq: 1500 * vary(0.03), to: 2600, dur: 0.12, vol: 0.09, at: t });
+    tone({ type: 'sine', freq: 2700 * vary(0.03), to: 1700, dur: 0.38, vol: 0.1, attack: 0.02, at: t + 0.13 });
+    noise({ dur: 0.5, vol: 0.03, type: 'bandpass', freq: 2400, q: 6, at: t });
+  },
+  /** Leaves and dry grass shuffling as something moves underneath. */
+  rustle() {
+    const t = now();
+    for (let i = 0; i < 5; i++) noise({ dur: 0.05, vol: 0.07, type: 'bandpass', freq: 3500 * vary(0.3), q: 1.5, at: t + i * 0.05 * vary(0.4) });
+  },
+  /** A croc's warning: a long breathy hiss over a low growl. */
+  crocHiss() {
+    noise({ dur: 0.55, vol: 0.16, type: 'highpass', freq: 2200, to: 3200, attack: 0.05 });
+    tone({ type: 'sawtooth', freq: 55 * vary(), to: 42, dur: 0.5, vol: 0.08, filter: { type: 'lowpass', freq: 300 } });
+  },
+  /** Claws scrabbling over the ground. */
+  scuttle() {
+    const t = now();
+    for (let i = 0; i < 4; i++) noise({ dur: 0.02, vol: 0.08, type: 'bandpass', freq: 1800 * vary(0.3), q: 3, at: t + i * 0.045 });
+  },
+  /** Jaws slamming shut: a hollow wooden clap with a bony crack. */
+  jawSnap() {
+    tone({ type: 'square', freq: 320 * vary(), to: 120, dur: 0.06, vol: 0.16, filter: { type: 'bandpass', freq: 900, q: 3 } });
+    noise({ dur: 0.07, vol: 0.35, type: 'bandpass', freq: 1400 * vary(), q: 2 });
+    tone({ type: 'sine', freq: 90, to: 40, dur: 0.15, vol: 0.25 });
+  },
+  /** A deep croc bellow that rattles the floor. */
+  bellow() {
+    tone({ type: 'sawtooth', freq: 48, to: 36, dur: 0.9, vol: 0.14, attack: 0.08, filter: { type: 'lowpass', freq: 220 } });
+    tone({ type: 'sine', freq: 31, dur: 0.9, vol: 0.3, attack: 0.08 });
+    noise({ dur: 0.8, vol: 0.08, type: 'lowpass', freq: 400, to: 150, attack: 0.1 });
+  },
+  /** Springy take-off of a kangaroo hop. */
+  rooSpring() {
+    tone({ type: 'triangle', freq: 180 * vary(), to: 420, dur: 0.12, vol: 0.06 });
+  },
+  /** Big hind feet landing a hop. */
+  hopThump() {
+    tone({ type: 'sine', freq: 110 * vary(), to: 55, dur: 0.09, vol: 0.2 });
+    noise({ dur: 0.04, vol: 0.08, type: 'lowpass', freq: 700 });
+  },
+  /** Both hind feet driving into a body. */
+  rooKick() {
+    FX.bootThud();
+    tone({ type: 'sine', freq: 70, to: 35, dur: 0.2, vol: 0.3 });
+    noise({ dur: 0.06, vol: 0.25, type: 'bandpass', freq: 900, q: 1.5 });
+  },
+  /** Snake hiss with a forked flicker on top. */
+  snakeHiss() {
+    noise({ dur: 0.45, vol: 0.14, type: 'highpass', freq: 4500, to: 6500, attack: 0.04 });
+    noise({ dur: 0.08, vol: 0.06, type: 'bandpass', freq: 7000, q: 6, at: now() + 0.3 });
+  },
+  /** A python lashing up and wrapping on: whipping air and a heavy coil. */
+  snakeStrike() {
+    noise({ dur: 0.12, vol: 0.25, type: 'bandpass', freq: 1200, to: 3200, q: 1.5 });
+    tone({ type: 'sine', freq: 140, to: 60, dur: 0.18, vol: 0.22 });
+  },
+  /** A very satisfied croc. */
+  burp() {
+    voice(95 * vary(), 70, 0.45, 0.3, [400, 800, 2000]);
+    tone({ type: 'sawtooth', freq: 60, to: 45, dur: 0.4, vol: 0.08, filter: { type: 'lowpass', freq: 400 } });
+  },
+  /** Something big going down in one swallow. */
+  gulp() {
+    tone({ type: 'sine', freq: 260, to: 90, dur: 0.18, vol: 0.25 });
+    noise({ dur: 0.12, vol: 0.1, type: 'lowpass', freq: 600, to: 200 });
+  },
+  // ---------------------------------------------------------------- basketball
+  /** Rubber ball slapping a hardwood floor: a hollow low thump with a ping. */
+  dribble() {
+    tone({ type: 'sine', freq: 150 * vary(), to: 70, dur: 0.09, vol: 0.32 });
+    tone({ type: 'triangle', freq: 520 * vary(), to: 300, dur: 0.05, vol: 0.07 });
+    noise({ dur: 0.03, vol: 0.12, type: 'bandpass', freq: 900, q: 2 });
+  },
+  /** Sneakers squeaking on a polished court. */
+  squeak() {
+    const t = now();
+    tone({ type: 'sawtooth', freq: 2400 * vary(0.1), to: 3100, dur: 0.07, vol: 0.035, filter: { type: 'bandpass', freq: 2800, q: 6 } });
+    tone({ type: 'sine', freq: 2900 * vary(0.1), to: 2300, dur: 0.06, vol: 0.04, at: t + 0.06 });
+  },
+  /** A big body thumping into another (post-up bump). */
+  bodyBump() {
+    tone({ type: 'sine', freq: 85 * vary(), to: 40, dur: 0.14, vol: 0.38 });
+    noise({ dur: 0.08, vol: 0.18, type: 'lowpass', freq: 700, to: 200 });
+  },
+  /** Net swish: a soft filtered rush that falls away. */
+  swish() {
+    noise({ dur: 0.35, vol: 0.22, type: 'bandpass', freq: 4200, to: 1800, q: 1.2, attack: 0.02 });
+    noise({ dur: 0.2, vol: 0.06, type: 'highpass', freq: 6000, at: now() + 0.05 });
+  },
+  /** The rim and backboard shaking after a dunk: metallic clang with a long wobble. */
+  rimRattle() {
+    const t = now();
+    tone({ type: 'square', freq: 310 * vary(), to: 290, dur: 0.5, vol: 0.06, filter: { type: 'bandpass', freq: 1400, q: 8 } });
+    tone({ type: 'triangle', freq: 1240 * vary(), dur: 0.6, vol: 0.05 });
+    for (let i = 0; i < 4; i++) tone({ type: 'sine', freq: 620 + i * 37, dur: 0.12, vol: 0.05 - i * 0.01, at: t + 0.12 + i * 0.1 });
+    noise({ dur: 0.1, vol: 0.2, type: 'bandpass', freq: 2200, q: 3 });
+  },
+  /** Arena horn. */
+  buzzer() {
+    tone({ type: 'sawtooth', freq: 233, dur: 0.9, vol: 0.1, filter: { type: 'lowpass', freq: 1500 } });
+    tone({ type: 'square', freq: 235, dur: 0.9, vol: 0.06, filter: { type: 'lowpass', freq: 1000 } });
+  },
+  /** A stadium crowd rising to its feet. */
+  crowd() {
+    noise({ dur: 1.4, vol: 0.18, type: 'bandpass', freq: 700, to: 1100, q: 0.8, attack: 0.3 });
+    noise({ dur: 1.2, vol: 0.08, type: 'bandpass', freq: 2200, q: 1.5, attack: 0.4 });
+  },
+  /** Ground-shaking landing of a very large man. */
+  bigStomp() {
+    tone({ type: 'sine', freq: 70 * vary(), to: 28, dur: 0.3, vol: 0.45 });
+    noise({ dur: 0.18, vol: 0.25, type: 'lowpass', freq: 600, to: 90 });
+  },
+  // ---------------------------------------------------------------- toys and tantrums
+  /** Winding a clockwork key: a run of tightening ratchet clicks. */
+  windUp() {
+    const t = now();
+    for (let i = 0; i < 6; i++) {
+      tone({ type: 'square', freq: 1800 + i * 140, dur: 0.02, vol: 0.06, at: t + i * 0.055, filter: { type: 'bandpass', freq: 2500, q: 5 } });
+      noise({ dur: 0.015, vol: 0.08, type: 'highpass', freq: 4000, at: t + i * 0.055 });
+    }
+  },
+  /** Clockwork tick-tock of a tin toy walking. */
+  tinTick() {
+    const t = now();
+    tone({ type: 'square', freq: 3100 * vary(), dur: 0.015, vol: 0.05, at: t });
+    tone({ type: 'square', freq: 2300 * vary(), dur: 0.015, vol: 0.05, at: t + 0.09 });
+  },
+  /** Tin robot bashing into shins: hollow can clatter. */
+  tinClank() {
+    for (const [f, d] of [[740, 0.25], [1180, 0.2], [1960, 0.15]]) tone({ type: 'triangle', freq: f * vary(), to: f * 0.9, dur: d, vol: 0.07 });
+    noise({ dur: 0.1, vol: 0.25, type: 'bandpass', freq: 2600, q: 2 });
+    FX.windUp();
+  },
+  /** Handlebar bell: two bright dings. */
+  bikeBell() {
+    const t = now();
+    for (const at of [0, 0.16])
+      for (const [f, v] of [[2650, 0.08], [3980, 0.05], [5300, 0.025]]) tone({ type: 'sine', freq: f, dur: 0.35, vol: v, at: t + at, attack: 0.002 });
+  },
+  /** Pedalling hard: chain whirr and freewheel clicks. */
+  pedal() {
+    const t = now();
+    noise({ dur: 0.25, vol: 0.07, type: 'bandpass', freq: 1500, to: 2400, q: 3 });
+    for (let i = 0; i < 5; i++) noise({ dur: 0.01, vol: 0.06, type: 'highpass', freq: 5000, at: t + i * 0.045 });
+  },
+  /** Bicycle ploughing into somebody: frame clang, a thud and a last wobbly ding. */
+  bikeCrash() {
+    FX.clang();
+    sfx.thud();
+    tone({ type: 'sine', freq: 2650, to: 2500, dur: 0.4, vol: 0.05, at: now() + 0.12 });
+  },
+  /** A whiny, rising-then-falling "waaah". */
+  wail() {
+    voice(430 * vary(), 640, 0.25, 0.22, [850, 1350, 2800]);
+    voice(640 * vary(), 380, 0.4, 0.22, [850, 1350, 2800], 0.25);
+  },
+  /** A sneaker stamped down mid-tantrum. */
+  tantrumStomp() {
+    FX.stomp();
+    voice(300 * vary(), 240, 0.08, 0.12, [600, 1100, 2500]);
+  },
+  /** Spring boing with a warble as it settles. */
+  boing() {
+    const t = now();
+    tone({ type: 'sine', freq: 140, to: 560, dur: 0.12, vol: 0.22 });
+    for (let i = 0; i < 6; i++) tone({ type: 'triangle', freq: i % 2 ? 300 : 420, dur: 0.05, vol: 0.1 * (1 - i / 7), at: t + 0.12 + i * 0.05 });
+  },
+  /** A little tinkling music-box phrase (an original tune) as the crank turns. */
+  musicBox() {
+    const t = now();
+    const tune = [79, 84, 86, 88, 86, 84, 81, 83, 79];
+    tune.forEach((n, i) => {
+      const f = 440 * Math.pow(2, (n - 69) / 12);
+      tone({ type: 'sine', freq: f, dur: 0.5, vol: 0.06, at: t + i * 0.17, attack: 0.002 });
+      tone({ type: 'sine', freq: f * 4.07, dur: 0.12, vol: 0.015, at: t + i * 0.17, attack: 0.002 });
+    });
+  },
+  /** High giggle, three quick "hee"s tumbling down, capped by a snort. */
+  giggle() {
+    for (let i = 0; i < 3; i++) voice((880 - i * 90) * vary(), 700 - i * 90, 0.09, 0.2, [400, 2300, 3100], i * 0.12);
+    snort(0.4);
+  },
+  snort() {
+    snort(0);
   },
 };
 
@@ -278,10 +630,45 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     rocketchair: { frames: { 1: 'servo' }, impact: 'metalCrash', blocked: 'clang' },
     radiation: { frames: { 1: 'geiger' }, impact: 'crackle' },
   },
+  colonel: {
+    proj_drumstick: { frames: { 1: 'paperFlap', 12: 'heave' } },
+    proj_grease: { frames: { 1: 'clang', 9: 'heave' } },
+    canethrash: { frames: { 0: 'caneTap', 1: 'warCry' }, impact: ['clack', 'caneTap'], blocked: 'clack' },
+  },
+  buster: {
+    proj_robot: { frames: { 2: 'windUp', 9: 'windUp' } },
+    bikedash: { frames: { 2: 'bikeBell', 10: 'pedal', 18: 'pedal', 26: 'pedal' }, impact: 'bikeCrash', blocked: 'clang' },
+    tantrum: { frames: { 1: 'wail', 10: 'tantrumStomp', 22: 'tantrumStomp', 34: 'tantrumStomp' }, impact: 'glovePop' },
+  },
+  kingtut: {
+    proj_scarab: { frames: { 1: 'linenSnap', 10: 'buzz' } },
+    proj_sarc: { frames: { 2: 'curseChant', 12: 'stoneGrind' } },
+    sandstorm: { frames: { 1: 'sandWind', 14: 'sandWind', 28: 'sandWind' }, impact: 'sandHit' },
+  },
+  fieri: {
+    proj_burger: { frames: { 1: 'inhale', 9: 'sizzle' } },
+    proj_ragtop: { frames: { 12: 'engineRev' } },
+    smash: { frames: { 1: 'heave', 8: 'smashPress', 14: 'smashPress', 20: 'smashPress', 26: 'smashPress', 32: 'smashPress' }, impact: ['smashPress', 'sizzle'], blocked: 'clang' },
+  },
+  shaq: {
+    proj_bball: { frames: { 1: 'dribble', 7: 'dribble', 12: 'squeak' } },
+    backboard: { frames: { 0: 'squeak', 2: 'heave', 18: 'bigStomp' }, impact: ['rimRattle', 'boneCrack'], blocked: 'clang' },
+    postup: { frames: { 1: 'squeak', 12: 'squeak', 24: 'squeak' }, impact: 'bodyBump', blocked: 'bodyBump' },
+  },
+  irwin: {
+    proj_croc: { frames: { 2: 'callWhistle', 10: 'rustle' } },
+    proj_roo: { frames: { 2: 'callWhistle' } },
+    proj_snake: { frames: { 1: 'rustle', 8: 'rustle' } },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
     toespin: { impact: ['sparkle', 'boneCrack'] },
+  },
+  oprah: {
+    proj_gift: { frames: { 1: 'giftRustle', 9: 'giftRustle' } },
+    bookslam: { frames: { 1: 'pageFlutter', 7: 'heave' }, impact: ['bookThump', 'pageFlutter'], blocked: 'bookThump' },
+    ovation: { frames: { 1: 'applause', 13: 'clap', 21: 'clap', 30: ['applause', 'confettiPop'] }, impact: 'clap', blocked: 'clap' },
   },
 };
 
@@ -310,6 +697,18 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   hole: { travel: { every: 24, cue: 'drone' }, impact: 'gravityHit' },
   tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
   smolder: { travel: { every: 10, cue: 'twinkle' }, impact: ['sparkle', 'glovePop'], blocked: 'sparkle' },
+  gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
+  drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
+  grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
+  robot: { travel: { every: 12, cue: 'tinTick' }, impact: 'tinClank', blocked: 'tinClank', clash: 'tinClank' },
+  scarab: { travel: { every: 12, cue: 'buzz' }, impact: ['buzz', 'crunch'], blocked: 'buzz' },
+  sarcophagus: { impact: ['stoneGrind', 'crunch'], blocked: 'stoneGrind' },
+  burger: { travel: { every: 12, cue: 'fireCrackle' }, impact: ['splat', 'flameBurst'] },
+  ragtop: { launch: ['horn', 'screech'], travel: { every: 16, cue: 'engineRev' }, impact: 'carCrash', blocked: 'carCrash' },
+  bball: { impact: ['dribble', 'bodyBump'], blocked: 'dribble', clash: 'dribble' },
+  croc: { launch: 'crocHiss', travel: { every: 10, cue: 'scuttle' }, impact: ['jawSnap', 'boneCrack'], blocked: 'jawSnap' },
+  roo: { launch: 'rooSpring', impact: ['rooKick', 'boneCrack'], blocked: 'hopThump' },
+  snake: { launch: 'snakeHiss', travel: { every: 9, cue: 'rustle' }, impact: ['snakeStrike', 'snakeHiss'], blocked: 'snakeStrike' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */

@@ -4,7 +4,7 @@ import { ac, midi, musicOut, noise, tone } from './audio';
 // progressions that drive generated bass, string pads and percussion.
 // All compositions here are original.
 
-type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute' | 'synbrass' | 'tom' | 'crash';
+type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute' | 'synbrass' | 'tom' | 'crash' | 'guitar' | 'gtrlead' | 'steel';
 interface Note { step: number; inst: Inst; n: number; len: number; vol?: number }
 interface Song { bpm: number; steps: number; notes: Note[] }
 
@@ -549,7 +549,332 @@ function burgerSong(): Song {
   return { bpm: 118, steps: prog.length * 16, notes };
 }
 
-export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), spire: spireSong(), mushroom: mushroomSong(), boat: boatSong(), moon: moonSong(), blizzard: blizzardSong(), underground: undergroundSong(), burger: burgerSong() };
+// "The Decibel Dome": the Chrome Howlers' arena anthem. Chugging E minor power chords,
+// a pounding rock beat and a soaring lead line. An original composition.
+function concertSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['E', 'E', 'C', 'D', 'E', 'E', 'G', 'D', 'A', 'A', 'C', 'D', 'E', 'G', 'D', 'B'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const root = NAMES[ch];
+    const low = (root - 4 + 12) % 12; // semitones above E
+    if (b < 8) {
+      // palm-muted chugs with an accent on the one
+      [0, 2, 3, 6, 8, 10, 11, 14].forEach((st) => notes.push({ step: s + st, inst: 'guitar', n: 40 + low, len: 1, vol: st === 0 ? 1 : 0.6 }));
+    } else {
+      // the chorus opens up into ringing chords
+      [[0, 6], [6, 2], [8, 6], [14, 2]].forEach(([st, len]) => notes.push({ step: s + st, inst: 'guitar', n: 40 + low, len, vol: 0.9 }));
+    }
+    for (let st = 0; st < 16; st += 2) notes.push({ step: s + st, inst: 'bass', n: 28 + low, len: 1 });
+    [0, 8, 10].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1 }));
+    for (let h = 0; h < 16; h += 2) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+    if (b % 4 === 0) notes.push({ step: s, inst: 'crash', n: 0, len: 1, vol: 0.8 });
+    if (b % 4 === 3) [12, 13, 14, 15].forEach((st, i) => notes.push({ step: s + st, inst: 'tom', n: 52 - i * 3, len: 1, vol: 0.7 }));
+  });
+  const lead = [
+    // verse (bars 1-8)
+    'E5 - - - G5 - A5 - B5 - - - A5 - G5 -',
+    'E5 - - - D5 - E5 - . . . . . . . .',
+    'G5 - - - E5 - G5 - C6 - - - B5 - A5 -',
+    'A5 - - - F#5 - - - D5 - - - . . . .',
+    'E5 - - - G5 - A5 - B5 - - - D6 - B5 -',
+    'E6 - - - D6 - B5 - A5 - G5 - E5 - - -',
+    'D5 - G5 - B5 - D6 - B5 - G5 - D6 - - -',
+    'F#5 - - - A5 - - - D6 - - - . . . .',
+    // chorus (bars 9-16)
+    'A5 - - - - - C6 - E6 - - - D6 - C6 -',
+    'A5 - - - E5 - - - A5 - B5 - C6 - - -',
+    'G5 - - - - - E5 - G5 - - - C6 - - -',
+    'D6 - - - C6 - B5 - A5 - - - F#5 - - -',
+    'E6 - D6 - B5 - D6 - E6 - - - G6 - - -',
+    'F#6 - - - E6 - D6 - B5 - - - D6 - - -',
+    'D6 - - - - - - - A5 - - - F#5 - - -',
+    'B5 - - - - - - - D#6 - - - F#6 - - -',
+  ];
+  lead.forEach((l, i) => line(l, 'gtrlead', i * 16, 0.8).forEach((n) => notes.push({ ...n, n: n.n - 12 })));
+  return { bpm: 150, steps: prog.length * 16, notes };
+}
+
+
+// "Flavortown": a hot-rod rockabilly boogie in A, two loud choruses round a 12-bar blues.
+function flavortownSong(): Song {
+  const notes: Note[] = [];
+  const blues = ['A', 'A', 'A', 'A', 'D', 'D', 'A', 'A', 'E', 'D', 'A', 'E'];
+  const prog = [...blues, ...blues];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const root = chordTones(ch)[0];
+    const low = 36 + root - (root > 7 ? 12 : 0);
+    // boogie-woogie walking bass: root, third, fifth, sixth, flat seven and back down
+    [0, 4, 7, 9, 10, 9, 7, 4].forEach((o, i) => notes.push({ step: s + i * 2, inst: 'bass', n: low + o, len: 2 }));
+    // chunky power-fifth guitar stabs on the off-beats
+    [2, 6, 10, 14].forEach((st) => [0, 7].forEach((o) => notes.push({ step: s + st, inst: 'pluck', n: 57 + ((root + 3) % 12) - 3 + o, len: 1, vol: 0.4 })));
+    // horn section punches at the turnaround of each line
+    if (b % 4 === 3) [12, 14].forEach((st) => chordTones(ch).forEach((t) => notes.push({ step: s + st, inst: 'synbrass', n: 60 + ((t + 3) % 12) - 3, len: 2, vol: 0.6 })));
+    // a driving backbeat with a slapback snare
+    [0, 8, 10].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1 }));
+    [5, 13].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1, vol: 0.3 }));
+    for (let h = 0; h < 16; h += 2) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1, vol: h % 4 ? 0.6 : 1 });
+    if (b % 12 === 11) [12, 13, 14, 15].forEach((st, i) => notes.push({ step: s + st, inst: 'tom', n: 52 - i * 3, len: 1, vol: 0.7 }));
+    if (b % 12 === 0) notes.push({ step: s, inst: 'crash', n: 0, len: 1, vol: 0.7 });
+  });
+  const lead = [
+    // chorus one: the swaggering riff
+    'A4 . C5 . A4 . E5 - - . D5 . C5 . A4 .',
+    'C5 - D5 . E5 . G5 - - . E5 . D5 . C5 .',
+    'A4 . C5 . A4 . E5 - - . D5 . C5 . A4 .',
+    'E5 . G5 . A5 - - - G5 . E5 . D5 . C5 .',
+    'D5 . F#5 . A5 - - . F#5 . D5 . C5 . A4 .',
+    'D5 . F#5 . A5 . C6 - - . A5 . F#5 . D5 .',
+    'E5 - - - C5 . A4 . C5 . E5 . A5 - - -',
+    'G5 . E5 . D5 . C5 . A4 - - - . . . .',
+    'B4 . E5 . G#5 - - . B5 - - . G#5 . E5 .',
+    'A5 - - . F#5 . D5 . A4 - - . D5 . F#5 .',
+    'E5 . C#5 . A4 . C#5 . E5 . A5 - - . E5 .',
+    'G#5 - - - B5 - - - E6 - - - . . . .',
+    // chorus two: up an octave and twice as greasy
+    'A5 . A5 . C6 . A5 . E6 - - - D6 C6 A5 .',
+    'G5 . A5 . C6 . D6 . Eb6 E6 - - D6 . C6 .',
+    'A5 . A5 . C6 . A5 . E6 - - - D6 C6 A5 .',
+    'C6 D6 C6 A5 G5 A5 G5 E5 D5 E5 D5 C5 A4 - - -',
+    'D6 - - . A5 . F#5 . A5 . D6 . F#6 - - .',
+    'E6 - D6 . C6 . A5 . F#5 . A5 . D6 - - -',
+    'A5 - - . E5 . A5 . C#6 - - . E6 - - .',
+    'D6 . C#6 . A5 . E5 . A5 - - - . . . .',
+    'B5 - G#5 . E5 . G#5 . B5 . E6 - - . D6 .',
+    'C6 - A5 . F#5 . A5 . D6 - - . C6 . A5 .',
+    'A5 C6 A5 E5 A5 C6 E6 - - - D6 - C6 - A5 -',
+    'E5 - G#5 - B5 - E6 - - - - - . . . .',
+  ];
+  lead.forEach((l, i) => notes.push(...line(l, 'lead', i * 16, 0.55)));
+  // the second chorus is doubled an octave down on brass for extra heat
+  lead.slice(12).forEach((l, i) => line(l, 'synbrass', (i + 12) * 16, 0.35).forEach((n) => notes.push({ ...n, n: n.n - 12 })));
+  return { bpm: 160, steps: prog.length * 16, notes };
+}
+
+// "Ironwood Dojo": an original piece in a Japanese-flavoured D minor pentatonic (D Eb G A Bb).
+// Koto-like plucks and taiko drums under a breathy flute; a reedier lead takes the second half.
+function dojoSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['Dm', 'Dm', 'Eb', 'Dm', 'Gm', 'Gm', 'Eb', 'Dm', 'Bb', 'Cm', 'Eb', 'Dm', 'Gm', 'Bb', 'Eb', 'Dm'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch).map((t) => 62 + ((t - 2 + 12) % 12)); // voiced from D4 up
+    const v = [...tones, ...tones.map((t) => t + 12)];
+    const root = tones[0] - 24;
+    const drive = b >= 8;
+    // koto: rolling arpeggio, eighths in the first half and sixteenths in the second
+    [0, 2, 3, 4, 5, 4, 3, 2].forEach((k, i) => {
+      notes.push({ step: s + i * 2, inst: 'pluck', n: v[k], len: 1, vol: 0.7 });
+      if (drive) notes.push({ step: s + i * 2 + 1, inst: 'pluck', n: v[(k + 2) % 6], len: 1, vol: 0.4 });
+    });
+    // bass and pad
+    [0, 6, 8, 14].forEach((st, i) => notes.push({ step: s + st, inst: 'bass', n: root + (i === 2 ? 12 : 0), len: i === 0 ? 4 : 2 }));
+    tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: t - 12, len: 16, vol: 0.022 }));
+    // taiko: big low hits, rim chatter on the off-beats, a roll into every fourth bar
+    [0, 6, 8].forEach((st) => notes.push({ step: s + st, inst: 'tom', n: 38, len: 1, vol: 1.1 }));
+    [3, 11].forEach((st) => notes.push({ step: s + st, inst: 'tom', n: 45, len: 1, vol: 0.6 }));
+    if (drive) [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1, vol: 0.5 }));
+    if (drive) for (let h = 0; h < 16; h += 2) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1, vol: 0.6 });
+    if (b % 4 === 3) [12, 13, 14, 15].forEach((st, i) => notes.push({ step: s + st, inst: 'tom', n: 47 - i * 3, len: 1, vol: 0.9 }));
+    if (b % 4 === 0) notes.push({ step: s, inst: 'timp', n: 38, len: 6 });
+    // wooden clappers mark each phrase
+    if (b % 8 === 0) [0, 2].forEach((st) => notes.push({ step: s + st, inst: 'clack', n: 0, len: 1, vol: 1 }));
+  });
+  notes.push({ step: 0, inst: 'bell', n: 62, len: 16 });
+  notes.push({ step: 128, inst: 'bell', n: 69, len: 16 });
+  const lead = [
+    // A: the flute, unhurried (bars 1-8)
+    'D5 - - - - - Eb5 - D5 - A4 - - - - -',
+    'Bb4 - A4 - G4 - - - A4 - - - - - - -',
+    'Eb5 - - - G5 - - - Eb5 - D5 - Bb4 - - -',
+    'A4 - - - - - - - . . . . D5 - Eb5 -',
+    'G5 - - - - - A5 - G5 - Eb5 - D5 - - -',
+    'Bb4 - D5 - Eb5 - G5 - A5 - - - G5 - - -',
+    'Eb5 - - - D5 - Bb4 - A4 - G4 - Eb4 - - -',
+    'D4 - - - - - - - - - - - . . . .',
+    // B: the drive (bars 9-16)
+    'D5 - D5 Eb5 G5 - A5 - Bb5 - A5 - G5 - Eb5 -',
+    'G5 - - - Eb5 - - - C5 - Eb5 - G5 - - -',
+    'Bb5 - A5 - G5 - Eb5 - G5 - - - Bb4 - Eb5 -',
+    'D5 - - - - - - - A4 - D5 - Eb5 - D5 -',
+    'G5 - - - A5 - Bb5 - D6 - - - Bb5 - A5 -',
+    'Bb5 - - - A5 - G5 - D5 - - - G5 - A5 -',
+    'Eb6 - - - D6 - Bb5 - A5 - G5 - Eb5 - - -',
+    'D5 - - - - - - - - - - - . . . .',
+  ];
+  lead.forEach((l, i) => {
+    if (l.trim().split(/\s+/).length !== 16) throw new Error(`dojo bar ${i + 1} is not 16 steps`);
+    notes.push(...line(l, 'flute', i * 16, i < 8 ? 1.1 : 0.8));
+    if (i >= 8) notes.push(...line(l, 'reed', i * 16, 0.9));
+  });
+  return { bpm: 126, steps: prog.length * 16, notes };
+}
+
+// "The Runway": a pumping 90s catwalk house track with piano stabs, offbeat bass and a cool minor hook.
+function runwaySong(): Song {
+  const notes: Note[] = [];
+  const prog = ['Am', 'Am', 'F', 'G', 'Am', 'Am', 'F', 'E', 'Dm', 'Am', 'F', 'G', 'Dm', 'Am', 'E', 'E'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch);
+    const root = tones[0];
+    // offbeat house bass with an octave pop pushing into each beat
+    [2, 6, 10, 14].forEach((st) => notes.push({ step: s + st, inst: 'bass', n: 36 + root, len: 1 }));
+    [7, 15].forEach((st) => notes.push({ step: s + st, inst: 'bass', n: 48 + root, len: 1, vol: 0.12 }));
+    // syncopated piano-house stabs
+    [0, 3, 6, 10].forEach((st) => tones.forEach((t) => notes.push({ step: s + st, inst: 'pluck', n: 60 + ((t + 3) % 12) - 3, len: 1, vol: 0.5 })));
+    // the B half swells under a string pad
+    if (b >= 8) tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 60 + ((t + 3) % 12) - 3, len: 16, vol: 0.035 }));
+    // four on the floor, clap on two and four, open hats on the offbeats and ticking 16ths
+    [0, 4, 8, 12].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1, vol: 0.55 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'clack', n: 0, len: 1, vol: 0.45 }));
+    for (let h = 2; h < 16; h += 4) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+    if (b % 2) [5, 13].forEach((st) => notes.push({ step: s + st, inst: 'hat', n: 0, len: 1 }));
+    if (b % 8 === 7) [12, 13, 14, 15].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1, vol: 0.35 + (st - 12) * 0.1 }));
+    if (b % 8 === 0) notes.push({ step: s, inst: 'crash', n: 0, len: 1, vol: 0.5 });
+    // a glassy arpeggio twinkling over the A half
+    if (b < 8) for (let k = 0; k < 16; k += 2) notes.push({ step: s + k, inst: 'arp', n: 72 + tones[(k >> 1) % 3] % 12 + ((k >> 1) % 4 === 3 ? 12 : 0), len: 1, vol: 0.7 });
+  });
+  const lead = [
+    // A: the strut (bars 1-8)
+    'A5 . . C6 . . E6 . D6 . C6 . A5 - . .',
+    'G5 . A5 . . . . . E5 . G5 . A5 - - .',
+    'A5 . . C6 . . F6 . E6 . C6 . A5 - . .',
+    'B5 - - - D6 - - - G5 - - - . . . .',
+    'A5 . . C6 . . E6 . D6 . C6 . A5 - . .',
+    'G5 . A5 . C6 . E6 . G6 - - - E6 . . .',
+    'F6 - E6 - C6 - A5 - F5 - - - A5 . C6 .',
+    'B5 - - - G#5 - - - E5 - - - . . . .',
+    // B: the turn at the end of the catwalk (bars 9-16)
+    'D6 - - - . . F6 . E6 . D6 . A5 - - -',
+    'C6 - - - . . E6 . D6 . C6 . A5 - - -',
+    'A5 - C6 - F6 - - - E6 - C6 - A5 - - -',
+    'B5 - D6 - G6 - - - F6 - D6 - B5 - - -',
+    'A6 - - - F6 - - - D6 - - - F6 . A6 .',
+    'G6 - - - E6 - - - C6 - - - E6 . G6 .',
+    'G#6 - - - E6 - - - B5 - - - G#5 - - -',
+    'B5 . . . G#5 . . . E5 . F#5 . G#5 . B5 .',
+  ];
+  lead.forEach((l, i) => notes.push(...line(l, i < 8 ? 'lead' : 'synbrass', i * 16, i < 8 ? 0.5 : 0.7)));
+  return { bpm: 124, steps: prog.length * 16, notes };
+}
+
+// "The Coil Works": a driving E-minor machine stomp. Pumping octave bass and a buzzing arpeggio
+// like a coil spinning up, bell sparks for the intro, then a soaring lead over brass hits.
+function labSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['Em', 'Em', 'C', 'D', 'Em', 'Em', 'Am', 'B', 'C', 'D', 'Em', 'Em', 'Am', 'C', 'B', 'B'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch);
+    const root = tones[0];
+    const lo = 36 + root - (root > 6 ? 12 : 0);
+    // pumping octave bass in eighths, with a fifth on the and-of-three
+    [[0, 0], [2, 12], [4, 0], [6, 12], [8, 0], [10, 12], [12, 7], [14, 12]].forEach(([st, iv]) => notes.push({ step: s + st, inst: 'bass', n: lo + iv, len: 1 }));
+    // the coil spinning up: a sixteenth-note arpeggio that climbs and falls
+    for (let st = 0; st < 16; st++) {
+      const oct = [0, 0, 1, 1][(st >> 2) % 4] * 12;
+      notes.push({ step: s + st, inst: 'arp', n: 64 + ((tones[st % 3] + 8) % 12) + oct, len: 1, vol: 0.45 });
+    }
+    // kit: kick with a pushed third hit, backbeat snare, eighth hats and ticking clacks
+    [0, 8, 10].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1 }));
+    for (let h = 0; h < 16; h += 2) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+    [3, 7, 11, 15].forEach((st) => notes.push({ step: s + st, inst: 'clack', n: 0, len: 1, vol: 0.3 }));
+    if (b % 4 === 3) [12, 13, 14, 15].forEach((st, i) => notes.push({ step: s + st, inst: 'tom', n: 52 - i * 3, len: 1, vol: 0.7 }));
+    if (b % 8 === 0) {
+      notes.push({ step: s, inst: 'crash', n: 0, len: 1 });
+      notes.push({ step: s, inst: 'timp', n: 40, len: 6 });
+    }
+    // brass power hits opening each phrase, and a pad under the second half
+    if (b >= 4 && b % 2 === 0) tones.forEach((t) => notes.push({ step: s, inst: 'synbrass', n: 55 + ((t + 5) % 12), len: 3, vol: 0.8 }));
+    if (b >= 8) tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 55 + ((t + 5) % 12), len: 16, vol: 0.03 }));
+  });
+  // bell sparks over the first four bars
+  const bells = [
+    'E6 . B5 . G5 . B5 . E6 . . . D6 . B5 .',
+    'E6 . B5 . G5 . B5 . F#6 . . . G6 . . .',
+    'E6 . C6 . G5 . C6 . E6 . . . G6 . E6 .',
+    'F#6 . D6 . A5 . D6 . F#6 . . . A6 . . .',
+  ];
+  const lead = [
+    'E5 - - - G5 - B5 - E6 - - - D6 - B5 -',
+    'G5 - - - F#5 - E5 - B4 - - - . . . .',
+    'A5 - - - C6 - E6 - A5 - - - G5 - E5 -',
+    'D#5 - - - F#5 - B5 - D#6 - - - . . . .',
+    'E6 - - - D6 - C6 - G5 - - - C6 - E6 -',
+    'F#6 - - - E6 - D6 - A5 - - - D6 - F#6 -',
+    'G6 - - - - - F#6 - E6 - - - B5 - - -',
+    'E6 - D6 - B5 - G5 - E5 - - - . . . .',
+    'C6 - - - B5 - A5 - E5 - - - A5 - C6 -',
+    'E6 - - - D6 - C6 - G5 - - - E5 - G5 -',
+    'F#5 - - - B5 - D#6 - F#6 - - - D#6 - B5 -',
+    'B5 - - - - - - - D#6 - - - F#6 - - -',
+  ];
+  [...bells, ...lead].forEach((l, i) => {
+    if (l.trim().split(/\s+/).length !== 16) throw new Error(`lab bar ${i + 1} is not 16 steps`);
+  });
+  bells.forEach((l, i) => notes.push(...line(l, 'bell', i * 16, 0.6)));
+  lead.forEach((l, i) => notes.push(...line(l, 'lead', (i + 4) * 16, 0.7)));
+  return { bpm: 138, steps: prog.length * 16, notes };
+}
+
+// "Coral Cove": a sunny F-major calypso with a steel pan lead, a skanking guitar on the
+// off-beats, bongos and shaker over a bouncing root-fifth bass.
+function beachSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['F', 'C', 'Dm', 'Bb', 'F', 'C', 'Bb', 'C', 'Dm', 'Bb', 'F', 'C', 'Bb', 'C', 'F', 'C'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch);
+    const root = tones[0];
+    // calypso bass: root, fifth on the and-of-two, root, a walking pickup into the next bar
+    [[0, 0, 3], [6, 7, 2], [8, 0, 3], [12, 12, 1], [14, 7, 2]].forEach(([st, iv, len]) => notes.push({ step: s + st, inst: 'bass', n: 36 + root + iv, len }));
+    // guitar skanks on every off-beat, a lighter strum after each
+    [2, 6, 10, 14].forEach((st) => tones.forEach((t) => notes.push({ step: s + st, inst: 'pluck', n: 60 + ((t + 5) % 12) - 5, len: 1, vol: 0.4 })));
+    [3, 11].forEach((st) => tones.forEach((t) => notes.push({ step: s + st, inst: 'pluck', n: 60 + ((t + 5) % 12) - 5, len: 1, vol: 0.18 })));
+    // light kit: kick on one and three, a rimshot clack, a busy shaker and bongos
+    [0, 8].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'clack', n: 0, len: 1, vol: 0.6 }));
+    for (let h = 0; h < 16; h++) if (h % 4 !== 0) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+    [[3, 64], [7, 64], [10, 59], [11, 64], [15, 59]].forEach(([st, n]) => notes.push({ step: s + st, inst: 'tom', n, len: 1, vol: 0.45 }));
+    if (b % 4 === 3) [12, 13, 14, 15].forEach((st, i) => notes.push({ step: s + st, inst: 'tom', n: 60 - i * 3, len: 1, vol: 0.6 }));
+    if (b % 8 === 0) notes.push({ step: s, inst: 'crash', n: 0, len: 1, vol: 0.5 });
+  });
+  const lead = [
+    // A: the sunny hook (bars 1-8)
+    'A5 - C6 - A5 . F5 . G5 - A5 - C6 - - -',
+    'Bb5 - A5 - G5 - E5 . C5 - - - . . E5 G5',
+    'F5 - A5 - D6 - C6 - A5 - F5 . D5 - - -',
+    'D5 . F5 . Bb5 - - - A5 . G5 . F5 - G5 -',
+    'A5 - C6 - A5 . F5 . G5 - A5 - C6 - D6 -',
+    'E6 - - - D6 - C6 - G5 - - - E5 - G5 -',
+    'F6 - D6 - Bb5 - D6 - C6 - Bb5 - A5 - G5 -',
+    'E5 - G5 - C6 - - - E6 - - - . . . .',
+    // B: the bridge (bars 9-16)
+    'D6 . D6 . C6 . A5 - F5 - A5 - D6 - - -',
+    'D6 . C6 . Bb5 . F5 - D5 - F5 - Bb5 - - -',
+    'C6 . C6 . A5 . F5 - C5 - F5 - A5 - C6 -',
+    'Bb5 - A5 - G5 - E5 - C5 - - - . . . .',
+    'F5 . Bb5 . D6 - - - F6 - - - D6 . Bb5 .',
+    'G5 . C6 . E6 - - - G6 - - - E6 . C6 .',
+    'A5 - C6 - F6 - - - E6 - D6 - C6 - A5 -',
+    'G5 - - - E5 - - - C5 - D5 - E5 - G5 -',
+  ];
+  lead.forEach((l, i) => {
+    if (l.trim().split(/\s+/).length !== 16) throw new Error(`beach bar ${i + 1} is not 16 steps`);
+    notes.push(...line(l, 'steel', i * 16, 0.9));
+  });
+  // a flute floats an octave below the steel pan through the bridge
+  lead.slice(8).forEach((l, i) => line(l, 'flute', (i + 8) * 16, 0.5).forEach((n) => notes.push({ ...n, n: n.n - 12 })));
+  return { bpm: 124, steps: prog.length * 16, notes };
+}
+
+export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), spire: spireSong(), mushroom: mushroomSong(), boat: boatSong(), moon: moonSong(), blizzard: blizzardSong(), underground: undergroundSong(), burger: burgerSong(), dojo: dojoSong(), flavortown: flavortownSong(), runway: runwaySong(), concert: concertSong(), lab: labSong(), beach: beachSong() };
 export type SongName = keyof typeof SONGS;
 
 function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
@@ -596,6 +921,18 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
     case 'crash':
       noise({ dur: 1.4, vol: 0.09 * vol, type: 'highpass', freq: 5000, to: 3000, at, out });
       break;
+    case 'guitar':
+      // overdriven power chord: root, fifth and octave as gritty detuned saws, plus a buzzy square
+      for (const [k, d] of [[1, -7], [1.5, 7], [2, 0]])
+        tone({ type: 'sawtooth', freq: f * k, dur: dur * 0.9 + 0.04, vol: 0.032 * vol, at, out, detune: d, filter: { type: 'lowpass', freq: 2600, to: 900, q: 4 } });
+      tone({ type: 'square', freq: f, dur: dur * 0.9 + 0.03, vol: 0.025 * vol, at, out, filter: { type: 'lowpass', freq: 1400 } });
+      break;
+    case 'gtrlead':
+      // screaming lead: two detuned saws through a resonant peak, with a slow attack for sustain
+      for (const d of [-12, 12])
+        tone({ type: 'sawtooth', freq: f, dur: dur * 0.95 + 0.08, vol: 0.04 * vol, at, out, attack: 0.02, detune: d, filter: { type: 'bandpass', freq: f * 3, q: 1.5 } });
+      tone({ type: 'square', freq: f, dur: dur * 0.95 + 0.06, vol: 0.02 * vol, at, out, filter: { type: 'lowpass', freq: 2400 } });
+      break;
     case 'bell':
       tone({ type: 'sine', freq: f, dur: 1.6, vol: 0.08, at, out });
       tone({ type: 'sine', freq: f * 2.76, dur: 0.6, vol: 0.025, at, out });
@@ -629,6 +966,12 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
     case 'clack':
       noise({ dur: 0.03, vol: 0.16 * vol, type: 'bandpass', freq: 2600, q: 3, at, out });
       tone({ type: 'square', freq: 420, to: 300, dur: 0.03, vol: 0.05 * vol, at, out, filter: { type: 'lowpass', freq: 1800 } });
+      break;
+    case 'steel':
+      // steel pan: a sweet fundamental with a ringing octave and a metallic overtone that dies fast
+      tone({ type: 'sine', freq: f, dur: 0.45 + dur * 0.4, vol: 0.1 * vol, at, out, attack: 0.004 });
+      tone({ type: 'sine', freq: f * 2, dur: 0.3, vol: 0.045 * vol, at, out, attack: 0.004 });
+      tone({ type: 'triangle', freq: f * 3.02, dur: 0.07, vol: 0.02 * vol, at, out });
       break;
     case 'whistle':
       // steam whistle: a sour chord of breathy pipes that sag in pitch as the steam runs out
