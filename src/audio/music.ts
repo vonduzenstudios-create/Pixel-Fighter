@@ -4,7 +4,7 @@ import { ac, midi, musicOut, noise, tone } from './audio';
 // progressions that drive generated bass, string pads and percussion.
 // All compositions here are original.
 
-type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute';
+type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute' | 'synbrass' | 'tom' | 'crash';
 interface Note { step: number; inst: Inst; n: number; len: number; vol?: number }
 interface Song { bpm: number; steps: number; notes: Note[] }
 
@@ -139,21 +139,84 @@ function trainSong(): Song {
   return { bpm: 152, steps: prog.length * 16, notes };
 }
 
+// "Rise of Legends": the title theme. A B minor fanfare intro, a driving verse with a synth-brass
+// lead over a pumping octave bass, then a soaring chorus that lifts to D major before turning back.
 function titleSong(): Song {
   const notes: Note[] = [];
-  const prog = ['Dm', 'Bb', 'Gm', 'A', 'Dm', 'F', 'C', 'A'];
-  prog.forEach((ch, b) => {
-    const s = b * 16;
+  const voice = (t: number, lo: number) => lo + ((t - lo % 12 + 24) % 12); // pitch class t placed in [lo, lo+12)
+  const stab = (s: number, ch: string, len: number, vol = 1) => chordTones(ch).forEach((t) => notes.push({ step: s, inst: 'synbrass', n: voice(t, 59), len, vol: 0.55 * vol }));
+  const drums = (s: number, fill: boolean) => {
+    [0, 6, 8].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    notes.push({ step: s + 4, inst: 'snare', n: 0, len: 1 });
+    if (!fill) notes.push({ step: s + 12, inst: 'snare', n: 0, len: 1 });
+    for (let h = 0; h < (fill ? 12 : 16); h += 2) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1, vol: h % 4 ? 0.6 : 1 });
+    if (fill) [12, 13, 14, 15].forEach((st, i) => notes.push({ step: s + st, inst: 'tom', n: 50 - i * 3, len: 1 }));
+  };
+
+  // Intro (bars 1-2): dotted fanfare hits, then a held dominant over a rising tom roll.
+  [0, 3, 6].forEach((st) => stab(st, 'Bm', 2));
+  stab(10, 'G', 2);
+  stab(12, 'A', 4);
+  stab(16, 'F#', 16, 0.9);
+  [0, 3, 6, 10, 12].forEach((st) => notes.push({ step: st, inst: 'bass', n: 35 + (st === 10 ? 8 : st === 12 ? 10 : 0), len: 2 }));
+  notes.push({ step: 16, inst: 'bass', n: 42, len: 16, vol: 0.1 });
+  notes.push({ step: 0, inst: 'crash', n: 0, len: 1 });
+  notes.push({ step: 0, inst: 'timp', n: 35, len: 4 });
+  notes.push({ step: 12, inst: 'timp', n: 33, len: 4 });
+  for (let st = 16; st < 32; st += st < 24 ? 2 : 1) notes.push({ step: st, inst: st < 24 ? 'timp' : 'tom', n: st < 24 ? 42 : 40 + (st - 24) * 2, len: 1, vol: 0.5 + (st - 16) / 32 });
+  notes.push(...line('. . . . . . . . . . . . . . . . F#4 - - - - - - - A#4 - - - C#5 - - -', 'lead', 0, 0.6));
+
+  const verse = ['Bm', 'G', 'A', 'Bm', 'Bm', 'G', 'Em', 'F#'];
+  const chorus = ['D', 'A', 'Bm', 'G', 'Em', 'A', 'F#', 'F#'];
+  [...verse, ...chorus].forEach((ch, i) => {
+    const b = i + 2, s = b * 16;
     const tones = chordTones(ch);
-    notes.push({ step: s, inst: 'bass', n: 26 + tones[0], len: 16, vol: 0.12 });
-    notes.push({ step: s, inst: 'choir', n: 50 + tones[0] + (tones[0] > 7 ? -12 : 0) + 12, len: 16 });
-    tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 57 + ((t + 3) % 12), len: 16, vol: 0.035 }));
-    notes.push({ step: s, inst: 'timp', n: 38, len: 6 });
-    if (b % 2 === 1) notes.push({ step: s + 12, inst: 'timp', n: 38, len: 2 });
-    // bell arpeggio
-    [0, 4, 8, 12].forEach((st, i) => notes.push({ step: s + st, inst: 'bell', n: 74 + ((tones[i % 3] + 10) % 12) - 10 + (i === 3 ? 12 : 0), len: 4 }));
+    const low = voice(tones[0], 33); // bass root between A1 and G#2
+    const inChorus = i >= 8;
+    // pumping, syncopated octave bass
+    [0, 2, 3, 5, 6, 8, 10, 11, 13, 14].forEach((st, k) => notes.push({ step: s + st, inst: 'bass', n: low + (k % 3 === 1 ? 12 : 0), len: 1 }));
+    drums(s, i === 7 || i === 15);
+    if (i === 0 || i === 4 || inChorus && i % 4 === 0) notes.push({ step: s, inst: 'crash', n: 0, len: 1 });
+    if (!inChorus) {
+      // off-beat brass punches answer the melody in the second half of the verse
+      if (i >= 4) [6, 14].forEach((st) => stab(s + st, ch, 1, 0.7));
+      tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: voice(t, 54), len: 16, vol: 0.03 }));
+    } else {
+      tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: voice(t, 57), len: 16, vol: 0.045 }));
+      notes.push({ step: s, inst: 'choir', n: voice(tones[0], 57), len: 16 });
+      // a bright 16th arpeggio sparkles under the chorus
+      [0, 1, 2, 1].forEach((k, j) => [0, 4, 8, 12].forEach((q) => notes.push({ step: s + q + j, inst: 'arp', n: voice(tones[k], 69) + (j === 2 ? 12 : 0), len: 1, vol: 0.8 })));
+      if (i % 2 === 0) notes.push({ step: s, inst: 'timp', n: voice(tones[0], 33), len: 4 });
+    }
   });
-  return { bpm: 76, steps: prog.length * 16, notes };
+
+  const melody = [
+    // verse (bars 3-10)
+    'B4 - - - - - F#5 - - - - - E5 - F#5 -',
+    'G5 - - - F#5 - E5 - D5 - - - B4 - D5 -',
+    'E5 - - - - - A5 - - - - - G5 - F#5 -',
+    'F#5 - - - - - - - . . B4 C#5 D5 - E5 -',
+    'F#5 - - - - - B5 - - - - - A5 - F#5 -',
+    'G5 - - - - - D5 - - - - - G5 - A5 -',
+    'B5 - - - A5 - G5 - E5 - - - G5 - B5 -',
+    'A#5 - - - - - - - C#6 - - - A#5 - F#5 -',
+    // chorus (bars 11-18)
+    'A5 - - - - - - - F#5 - - - A5 - D6 -',
+    'C#6 - - - - - - - E5 - - - A5 - C#6 -',
+    'D6 - - - C#6 - B5 - F#5 - - - B5 - D6 -',
+    'E6 - - - D6 - B5 - G5 - - - - - - -',
+    'G5 - - - B5 - - - E6 - - - D6 - B5 -',
+    'C#6 - - - - - A5 - E5 - - - A5 - C#6 -',
+    'A#5 - - - - - - - - - - - F#5 - A#5 -',
+    'C#6 - - - - - - - . . . . . . . .',
+  ];
+  melody.forEach((l, i) => {
+    const s = (i + 2) * 16;
+    notes.push(...line(l, 'synbrass', s));
+    // a square lead doubles an octave down for that 16-bit bite
+    line(l, 'lead', s, 0.45).forEach((n) => notes.push({ ...n, n: n.n - 12 }));
+  });
+  return { bpm: 150, steps: 18 * 16, notes };
 }
 
 function victorySong(): Song {
@@ -371,6 +434,19 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
       break;
     case 'brass':
       tone({ type: 'sawtooth', freq: f, dur: dur + 0.05, vol: 0.06 * vol, at, out, attack: 0.02, filter: { type: 'lowpass', freq: 2200, to: 700 } });
+      break;
+    case 'synbrass':
+      // fat detuned saws with a bright attack that mellows, plus a soft octave-down body
+      for (const d of [-11, 11])
+        tone({ type: 'sawtooth', freq: f, dur: dur * 0.95 + 0.08, vol: 0.045 * vol, at, out, attack: 0.025, detune: d, filter: { type: 'lowpass', freq: 3400, to: 1300, q: 2 } });
+      tone({ type: 'square', freq: f / 2, dur: dur * 0.9 + 0.05, vol: 0.015 * vol, at, out, attack: 0.02, filter: { type: 'lowpass', freq: 1200 } });
+      break;
+    case 'tom':
+      tone({ type: 'sine', freq: midi(n) * 1.5, to: midi(n), dur: 0.22, vol: 0.3 * vol, at, out });
+      noise({ dur: 0.05, vol: 0.06 * vol, freq: 900, at, out });
+      break;
+    case 'crash':
+      noise({ dur: 1.4, vol: 0.09 * vol, type: 'highpass', freq: 5000, to: 3000, at, out });
       break;
     case 'bell':
       tone({ type: 'sine', freq: f, dur: 1.6, vol: 0.08, at, out });
