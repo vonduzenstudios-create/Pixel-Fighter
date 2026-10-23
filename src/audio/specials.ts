@@ -319,6 +319,42 @@ export const FX: Record<string, () => void> = {
       tone({ type: 'square', freq: 494, dur: 0.13, vol: 0.05, at: t + at, filter: { type: 'lowpass', freq: 2000 } });
     }
   },
+  // ---------------------------------------------------------------- kitchen
+  /** Cast iron rung like a dull bell. */
+  panClang() {
+    const v = vary();
+    for (const [f, vol, d] of [[310, 0.12, 0.45], [742, 0.07, 0.35], [1263, 0.04, 0.25]]) tone({ type: 'sine', freq: f * v, dur: d, vol, attack: 0.002 });
+    noise({ dur: 0.04, vol: 0.2, type: 'bandpass', freq: 1800, q: 2 });
+  },
+  /** Brandy hitting the flame: a deep whoomp that roars upward. */
+  flambe() {
+    noise({ dur: 0.6, vol: 0.4, type: 'lowpass', freq: 250, to: 2600, attack: 0.04 });
+    tone({ type: 'sine', freq: 75, to: 40, dur: 0.4, vol: 0.35 });
+    FX.fireCrackle();
+  },
+  /** Knife hitting the chopping board. */
+  boardKnock() {
+    tone({ type: 'square', freq: 520 * vary(), to: 300, dur: 0.035, vol: 0.1, filter: { type: 'bandpass', freq: 900, q: 3 } });
+    noise({ dur: 0.03, vol: 0.18, type: 'bandpass', freq: 1400 * vary(), q: 4 });
+  },
+  /** A cleaver biting in, then the board underneath. */
+  cleaverChop() {
+    FX.chop();
+    FX.boardKnock();
+  },
+  /** A slab of meat slapping into a face. */
+  meatSlap() {
+    noise({ dur: 0.12, vol: 0.4, type: 'lowpass', freq: 1100 * vary(), to: 250 });
+    tone({ type: 'sine', freq: 210, to: 70, dur: 0.12, vol: 0.25 });
+  },
+  /** Short furious shout from the head chef. */
+  chefBark() {
+    voice(170 * vary(), 240, 0.28, 0.22, [780, 1250, 2700]);
+  },
+  /** Steam escaping from under a serving dome. */
+  steam() {
+    noise({ dur: 0.7, vol: 0.08, type: 'highpass', freq: 2600, to: 4200, attack: 0.15 });
+  },
   // ---------------------------------------------------------------- street magic
   /** A deck riffled through the thumb: a quick run of paper ticks. */
   cardRiffle() {
@@ -712,6 +748,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     bookslam: { frames: { 1: 'pageFlutter', 7: 'heave' }, impact: ['bookThump', 'pageFlutter'], blocked: 'bookThump' },
     ovation: { frames: { 1: 'applause', 13: 'clap', 21: 'clap', 30: ['applause', 'confettiPop'] }, impact: 'clap', blocked: 'clap' },
   },
+  ramsay: {
+    proj_steak: { frames: { 1: 'sizzle', 7: 'panClang' } },
+    flambe: { frames: { 0: 'chefBark', 5: 'flambe', 16: 'fireCrackle' }, impact: 'flameBurst', blocked: 'fireCrackle' },
+    mince: { frames: { 0: 'chefBark', 6: 'boardKnock', 14: 'boardKnock', 22: 'boardKnock', 30: 'boardKnock' }, impact: 'cleaverChop', blocked: 'clang' },
+  },
 };
 
 export interface ProjSounds {
@@ -742,6 +783,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
   drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
   grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
+  steak: { travel: { every: 12, cue: 'sizzle' }, impact: ['meatSlap', 'sizzle'], blocked: 'meatSlap' },
   card: { travel: { every: 6, cue: 'cardWhir' }, impact: 'cardSlice', blocked: 'cardFlick' },
   robot: { travel: { every: 12, cue: 'tinTick' }, impact: 'tinClank', blocked: 'tinClank', clash: 'tinClank' },
   scarab: { travel: { every: 12, cue: 'buzz' }, impact: ['buzz', 'crunch'], blocked: 'buzz' },

@@ -6,6 +6,7 @@ import { roster } from '../src/chars/roster';
 import { HAWKING_LINES } from '../src/chars/hawking';
 import { IRWIN_LINES } from '../src/chars/irwin';
 import { DEFAULT_INTRO } from '../src/game/intro';
+import { RAMSAY_LINES } from '../src/chars/ramsay';
 
 // roster() paints its prop sprites, so give it a canvas that accepts and ignores every call
 const inert: any = new Proxy(() => inert, { get: (_, k) => (k === Symbol.toPrimitive ? () => 0 : inert), apply: () => inert });
@@ -34,7 +35,7 @@ describe('voice lines', () => {
   });
 
   it('covers every intro, finisher line and announcer call', () => {
-    const want = [DEFAULT_INTRO.line, HAWKING_LINES.finisher, IRWIN_LINES.finisher, 'Fight!', 'End them!', 'Obliteration!', 'Round 1', 'Round 2', 'Round 3'];
+    const want = [DEFAULT_INTRO.line, HAWKING_LINES.finisher, IRWIN_LINES.finisher, RAMSAY_LINES.finisher, 'Fight!', 'End them!', 'Obliteration!', 'Round 1', 'Round 2', 'Round 3'];
     for (const c of roster()) {
       if (c.intro) want.push(c.intro.line);
       want.push(`${c.name} wins`);

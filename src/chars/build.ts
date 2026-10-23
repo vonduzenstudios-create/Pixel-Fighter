@@ -25,7 +25,7 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora' | 'nemes' | 'beanie';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky' | 'bald' | 'swoop';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky' | 'bald' | 'swoop' | 'gelled';
   beard?: 'chinstrap' | 'braided' | 'full' | 'goatee' | 'vandyke' | 'pharaoh';
   /** Facial hair colour when it differs from the hair (bleached spikes over a darker beard). */
   beardColor?: string;
@@ -62,6 +62,10 @@ export interface Look {
   earrings?: string;
   /** Lipstick colour for the mouth. */
   lips?: string;
+  /** Double-breasted chef's jacket over the shirt colour: stand-up collar and two rows of buttons (button colour). */
+  chefCoat?: string;
+  /** Waist apron over the hips and thighs. */
+  apron?: string;
   /** Horizontal stripes across the shirt and sleeves (stripe colour). */
   stripes?: string;
   /** Short pants above the knee: bare legs below the hem (pants is the shorts colour). */
@@ -193,6 +197,17 @@ function torso(L: Look): Painter {
     p.rect(17, 13, 3, 3, darken(L.shirt, 0.12));
     for (const y of [14, 18, 22]) p.set(18, y, lighten(L.shirt, 0.5));
   }
+  if (L.chefCoat && !L.coat) {
+    const fold = darken(L.shirt, 0.18);
+    p.rect(14, 4, 7, 2, lighten(L.shirt, 0.3)); // stand-up collar
+    p.line(14, 6, 20, 6, fold);
+    p.line(20.5, 7, 16, 22, fold); // the crossover flap
+    for (const y of [10, 14, 18]) p.set(15, y, L.chefCoat), p.set(19, y, L.chefCoat);
+  }
+  if (L.apron) {
+    p.poly([[6, 24], [20.5, 24], [21, 31], [6.5, 31]], L.apron);
+    p.line(6, 23, 20, 23, darken(L.apron, 0.3)); // tie string
+  }
   if (L.sash) p.poly([[7, 21], [20, 21], [20, 23], [7, 23]], L.sash);
   if (L.bandolier) p.line(9, 6, 20, 21, L.bandolier), p.line(10, 6, 20, 20, L.bandolier);
   if (L.flames && !L.coat) flameHem(p, 7, 20, 25, 9, L.flames);
@@ -300,6 +315,12 @@ function head(L: Look): Painter {
   } else if (L.hairStyle === 'perm') {
     p.ellipse(10, 20.5, 9, 6, L.hair);
     p.rect(3, 22, 5, 9, L.hair);
+  } else if (L.hairStyle === 'gelled') {
+    // short crop gelled up into spikes that lean forward
+    p.ellipse(10, 24, 6.5, 3, L.hair);
+    p.rect(4, 23, 4, 5, L.hair);
+    for (const [x0, tx, ty, x1] of [[3.5, 5, 19.5, 7], [6, 9.5, 17, 10], [9.5, 13.5, 17.5, 13], [12.5, 17.5, 20.5, 16]])
+      p.poly([[x0, 24], [tx, ty], [x1, 23.5]], L.hair);
   } else if (L.hairStyle === 'spiky') {
     // short sides with darker roots, frosted spikes standing straight up and raking forward
     const root = L.beardColor ?? darken(L.hair, 0.35);
@@ -395,6 +416,10 @@ function head(L: Look): Painter {
     p.rect(12, 27, 4, 2, '#cfe6f0');
     p.set(13, 27, '#ffffff');
     p.line(6, 27, 11, 27, L.glasses);
+  }
+  if (L.hairStyle === 'gelled') {
+    const hl = lighten(L.hair, 0.35);
+    p.set(5, 20, hl), p.set(9, 18, hl), p.set(13, 18, hl), p.set(16, 20, hl);
   }
   if (L.hairStyle === 'curls') {
     // ringlet highlights and the single curl that falls over the brow
@@ -551,6 +576,10 @@ function thigh(L: Look): Painter {
     return p;
   }
   p.capsule(7, 3, 5.6, 7, 19, 4.4, c);
+  if (L.apron) {
+    p.capsule(7, 3, 6, 7, 13, 5.2, L.apron);
+    p.line(12, 4, 11, 15, darken(L.apron, 0.25));
+  }
   if (L.shortPants) {
     p.capsule(7, 3, 6.2, 7, 10, 5.6, L.pants);
     p.line(2, 14, 12, 14, darken(L.pants, 0.3));

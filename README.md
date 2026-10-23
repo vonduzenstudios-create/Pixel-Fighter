@@ -128,6 +128,7 @@ packs such as `ff_siwis` (French) read the English lines with that accent.
 | fieri | `am_fenrir` | 1.12 | 1.03 |
 | shaq | `am_echo` | 0.92 | 0.82 |
 | irwin | `bm_george` | 1.12 | 1.12 |
+| ramsay | `bm_fable` | 1.12 | 0.88 |
 
 Still unused English voices: `af_alloy`, `af_aoede`, `af_bella`, `af_jessica`, `af_kore`, `af_nicole`, `af_nova`, `af_river`, `af_sarah`, `af_sky`, `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`.
 Every American and British male voice is taken, so a new male fighter should use another
