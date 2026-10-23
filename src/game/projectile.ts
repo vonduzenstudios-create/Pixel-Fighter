@@ -10,9 +10,10 @@ import { drawMiniHole } from '../chars/hawking';
 import { drawTinRobot } from '../chars/buster';
 import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
+import { drawBasketball } from '../chars/shaq';
 import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -51,6 +52,8 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   // lobbed flaming cheeseburger and a hot rod that drives across the deck (jump it)
   burger: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 3.9 },
   ragtop: { dmg: 100, level: 'mid', effect: 'knockdown', r: 12, speed: 5.6, sturdy: true },
+  // bounce pass: hops along the floor, so jumping it is a matter of timing
+  bball: { dmg: 80, level: 'mid', effect: 'heavy', r: 7, speed: 3.9 },
 };
 
 /** Frames a grease puddle keeps burning after it lands. */
@@ -140,6 +143,17 @@ export class Projectile {
         }
         break;
       }
+      case 'bball':
+        this.vy -= 0.34;
+        if (this.y + this.vy <= 7) {
+          this.y = 7;
+          this.vy = 4.6;
+          if (this.t > 1) {
+            playCue('dribble');
+            p.smoke(this.x, 2, 1, '#8a7a6a');
+          }
+        }
+        break;
       case 'paint':
         if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x, y: this.y - 2, vx: -this.vx * 0.1, vy: 0.3, life: 18, max: 18, color: PAINTS[this.hue], grav: 0.15, floor: false });
         break;
@@ -328,6 +342,9 @@ export class Projectile {
         break;
       case 'ragtop':
         drawRagtop(ctx, this);
+        break;
+      case 'bball':
+        drawBasketball(ctx, this.t * 0.35 * Math.sign(this.vx), this.y <= 8 ? 0.8 : 1);
         break;
       case 'paint':
         ctx.drawImage(s.paint[this.hue], -7, -7);

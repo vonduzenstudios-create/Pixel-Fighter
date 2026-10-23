@@ -995,6 +995,8 @@ export class Fight {
     for (const f of this.f) if (f.alpha > 0) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
+    const ownFatal = this.fatal && this.winner?.ch.id === this.fatal.kind ? this.winner.ch.fatalityDraw : undefined;
+    ownFatal?.(ctx, this, cam, false);
     for (const f of order) {
       if (this.fatal?.kind === 'chuck' && f === this.loser && this.fatal.data.sink > 0.5) {
         // hammered into the deck: only what is above the planks shows, over a splintered hole
@@ -1039,6 +1041,7 @@ export class Fight {
       ctx.fillRect(0, 0, W, H);
     }
     if (this.fatal?.kind === 'hawking') drawHawkingFatality(ctx, this, cam);
+    ownFatal?.(ctx, this, cam, true);
     this.particles.draw(ctx, cam);
     ctx.restore();
     this.stage.drawFront(ctx, cam, this.t);
