@@ -156,5 +156,7 @@ export function aliDef(): CharDef {
     specials: aliSpecials, voice: 120, props: {},
     finisher: { name: 'Final Bell', cmd: [2, 4, 6], btn: 'hp', text: 'D, B, F + HP (close)', range: [0, 70] },
     fatality: finalBell,
+    quotes: [...ALI_TAUNTS.map((t) => t.toUpperCase()), 'FLOAT LIKE A FEATHER, HIT LIKE A FREIGHT TRAIN. STAY DOWN, {L}.', 'I AM THE GREATEST. YOU ARE THE FLOOR.'],
+    quotesVs: { chuck: 'NO BEARD IS FASTER THAN THESE HANDS.' },
   };
 }
