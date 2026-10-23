@@ -461,6 +461,13 @@ export function roster(): CharDef[] {
     {
       id: 'jackson', name: 'Michael Jackson', short: 'JACKSON', title: 'The Gloved One', look: JACKSON_LOOK, alt: JACKSON_ALT,
       specials: JACKSON_SPECIALS, voice: 230, props: {}, finisher: JACKSON_FINISHER, intro: JACKSON_INTRO,
+      quotes: [
+        'HEE HEE! YOU NEVER EVEN SAW MY FEET MOVE.',
+        'I WALKED BACKWARDS THE WHOLE TIME, {L}. STILL TOO FAST FOR YOU.',
+        'ONE GLOVE. THAT IS ALL IT TOOK.',
+        'DANCE LESSONS ARE CHEAPER THAN HOSPITAL BILLS.',
+      ],
+      quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
     },
   ];
   for (const c of cache) c.intro ??= INTROS[c.id];

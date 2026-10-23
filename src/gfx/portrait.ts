@@ -229,6 +229,12 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
             if (inEll(x, y, 50, 34, 34, 27)) p.set(x, y, lighten(L.hair, 0.25)), p.set(x + 1, y + 1, darken(L.hair, 0.4));
       }
       if (L.hairStyle === 'bob') S((m) => m.ellipse(48, 46, 29, 32, '#fff'), L.hair, { soft: 5, clip: rectMask(0, 0, PW, 76) });
+      if (L.hairStyle === 'curls') {
+        // shoulder-length ringlets falling behind the jaw
+        S((m) => m.poly([[20, 34], [46, 28], [50, 96], [36, 104], [22, 98], [16, 70]], '#fff'), L.hair, { soft: 4 });
+        for (let y = 44; y < 100; y += 7)
+          for (let x = 20 + ((y / 7) % 2) * 3; x < 46; x += 7) p.set(x, y, lighten(L.hair, 0.3)), p.set(x + 1, y + 2, darken(L.hair, 0.45));
+      }
     }
     // ---- shoulders and clothes
     if (!skip.clothes) {
@@ -317,6 +323,10 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
       if (L.hairStyle === 'slick') {
         for (let i = 0; i < 4; i++) p.line(32 + i * 7, 22 + i, 46 + i * 7, 19 + i * 2, lighten(L.hair, 0.3));
         p.line(52, 18, 54, 30, darken(L.hair, 0.5));
+      } else if (L.hairStyle === 'curls') {
+        // the single curl that drops over the brow
+        S((m) => m.poly([[60, 35], [66, 35], [68, 45], [64, 51], [61, 47], [63, 43]], '#fff'), L.hair, { soft: 1 });
+        for (let x = 30; x < 40; x += 3) p.line(x, 40, x + 1, 58, darken(L.hair, 0.4));
       } else if (L.hairStyle === 'bob') {
         // straight-cut fringe and a lock in front of the ear
         S((m) => m.poly([[25, 38], [44, 38], [44, 70], [40, 76], [28, 76], [24, 68]], '#fff'), L.hair, { soft: 3 });
@@ -412,6 +422,14 @@ export function paintPortrait(L: Look, beaten: boolean, style: PortraitStyle = {
           const [rx, ry] = tilt([[x, 32.5]], ang)[0];
           p.set(rx, ry, lighten(trim, 0.5));
         }
+      } else if (L.hat === 'fedora') {
+        const c = L.hatColor ?? '#141218', band = L.hatTrim ?? '#e8e4dc';
+        // pinched crown tipped forward, with a wide brim that shades the eyes
+        S((m) => m.poly(tilt([[30, 30], [32, 12], [42, 6], [60, 6], [70, 12], [74, 30]], ang), '#fff'), c, { soft: 5, bias: 0.15 });
+        S((m) => m.poly(tilt([[31, 22], [73, 22], [74, 29], [30, 29]], ang), '#fff'), band, { soft: 2 });
+        S((m) => m.poly(tilt([[12, 32], [52, 28], [88, 30], [96, 36], [86, 39], [52, 34], [16, 36]], ang), '#fff'), c, { soft: 2, bias: 0.2 });
+        p.line(...(tilt([[46, 8], [56, 9]], ang).flat() as [number, number, number, number]), darken(c, 0.5)); // crown pinch
+        if (beaten) p.poly(tilt([[58, 7], [66, 9], [62, 15]], ang), darken(c, 0.5)); // dent
       } else if (L.hat === 'tricorn') {
         const c = L.hatColor ?? '#18141a', trim = L.hatTrim ?? '#c9a33a';
         const brim = tilt([[10, 36], [94, 31], [84, 16], [54, 6], [22, 14]], ang);
