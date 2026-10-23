@@ -1,5 +1,6 @@
 import type { SongName } from '../audio/music';
 import type { PartSet } from '../gfx/rig';
+import type { Fight } from './fight';
 import { MoonStage } from './moon';
 import { Stage } from './stage';
 import { TrainStage } from './train';
@@ -8,6 +9,7 @@ import { SkyscraperStage } from './skyscraper';
 import { MushroomStage } from './mushroom';
 import { BlizzardStage } from './blizzard';
 import { UndergroundStage } from './underground';
+import { BurgerStage } from './burger';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -23,6 +25,14 @@ export interface Arena {
   blurb?: string;
   draw(ctx: CanvasRenderingContext2D, camX: number, t: number): void;
   drawFront(ctx: CanvasRenderingContext2D, camX: number, t: number): void;
+  /** Floor width in world px; defaults to STAGE_W. */
+  width?: number;
+  /** Called when a new match starts here, e.g. to tidy up stage props. */
+  reset?(): void;
+  /** Per-frame stage simulation with access to the fighters (props they can knock around). */
+  update?(f: Fight): void;
+  /** Drawn over the victim in the uppercut-finish close-up; replaces the spike-impale finish. */
+  pitFront?: HTMLCanvasElement;
   /** Optional vertical offset (screen px) for the floor, fighters and effects, e.g. a rocking deck. */
   bob?(t: number): number;
 }
@@ -41,6 +51,7 @@ export const STAGES: StageEntry[] = [
   { id: 'mushroom', name: 'THE SPOREWOOD', make: (b) => new MushroomStage(b) },
   { id: 'blizzard', name: 'THE HOWLING PASS', make: (b) => new BlizzardStage(b) },
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
+  { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 

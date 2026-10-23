@@ -301,7 +301,7 @@ export class Fighter {
       this.vx *= 0.82;
       if (Math.abs(this.vx) < 0.05) this.vx = 0;
     }
-    this.x = Math.max(14, Math.min(STAGE_W - 14, this.x));
+    this.x = Math.max(14, Math.min((f.stage.width ?? STAGE_W) - 14, this.x));
   }
 
   neutral(f: Fight) {
@@ -479,6 +479,14 @@ export class Fighter {
     const fr = this.mf - 1;
     if (fr < m.active[0] || fr >= m.active[1]) return null;
     if (this.hits > 0 && !(m.hit.rehit && fr - this.lastHit >= m.hit.rehit)) return null;
+    return this.strikePoint();
+  }
+  /** Where the active attack's limb is this frame, whether or not it already connected. */
+  strikePoint(): { x: number; y: number; hit: HitDef } | null {
+    const m = this.move;
+    if (this.state !== 'attack' || !m?.hit || !m.active) return null;
+    const fr = this.mf - 1;
+    if (fr < m.active[0] || fr >= m.active[1]) return null;
     const s = this.skel;
     let v: [number, number];
     switch (m.hit.limb) {
