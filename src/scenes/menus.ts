@@ -6,6 +6,7 @@ import { roster, partsFor } from '../chars/roster';
 import { buildBones } from '../gfx/bones';
 import { sample, IDLE, VICTORY_ANIM, STANCE } from '../game/anims';
 import { Stage } from '../game/stage';
+import { arena, Arena, STAGES } from '../game/stages';
 import { Fighter, CharDef } from '../game/fighter';
 import { Fight } from '../game/fight';
 import { AICtrl, DIFF_NAMES, Difficulty, HumanCtrl } from '../game/ai';
@@ -17,6 +18,7 @@ import { drawFigure, Scene } from './common';
 export interface Settings {
   players: 1 | 2;
   diff: Difficulty;
+  stage: number; // index into STAGES, remembered between matches
 }
 
 export interface App {
@@ -169,7 +171,7 @@ export class SelectScene implements Scene {
     }
     if (this.picked[0] !== null && this.picked[1] !== null && this.roulette === 0) {
       const ch = roster();
-      this.app.go(new VersusScene(this.app, ch[this.picked[0]], ch[this.picked[1]]));
+      this.app.go(new StageSelectScene(this.app, ch[this.picked[0]], ch[this.picked[1]]));
     }
   }
 
@@ -231,14 +233,60 @@ export class SelectScene implements Scene {
   }
 }
 
+// ------------------------------------------------------------------ Stage select
+export class StageSelectScene implements Scene {
+  t = 0;
+  e = new Edge();
+  constructor(private app: App, private a: CharDef, private b: CharDef) {
+    this.e.update(readPlayer(0, app.settings.players === 1)); // a button still held from character select shouldn't pick
+  }
+
+  get cur() {
+    return arena(this.app.settings.stage, bonesParts());
+  }
+
+  update() {
+    this.t++;
+    playSong('title');
+    const s = this.app.settings;
+    const n = STAGES.length;
+    const p = this.e.update(readPlayer(0, this.app.settings.players === 1));
+    if (p.l) (s.stage = (s.stage + n - 1) % n), sfx.menuMove();
+    if (p.r) (s.stage = (s.stage + 1) % n), sfx.menuMove();
+    if (confirm(p)) {
+      sfx.menuPick();
+      this.app.go(new VersusScene(this.app, this.a, this.b, this.cur));
+    } else if (cancel(p, this.app)) {
+      this.app.back = false;
+      this.app.go(new SelectScene(this.app));
+    }
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    const st = this.cur;
+    const cam = 128 + Math.sin(this.t * 0.01) * 110;
+    st.draw(ctx, cam, this.t);
+    st.drawFront(ctx, cam, this.t);
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, 0, W, 34);
+    ctx.fillRect(0, H - 44, W, 44);
+    drawText(ctx, 'SELECT STAGE', W / 2, 10, '#fff', { scale: 2, align: 'center', grad: ['#fff4b0', '#c03010'], outline: '#000' });
+    const pulse = this.t % 30 < 15 ? '#ff4020' : '#ffa060';
+    drawText(ctx, '<', 10, H - 30, pulse, { scale: 2, outline: '#000' });
+    drawText(ctx, '>', W - 20, H - 30, pulse, { scale: 2, outline: '#000' });
+    drawText(ctx, st.name, W / 2, H - 32, '#ffe060', { align: 'center', outline: '#000' });
+    drawText(ctx, `${this.app.settings.stage + 1} / ${STAGES.length}`, W / 2, H - 20, '#a09080', { align: 'center' });
+  }
+}
+
 // ------------------------------------------------------------------ Versus splash, then the fight
 export class VersusScene implements Scene {
   t = 0;
-  constructor(private app: App, private a: CharDef, private b: CharDef) {}
+  constructor(private app: App, private a: CharDef, private b: CharDef, private stage: Arena) {}
   update() {
     this.t++;
     if (this.t === 1) sfx.gong();
-    if (this.t >= 130) this.app.go(new FightScene(this.app, this.a, this.b));
+    if (this.t >= 130) this.app.go(new FightScene(this.app, this.a, this.b, this.stage));
   }
   draw(ctx: CanvasRenderingContext2D) {
     ctx.drawImage(selectBg(), 0, 0);
@@ -248,7 +296,7 @@ export class VersusScene implements Scene {
     drawText(ctx, this.a.name, 64, 14, '#fff', { align: 'center', scale: 1, outline: '#000' });
     drawText(ctx, this.b.name, W - 64, 14, '#fff', { align: 'center', scale: 1, outline: '#000' });
     if (this.t > 25) drawText(ctx, 'VS', W / 2, 90, '#fff', { scale: 4, align: 'center', grad: ['#fff0a0', '#d01010'], outline: '#000', shadow: '#000' });
-    drawText(ctx, 'THE THORN GORGE', W / 2, H - 14, '#c8a070', { align: 'center' });
+    drawText(ctx, this.stage.name, W / 2, H - 14, '#c8a070', { align: 'center' });
   }
 }
 
@@ -257,12 +305,12 @@ export const bonesParts = () => (bonesCache ??= buildBones());
 
 export class FightScene implements Scene {
   fight: Fight;
-  constructor(private app: App, a: CharDef, b: CharDef) {
+  constructor(private app: App, a: CharDef, b: CharDef, stage: Arena = app.stage) {
     const two = app.settings.players === 2;
     const bones = bonesParts();
     const f1 = new Fighter(a, partsFor(a), bones, new HumanCtrl(0, !two), 0);
     const f2 = new Fighter(b, partsFor(b, a === b), bones, two ? new HumanCtrl(1, false) : new AICtrl(app.settings.diff), 1);
-    this.fight = new Fight([f1, f2], app.stage, [true, two], () => app.go(new SelectScene(app)));
+    this.fight = new Fight([f1, f2], stage, [true, two], () => app.go(new SelectScene(app)));
   }
   update() {
     this.fight.update();
