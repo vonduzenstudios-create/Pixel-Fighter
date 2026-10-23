@@ -1068,7 +1068,10 @@ export class Fight {
     const sink = vat && D.impaled ? Math.min(60, (D.it ?? 0) * 0.5) : 0;
     if (vat && D.impaled) l.poseOverride = AN.P(AN.LAUNCHED, { rot: 180 + Math.sin((D.it ?? 0) * 0.4) * 10 });
     if (vat) l.computePose();
-    l.draw(ctx, 0, Math.round(D.y + sink));
+    const lift = D.impaled && landing?.victim ? landing.victim(l, D.it ?? 0) : 0;
+    l.draw(ctx, 0, Math.round(D.y + sink + lift));
+    l.showBones = false;
+    l.tint = null;
     l.x = savedX;
     if (vat) ctx.drawImage(vat, 0, 0);
     if (landing) {
