@@ -23,6 +23,19 @@ export interface HitDef {
   sfx?: 'light' | 'heavy' | 'slash' | 'zap' | 'burn';
 }
 
+/** A sound to play: a name from the special FX or shared sfx, a list of names to layer, or a function. */
+export type Cue = string | Cue[] | (() => void);
+
+/** Layered sounds for a special move. See src/audio/specials.ts. */
+export interface MoveSounds {
+  /** Cues keyed by move frame: windup, cast, release, footsteps... */
+  frames?: Record<number, Cue>;
+  /** Layered on top of the generic hit sound when the move connects. */
+  impact?: Cue;
+  /** Layered on top of the block sound when the move is guarded. */
+  blocked?: Cue;
+}
+
 export interface Anim {
   keys: [Pose, number][];
   loop?: boolean;
@@ -41,6 +54,8 @@ export interface Move {
   propBehind?: boolean;
   onFrame?: (self: Fighter, fight: Fight, frame: number) => void;
   whoosh?: boolean;
+  /** Per-move sound design; falls back to MOVE_SOUNDS[id] in src/audio/specials.ts. */
+  sounds?: MoveSounds;
   /** Frames during which the fighter is not drawn and cannot be hit. */
   invisible?: [number, number];
   /** Toggle facing every N frames (spinning attacks). */

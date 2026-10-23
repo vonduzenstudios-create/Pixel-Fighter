@@ -6,6 +6,7 @@ import { pxLine } from '../gfx/painter';
 import { keg as kegSprite, skull } from '../gfx/props';
 import { PartSet, Part } from '../gfx/rig';
 import { announce, bark, hush, say, sfx, speaking, strengthOf } from '../audio/sfx';
+import { moveSounds, playCue, PROJ_SOUNDS } from '../audio/specials';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
 import { Fighter } from './fighter';
@@ -471,7 +472,9 @@ export class Fight {
         if (q !== p && !q.dead && q.owner !== p.owner && Math.abs(q.x - p.x) < 12 && Math.abs(q.y - p.y) < 14) {
           p.dead = q.dead = true;
           this.particles.sparks((p.x + q.x) / 2, p.y, 16, '#ffffff');
-          sfx.block();
+          sfx.block(true);
+          playCue(PROJ_SOUNDS[p.kind]?.clash);
+          playCue(PROJ_SOUNDS[q.kind]?.clash);
         }
       if (p.dead || p.spent || d.invulnerable) continue;
       if (circleRect(p.x, p.y, p.r, d.hurtbox())) {
@@ -479,10 +482,10 @@ export class Fight {
         if (p.kind === 'tree') p.spent = true;
         else p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
-        this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
-        if (p.kind === 'cash') sfx.kaching();
+        const res = this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
+        const ps = PROJ_SOUNDS[p.kind];
+        playCue(res === 'block' ? ps?.blocked : ps?.impact);
         if (p.kind === 'cannon' || p.kind === 'keg') {
-          sfx.cannon();
           this.particles.smoke(p.x, p.y, 10);
           this.particles.fire(p.x, p.y, 10, 6);
         }
@@ -511,15 +514,17 @@ export class Fight {
     const res = d.receive(hit, a, this, at, projectile);
     if (res === 'block') {
       sfx.block(hit.dmg >= 60);
+      if (!projectile) playCue(moveSounds(a)?.blocked);
       this.particles.sparks(at.x, at.y, 6);
       this.particles.flash(at.x, at.y, 4, '#a0d0ff');
       this.hitstop = 3;
-      return;
+      return res;
     }
     const heavy = hit.dmg >= 60;
     if (hit.sfx === 'slash') sfx.slash();
     else if (hit.sfx === 'zap') sfx.zap(0.15);
     else sfx.hit(hit.effect === 'launch' || hit.effect === 'knockdown' ? 3 : strengthOf(hit.dmg), isKick(hit));
+    if (!projectile) playCue(moveSounds(a)?.impact);
     if (hit.sfx === 'zap') this.particles.zap(at.x, at.y, 8);
     if (projectile && (hit.dmg >= 80)) this.particles.fire(at.x, at.y, 6, 4);
     this.particles.impact(at.x, at.y, a.facing, hit.dmg, heavy);

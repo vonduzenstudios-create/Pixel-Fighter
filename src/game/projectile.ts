@@ -5,6 +5,7 @@ import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
+import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
 
 export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole';
@@ -51,11 +52,14 @@ export class Projectile {
     const s = STATS[kind];
     this.vx = s.speed * owner.facing;
     this.dmg = s.dmg; this.level = s.level; this.effect = s.effect; this.r = s.r;
+    playCue(PROJ_SOUNDS[kind]?.launch);
   }
 
   update(f: Fight) {
     this.t++;
     const p = f.particles;
+    const travel = PROJ_SOUNDS[this.kind]?.travel;
+    if (travel && this.t % travel.every === 0) playCue(travel.cue);
     switch (this.kind) {
       case 'hat': {
         // boomerang: slows, turns around and flies back to its owner
