@@ -247,8 +247,8 @@ export interface SpeechOpts {
   female?: boolean;
 }
 
-const MALE = /male|daniel|fred|alex|david|george|mark|james/i;
-const FEMALE = /female|samantha|victoria|karen|zira|susan|moira|tessa|fiona|hazel|serena/i;
+const MALE = /male|daniel|fred|alex|david|george|mark|james|guy|aaron|arthur/i;
+const FEMALE = /female|samantha|victoria|karen|zira|susan|moira|tessa|fiona|hazel|serena|jenny|aria|google us english/i;
 const voiceCache = new Map<boolean, SpeechSynthesisVoice>();
 function pickVoice(ss: SpeechSynthesis, female: boolean) {
   const hit = voiceCache.get(female);

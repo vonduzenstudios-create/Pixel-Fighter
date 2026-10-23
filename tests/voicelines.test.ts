@@ -23,6 +23,16 @@ describe('voice lines', () => {
     }
   });
 
+  it('keeps every speaker distinct: its own voice, or one shifted 10%+ in pitch from any sharer', () => {
+    const list = Object.entries(manifest.speakers) as [string, { voice: string; pitch?: number; robot?: boolean }][];
+    list.forEach(([a, x], i) => {
+      for (const [b, y] of list.slice(i + 1)) {
+        if (x.voice !== y.voice || !!x.robot !== !!y.robot) continue;
+        expect(Math.abs((x.pitch ?? 1) - (y.pitch ?? 1)), `${a} and ${b} both use ${x.voice}`).toBeGreaterThanOrEqual(0.1);
+      }
+    });
+  });
+
   it('covers every intro, finisher line and announcer call', () => {
     const want = [DEFAULT_INTRO.line, HAWKING_LINES.finisher, IRWIN_LINES.finisher, 'Fight!', 'End them!', 'Obliteration!', 'Round 1', 'Round 2', 'Round 3'];
     for (const c of roster()) {

@@ -1,14 +1,14 @@
 {
-  "_about": "Every spoken line in the game. scripts/gen_voices.py renders each one with Kokoro TTS (stock voices only) into public/voices/<file>.mp3. The game matches a line by its exact text, so edit the text here and in the code together, then re-run the script. 'spoken' overrides what the TTS reads when the subtitle text would read badly.",
+  "_about": "Every spoken line in the game. scripts/gen_voices.py renders each one with Kokoro TTS (stock voices only) into public/voices/<file>.mp3. The game matches a line by its exact text, so edit the text here and in the code together, then re-run the script. Each speaker must sound distinct: a Kokoro voice no other speaker uses, or one whose pitch differs by 0.1+ (tests/voicelines.test.ts enforces it; README has the casting table): pick an unused one that fits the character's gender and accent. Voice ids: a/b = American/British English, f/m = female/male; other language packs (e.g. ff_siwis French) read the English text with that accent. 'spoken' overrides what the TTS reads when the subtitle text would read badly.",
   "speakers": {
     "announcer":  { "voice": "am_onyx",    "speed": 0.85, "pitch": 0.86, "gain": 1.1 },
-    "default":    { "voice": "am_eric",    "speed": 0.95 },
+    "default":    { "voice": "bm_fable",   "speed": 0.95 },
     "lincoln":    { "voice": "am_adam",    "speed": 0.88, "pitch": 0.94 },
     "tesla":      { "voice": "bm_lewis",   "speed": 1.0 },
-    "joan":       { "voice": "bf_emma",    "speed": 1.0 },
+    "joan":       { "voice": "ff_siwis",   "speed": 0.95 },
     "blackbeard": { "voice": "bm_george",  "speed": 0.85, "pitch": 0.9 },
     "brucelee":   { "voice": "am_liam",    "speed": 1.08 },
-    "chuck":      { "voice": "am_fenrir",  "speed": 0.85, "pitch": 0.93 },
+    "chuck":      { "voice": "am_fenrir",  "speed": 0.85, "pitch": 0.9 },
     "ali":        { "voice": "am_echo",    "speed": 1.1 },
     "lumpsum":    { "voice": "bm_daniel",  "speed": 0.9, "pitch": 0.95 },
     "bobross":    { "voice": "am_michael", "speed": 0.82 },
@@ -17,10 +17,10 @@
     "oprah":      { "voice": "af_heart",   "speed": 0.95, "pitch": 0.94 },
     "colonel":    { "voice": "am_santa",   "speed": 0.82, "pitch": 0.94 },
     "buster":     { "voice": "am_santa",   "speed": 1.12, "pitch": 1.28 },
-    "kingtut":    { "voice": "bm_fable",   "speed": 0.88, "pitch": 0.92 },
+    "kingtut":    { "voice": "bm_lewis",   "speed": 0.92, "pitch": 1.12 },
     "fieri":      { "voice": "am_fenrir",  "speed": 1.12, "pitch": 1.03, "gain": 1.05 },
-    "shaq":       { "voice": "am_onyx",    "speed": 0.92, "pitch": 0.84 },
-    "irwin":      { "voice": "bm_fable",   "speed": 1.1 }
+    "shaq":       { "voice": "am_echo",    "speed": 0.92, "pitch": 0.82 },
+    "irwin":      { "voice": "bm_george",  "speed": 1.12, "pitch": 1.12 }
   },
   "lines": [
     { "file": "default-intro", "who": "default", "text": "Let's settle this." },
