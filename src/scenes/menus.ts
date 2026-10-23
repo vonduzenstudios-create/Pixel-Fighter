@@ -1,6 +1,6 @@
 import { FLOOR, H, STAGE_W, W } from '../core/consts';
 import { Edge, readPlayer, RawInput } from '../core/input';
-import { drawText } from '../gfx/font';
+import { drawText, textWidth } from '../gfx/font';
 import { Painter } from '../gfx/painter';
 import { roster, partsFor } from '../chars/roster';
 import { buildBones } from '../gfx/bones';
@@ -46,14 +46,33 @@ export function selectBg() {
 }
 
 // ------------------------------------------------------------------ Title
+/** Title menu pages: PLAY opens ONE PLAYER / VERSUS, OPTIONS holds CPU level, move list and what's new. */
+export type TitlePage = 'main' | 'play' | 'options';
+
 export class TitleScene implements Scene {
   t = 0;
   menu = false;
+  page: TitlePage = 'main';
   sel = 0;
   e = new Edge();
   constructor(private app: App) {}
 
   conga = new CongaLine();
+
+  /** Open straight onto a menu page, e.g. when coming back from the move list. */
+  static at(app: App, page: TitlePage, sel = 0) {
+    const t = new TitleScene(app);
+    t.menu = true;
+    t.page = page;
+    t.sel = sel;
+    return t;
+  }
+
+  items(): string[] {
+    if (this.page === 'play') return ['ONE PLAYER', 'VERSUS'];
+    if (this.page === 'options') return [`CPU: ${DIFF_NAMES[this.app.settings.diff]}`, 'MOVE LIST', "WHAT'S NEW"];
+    return ['PLAY', 'OPTIONS'];
+  }
 
   update() {
     this.t++;
@@ -69,26 +88,27 @@ export class TitleScene implements Scene {
       }
       return;
     }
-    if (back) {
-      this.menu = false;
+    if (back || p.back) {
+      if (this.page === 'main') this.menu = false;
+      else (this.sel = this.page === 'play' ? 0 : 1), (this.page = 'main');
+      sfx.menuMove();
       return;
     }
-    if (p.u) (this.sel = (this.sel + 4) % 5), sfx.menuMove();
-    if (p.d) (this.sel = (this.sel + 1) % 5), sfx.menuMove();
+    const n = this.items().length;
+    if (p.l || p.u) (this.sel = (this.sel + n - 1) % n), sfx.menuMove();
+    if (p.r || p.d) (this.sel = (this.sel + 1) % n), sfx.menuMove();
+    if (!confirm(p)) return;
+    sfx.menuPick();
     const s = this.app.settings;
-    if (this.sel === 2 && (p.l || p.r)) {
-      s.diff = ((s.diff + (p.r ? 1 : 2)) % 3) as Difficulty;
-      sfx.menuMove();
-    }
-    if (confirm(p)) {
-      sfx.menuPick();
-      if (this.sel === 0 || this.sel === 1) {
-        s.players = this.sel === 0 ? 1 : 2;
-        this.app.go(new SelectScene(this.app));
-      } else if (this.sel === 2) s.diff = ((s.diff + 1) % 3) as Difficulty;
-      else if (this.sel === 3) this.app.go(new MoveListScene(this.app));
-      else this.app.go(new WhatsNewScene(this.app));
-    }
+    if (this.page === 'main') {
+      this.page = this.sel === 0 ? 'play' : 'options';
+      this.sel = 0;
+    } else if (this.page === 'play') {
+      s.players = this.sel === 0 ? 1 : 2;
+      this.app.go(new SelectScene(this.app));
+    } else if (this.sel === 0) s.diff = ((s.diff + 1) % 3) as Difficulty;
+    else if (this.sel === 1) this.app.go(new MoveListScene(this.app));
+    else this.app.go(new WhatsNewScene(this.app));
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -101,26 +121,32 @@ export class TitleScene implements Scene {
     drawText(ctx, 'A 16-BIT STYLE TECH DEMO', W / 2, 80, '#fff', { align: 'center', outline: '#5a1070' });
     if (!this.menu) {
       if (this.t % 50 < 34) drawText(ctx, 'PRESS START', W / 2, 98, '#fff', { scale: 2, align: 'center', grad: ['#ffffff', '#ffe060'], outline: '#2a0030' });
-    } else {
-      const s = this.app.settings;
-      const items = ['1 PLAYER VS CPU', '2 PLAYERS', `CPU: < ${DIFF_NAMES[s.diff]} >`, 'MOVE LIST', "WHAT'S NEW"];
-      // a framed card for the menu so it reads over the dancers without dimming the scene
-      const bx = W / 2 - 74, by = 92, bw = 148, bh = items.length * 12 + 10;
-      ctx.fillStyle = '#2a0030';
-      ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
-      ctx.fillStyle = '#ff5cc8';
-      ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
-      ctx.fillStyle = '#3a0a50';
-      ctx.fillRect(bx, by, bw, bh);
-      items.forEach((it, i) => {
-        const y = by + 6 + i * 12;
-        const on = i === this.sel;
-        drawText(ctx, it, W / 2, y, on ? '#ffe060' : '#d8b8e8', { align: 'center', outline: '#000' });
-        if (on) drawText(ctx, '>', bx + 6, y, '#5ce0ff', { outline: '#000' });
-      });
+      const foot = audioReady() ? 'ALL ART AND AUDIO GENERATED IN CODE' : 'CLICK OR PRESS ANY KEY FOR SOUND';
+      drawText(ctx, foot, W / 2, H - 10, '#fff', { align: 'center', outline: '#5a1070' });
+      return;
     }
-    const foot = audioReady() ? 'ALL ART AND AUDIO GENERATED IN CODE' : 'CLICK OR PRESS ANY KEY FOR SOUND';
-    drawText(ctx, foot, W / 2, H - 10, '#fff', { align: 'center', outline: '#5a1070' });
+    // a slim see-through bar along the bottom, under the dancers' feet, laid out left to right
+    const items = this.items();
+    const gap = 16;
+    const widths = items.map((it) => textWidth(it));
+    const total = widths.reduce((a, w) => a + w, 0) + gap * (items.length - 1);
+    const by = H - 17;
+    ctx.fillStyle = 'rgba(42,0,60,0.45)';
+    ctx.fillRect(0, by, W, 15);
+    ctx.fillStyle = 'rgba(255,92,200,0.7)';
+    ctx.fillRect(0, by, W, 1);
+    // submenu name sits in the gap under the logo, clear of the dancers
+    if (this.page !== 'main') drawText(ctx, this.page === 'play' ? '- PLAY -' : '- OPTIONS -', W / 2, 100, '#5ce0ff', { align: 'center', outline: '#2a0030' });
+    let x = W / 2 - total / 2;
+    items.forEach((it, i) => {
+      const on = i === this.sel;
+      drawText(ctx, it, x, by + 4, on ? '#ffe060' : '#ffffff', { outline: on ? '#2a0030' : '#5a1070' });
+      if (on && this.t % 30 < 22) {
+        drawText(ctx, '>', x - 8, by + 4, '#5ce0ff', { outline: '#2a0030' });
+        drawText(ctx, '<', x + widths[i] + 3, by + 4, '#5ce0ff', { outline: '#2a0030' });
+      }
+      x += widths[i] + gap;
+    });
   }
 }
 
@@ -509,7 +535,7 @@ export class MoveListScene implements Scene {
     if (p.r) (this.i = (this.i + 1) % n), sfx.menuMove();
     if (p.back || p.start || this.app.back) {
       this.app.back = false;
-      this.app.go(new TitleScene(this.app));
+      this.app.go(TitleScene.at(this.app, 'options', 1));
     }
   }
   draw(ctx: CanvasRenderingContext2D) {
