@@ -5,19 +5,17 @@ import { Painter } from '../gfx/painter';
 import { mix } from '../gfx/palette';
 import { PH, PW, portraitFor } from '../gfx/portrait';
 import type { CharDef } from '../game/fighter';
-import { sfx } from '../audio/sfx';
+import { hush, say, sfx } from '../audio/sfx';
+import { manifest } from '../audio/voicemanifest';
 import { tone } from '../audio/audio';
 import { playSong } from '../audio/music';
 import type { Scene } from './common';
 
-// SF2-style win screen: the winner's portrait, the loser's battered one, and a taunt.
+// SF2-style win screen: the winner's portrait, the loser's battered one, and a voiced taunt.
+// Each fighter's taunts are the "win" lines in its own voice.json, so every one has a Kokoro clip.
 
-const GENERIC = [
-  'IS THAT ALL YOU HAD, {L}?',
-  'COME BACK WHEN YOU HAVE LEARNED TO BLOCK.',
-  'YOU FIGHT LIKE A HISTORY TEXTBOOK. DRY AND FULL OF HOLES.',
-  'HISTORY WILL NOT REMEMBER YOU KINDLY.',
-];
+// Only shown for a fighter whose voice.json has no win lines yet (tests require them).
+const FALLBACK = 'Is that all you had?';
 
 export interface MatchResult {
   winner: CharDef;
@@ -28,11 +26,16 @@ export interface MatchResult {
   fatality: boolean;
 }
 
+/** The winner's own lines, plus the one written for this opponent if there is one. */
+export function winLines(w: CharDef, l: CharDef) {
+  const own = manifest.lines.filter((v) => v.who === w.id && v.win);
+  return { any: own.filter((v) => v.win === true).map((v) => v.text), vs: own.find((v) => v.win === l.id)?.text };
+}
+
 export function pickQuote(w: CharDef, l: CharDef, rnd = Math.random) {
-  const vs = w.quotesVs?.[l.id];
-  const pool = w.quotes?.length ? w.quotes : GENERIC;
-  const q = vs && rnd() < 0.5 ? vs : pool[Math.floor(rnd() * pool.length)];
-  return q.replace(/\{L\}/g, l.short).toUpperCase();
+  const { any, vs } = winLines(w, l);
+  if (vs && (rnd() < 0.5 || !any.length)) return vs;
+  return any.length ? any[Math.floor(rnd() * any.length)] : FALLBACK;
 }
 
 /** Greedy word wrap to a character budget per line. */
@@ -85,10 +88,12 @@ export class PostMatchScene implements Scene {
   winImg: HTMLCanvasElement;
   loseImg: HTMLCanvasElement;
   typed = 0;
+  quote: string;
 
   constructor(private r: MatchResult, private next: () => void, quote?: string) {
     const { winner: w, loser: l } = r;
-    this.lines = wrap(quote ?? pickQuote(w, l), 38);
+    this.quote = quote ?? pickQuote(w, l);
+    this.lines = wrap(this.quote.toUpperCase(), 38);
     this.chars = this.lines.reduce((n, s) => n + s.length, 0);
     this.winImg = portraitFor(w.id + (r.winnerAlt ? '_alt' : ''), r.winnerAlt ? w.alt : w.look, false, w.portrait);
     this.loseImg = portraitFor(l.id + (r.loserAlt ? '_alt' : ''), r.loserAlt ? l.alt : l.look, true, l.portrait);
@@ -98,6 +103,7 @@ export class PostMatchScene implements Scene {
     this.t++;
     if (this.t === 1) playSong('victory', false);
     if (this.t === 34) sfx.hit(true);
+    if (this.t === 50) say(this.quote, { pitch: 1, rate: 1 }); // the winner speaks as the text types out
     const typing = this.t > 50 && this.typed < this.chars;
     if (typing && this.t % 2 === 0) {
       this.typed++;
@@ -116,6 +122,7 @@ export class PostMatchScene implements Scene {
   }
 
   private done() {
+    hush();
     sfx.menuPick();
     this.next();
   }

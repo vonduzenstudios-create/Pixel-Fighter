@@ -5,6 +5,10 @@
   "lines": [
     { "file": "kroft-intro", "who": "kroft", "text": "Mind your step. Everything down here is trapped, including me.", "spoken": "Mind your step. Everything down here is trapped... including me." },
     { "file": "kroft-finisher", "who": "kroft", "text": "That relic belongs in my satchel. You belong in the sand." },
-    { "file": "ann-wins-kroft", "who": "announcer", "text": "Laura Kroft wins" }
+    { "file": "ann-wins-kroft", "who": "announcer", "text": "Laura Kroft wins" },
+    { "file": "kroft-win-1", "who": "kroft", "text": "X marks the spot. The spot was your jaw.", "win": true },
+    { "file": "kroft-win-2", "who": "kroft", "text": "Seven curses and one bad map, and you were the easy part.", "win": true },
+    { "file": "kroft-win-3", "who": "kroft", "text": "Mind the loose flagstone. Ah. Too late.", "win": true },
+    { "file": "kroft-win-vs-kingtut", "who": "kroft", "text": "Your tomb was easier to crack than your guard, pharaoh.", "win": "kingtut" }
   ]
 }

@@ -5,6 +5,11 @@
   "lines": [
     { "file": "handerson-intro", "who": "handerson", "text": "Hands down, I'm the best in the business." },
     { "file": "handerson-finisher", "who": "handerson", "text": "Consider yourself handled.", "spoken": "Consider yourself... handled." },
-    { "file": "ann-wins-handerson", "who": "announcer", "text": "Pamela Handerson wins" }
+    { "file": "ann-wins-handerson", "who": "announcer", "text": "Pamela Handerson wins" },
+    { "file": "handerson-win-1", "who": "handerson", "text": "Talk is cheap. Slaps are free.", "win": true },
+    { "file": "handerson-win-2", "who": "handerson", "text": "Five fingers, and you felt every one.", "win": true },
+    { "file": "handerson-win-3", "who": "handerson", "text": "Careful with the nails, sweetie. They are still wet.", "win": true },
+    { "file": "handerson-win-vs-jackson", "who": "handerson", "text": "One glove? Honey, I am the whole hand.", "win": "jackson" },
+    { "file": "handerson-win-vs-blaine", "who": "handerson", "text": "Sleight of hand? I am the hand.", "win": "blaine" }
   ]
 }

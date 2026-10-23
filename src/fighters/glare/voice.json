@@ -5,6 +5,10 @@
   "lines": [
     { "file": "glare-intro", "who": "glare", "text": "Try not to stare. Actually, go ahead.", "spoken": "Try not to stare... Actually, go ahead." },
     { "file": "glare-finisher", "who": "glare", "text": "Hold still. Perfect. You are done.", "spoken": "Hold still... Perfect. You're done." },
-    { "file": "ann-wins-glare", "who": "announcer", "text": "Hugh Steel wins" }
+    { "file": "ann-wins-glare", "who": "announcer", "text": "Hugh Steel wins" },
+    { "file": "glare-win-1", "who": "glare", "text": "I was not fighting. I was modeling the concept of winning.", "win": true },
+    { "file": "glare-win-2", "who": "glare", "text": "Not the face. Never the face. The face is insured.", "win": true },
+    { "file": "glare-win-3", "who": "glare", "text": "You wanted my good side? I do not have a bad one.", "win": true },
+    { "file": "glare-win-vs-jackson", "who": "glare", "text": "Nice glove. I accessorize with my cheekbones.", "win": "jackson" }
   ]
 }

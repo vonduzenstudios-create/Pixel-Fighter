@@ -5,6 +5,11 @@
   "lines": [
     { "file": "vex-intro", "who": "vex", "text": "Your firewall is adorable. I am already inside it." },
     { "file": "vex-finisher", "who": "vex", "text": "Deleting you now. There is no backup." },
-    { "file": "ann-wins-vex", "who": "announcer", "text": "Vex Vector wins" }
+    { "file": "ann-wins-vex", "who": "announcer", "text": "Vex Vector wins" },
+    { "file": "vex-win-1", "who": "vex", "text": "You got patched. Permanently.", "win": true },
+    { "file": "vex-win-2", "who": "vex", "text": "Your password was password. It is always password.", "win": true },
+    { "file": "vex-win-3", "who": "vex", "text": "I did not even need a cheat code.", "win": true },
+    { "file": "vex-win-vs-hawking", "who": "vex", "text": "Nice chair. I had root access in four seconds.", "win": "hawking" },
+    { "file": "vex-win-vs-cleo", "who": "vex", "text": "You read the future? I read your browser history.", "win": "cleo" }
   ]
 }

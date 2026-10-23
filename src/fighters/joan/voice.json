@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "joan-intro", "who": "joan", "text": "Heaven sent me. You will not like the message." },
-    { "file": "ann-wins-joan", "who": "announcer", "text": "Joan of Arc wins" }
+    { "file": "ann-wins-joan", "who": "announcer", "text": "Joan of Arc wins" },
+    { "file": "joan-win-1", "who": "joan", "text": "The voices told me you would fall. They were right.", "win": true },
+    { "file": "joan-win-2", "who": "joan", "text": "I have faced armies. You were a light warm-up.", "win": true },
+    { "file": "joan-win-3", "who": "joan", "text": "Kneel. It suits you.", "win": true },
+    { "file": "joan-win-vs-tesla", "who": "joan", "text": "I do not fear fire, so I will not fear your sparks.", "win": "tesla" }
   ]
 }

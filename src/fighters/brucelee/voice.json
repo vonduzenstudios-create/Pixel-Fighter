@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "brucelee-intro", "who": "brucelee", "text": "Your guard is a door. I brought the key." },
-    { "file": "ann-wins-brucelee", "who": "announcer", "text": "Bruce Lee wins" }
+    { "file": "ann-wins-brucelee", "who": "announcer", "text": "Bruce Lee wins" },
+    { "file": "brucelee-win-1", "who": "brucelee", "text": "You kept thinking. I kept moving.", "win": true },
+    { "file": "brucelee-win-2", "who": "brucelee", "text": "Boards do not hit back. Neither, it turns out, do you.", "win": true },
+    { "file": "brucelee-win-3", "who": "brucelee", "text": "I trained ten years for a fight like that. It took eight seconds.", "win": true },
+    { "file": "brucelee-win-vs-chuck", "who": "brucelee", "text": "Old friend, your kicks are slower than your stories.", "win": "chuck" }
   ]
 }

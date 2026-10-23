@@ -5,6 +5,11 @@
   "lines": [
     { "file": "shaq-intro", "who": "shaq", "text": "Big man on the floor. Clear the lane!" },
     { "file": "shaq-finisher", "who": "shaq", "text": "Too big. Too strong. Nothing but net." },
-    { "file": "ann-wins-shaq", "who": "announcer", "text": "Shaquille O'Neal wins", "spoken": "Shaquille O'Neal wins!" }
+    { "file": "ann-wins-shaq", "who": "announcer", "text": "Shaquille O'Neal wins", "spoken": "Shaquille O'Neal wins!" },
+    { "file": "shaq-win-1", "who": "shaq", "text": "I posted you up. Then I posted you down.", "win": true },
+    { "file": "shaq-win-2", "who": "shaq", "text": "You cannot stop what you cannot see over.", "win": true },
+    { "file": "shaq-win-3", "who": "shaq", "text": "Free throws are hard. You were easy.", "win": true },
+    { "file": "shaq-win-vs-ali", "who": "shaq", "text": "You dance, champ. I just stand here and you bounce off.", "win": "ali" },
+    { "file": "shaq-win-vs-lincoln", "who": "shaq", "text": "Tall hat, mister president. Still shorter than my elbow.", "win": "lincoln" }
   ]
 }

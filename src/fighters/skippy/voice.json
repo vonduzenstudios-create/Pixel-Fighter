@@ -5,6 +5,11 @@
   "lines": [
     { "file": "skippy-intro", "who": "skippy", "text": "Ready or not, here I come! Hee-HONK!", "spoken": "Ready or not, here I come! Hee hee, HONK!" },
     { "file": "skippy-laugh", "who": "skippy", "text": "Hee-HONK!", "spoken": "Hee hee, HONK!" },
-    { "file": "ann-wins-skippy", "who": "announcer", "text": "Skippy Sprocket wins" }
+    { "file": "ann-wins-skippy", "who": "announcer", "text": "Skippy Sprocket wins" },
+    { "file": "skippy-win-1", "who": "skippy", "text": "I win! I win! No take-backsies!", "win": true },
+    { "file": "skippy-win-2", "who": "skippy", "text": "You have to say uncle now. Those are the rules.", "win": true },
+    { "file": "skippy-win-3", "who": "skippy", "text": "Recess is over. You go sit in the corner.", "win": true },
+    { "file": "skippy-win-vs-hawking", "who": "skippy", "text": "I have wheels too, but mine have streamers.", "win": "hawking" },
+    { "file": "skippy-win-vs-lincoln", "who": "skippy", "text": "Your hat is taller, but mine has a propeller.", "win": "lincoln" }
   ]
 }

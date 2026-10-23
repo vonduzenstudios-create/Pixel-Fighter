@@ -52,13 +52,6 @@ export function blackbeard(): CharDef {
     id: 'blackbeard', name: 'Blackbeard', short: 'BLACKBEARD', title: 'Terror of the Seas', look: BEARD_LOOK,
     alt: { ...BEARD_LOOK, coat: '#1c3c2a', coatTrim: '#c0c0c8', pants: '#2a2a30', beardRibbon: '#20a0e0' },
     specials: beardSpecials, voice: 95, props: { cutlass: cutlass() }, intro: BLACKBEARD_INTRO,
-    quotes: [
-      'DEAD MEN TELL NO TALES, AND YOU WILL NOT BE TELLING THIS ONE.',
-      'I HAVE SCRAPED TOUGHER THINGS OFF MY HULL.',
-      'YOUR SHARE OF THE LOOT IS ONE BLACK EYE, {L}.',
-      'WALK THE PLANK, OR CRAWL IT. YOUR CHOICE.',
-    ],
-    quotesVs: { joan: 'EVEN SAINTS SINK, LASS.' },
     portrait: {
       front: (p, c) => {
         // the lit fuses tucked under his hat brim

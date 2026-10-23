@@ -5,6 +5,10 @@
   "lines": [
     { "file": "irwin-intro", "who": "irwin", "text": "Easy, mate. She only bites when I ask her to." },
     { "file": "irwin-finisher", "who": "irwin", "text": "Good girl! She was hungry, that one." },
-    { "file": "ann-wins-irwin", "who": "announcer", "text": "Steve Irwin wins" }
+    { "file": "ann-wins-irwin", "who": "announcer", "text": "Steve Irwin wins" },
+    { "file": "irwin-win-1", "who": "irwin", "text": "Never corner a croc, mate. Or me.", "win": true },
+    { "file": "irwin-win-2", "who": "irwin", "text": "She was only playing. You should see her when she is cranky.", "win": true },
+    { "file": "irwin-win-3", "who": "irwin", "text": "Gorgeous day for it! Shame about your footwork.", "win": true },
+    { "file": "irwin-win-vs-bobross", "who": "irwin", "text": "Lovely critters in your trees, mate. Mine bite back.", "win": "bobross" }
   ]
 }

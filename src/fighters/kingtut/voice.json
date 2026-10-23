@@ -4,6 +4,11 @@
   },
   "lines": [
     { "file": "kingtut-intro", "who": "kingtut", "text": "The boy king wakes. Kneel, or be buried." },
-    { "file": "ann-wins-kingtut", "who": "announcer", "text": "King Tut wins" }
+    { "file": "ann-wins-kingtut", "who": "announcer", "text": "King Tut wins" },
+    { "file": "kingtut-win-1", "who": "kingtut", "text": "Three thousand years in a box, and I still got up faster than you.", "win": true },
+    { "file": "kingtut-win-2", "who": "kingtut", "text": "Bow to the boy king. You are already on the floor, so that helps.", "win": true },
+    { "file": "kingtut-win-3", "who": "kingtut", "text": "The curse is real. Ask your teeth.", "win": true },
+    { "file": "kingtut-win-vs-kroft", "who": "kingtut", "text": "Hands off my treasure, tomb robber.", "win": "kroft" },
+    { "file": "kingtut-win-vs-lincoln", "who": "kingtut", "text": "A tall hat is no match for a gold one.", "win": "lincoln" }
   ]
 }

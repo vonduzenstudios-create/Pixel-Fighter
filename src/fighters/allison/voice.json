@@ -5,6 +5,11 @@
   "lines": [
     { "file": "allison-intro", "who": "allison", "text": "Down the hole and straight into a fight. How curious!", "spoken": "Down the hole... and straight into a fight. How curious!" },
     { "file": "allison-finisher", "who": "allison", "text": "Guards! Cut the deck!" },
-    { "file": "ann-wins-allison", "who": "announcer", "text": "Allison Wonderland wins" }
+    { "file": "ann-wins-allison", "who": "announcer", "text": "Allison Wonderland wins" },
+    { "file": "allison-win-1", "who": "allison", "text": "I have had stranger mornings than you, and they all had better manners.", "win": true },
+    { "file": "allison-win-2", "who": "allison", "text": "Do sit down. Oh, you already have.", "win": true },
+    { "file": "allison-win-3", "who": "allison", "text": "That was the shortest tea party I have ever attended.", "win": true },
+    { "file": "allison-win-vs-blaine", "who": "allison", "text": "Your cards disappear. Mine march in and poke you.", "win": "blaine" },
+    { "file": "allison-win-vs-kingtut", "who": "allison", "text": "I have fallen down deeper holes than your tomb.", "win": "kingtut" }
   ]
 }

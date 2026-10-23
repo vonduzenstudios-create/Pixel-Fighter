@@ -539,17 +539,5 @@ export function vex(): CharDef {
     finisher: { name: 'Hard Delete', cmd: [2, 6, 4], btn: 'lk', text: 'D, F, B + LK (any range)', range: [0, 400] },
     fatality: hardDelete,
     fatalityDraw: drawHardDelete,
-    quotes: [
-      'YOU GOT PATCHED, {L}. PERMANENTLY.',
-      'YOUR PASSWORD WAS PASSWORD. IT IS ALWAYS PASSWORD.',
-      'I DID NOT EVEN NEED A CHEAT CODE.',
-      'LAG IS NOT AN EXCUSE. I CHECKED YOUR PING.',
-    ],
-    quotesVs: {
-      hawking: 'NICE CHAIR. I HAD ROOT ACCESS IN FOUR SECONDS.',
-      tesla: 'YOU INVENTED THE CURRENT. I JUST RIDE IT.',
-      blaine: 'YOUR TRICKS RUN ON HARDWARE. MINE RUN ON SOFTWARE.',
-      cleo: 'YOU READ THE FUTURE? I READ YOUR BROWSER HISTORY.',
-    },
   };
 }

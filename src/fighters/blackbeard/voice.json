@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "blackbeard-intro", "who": "blackbeard", "text": "Har har! Yer gold and yer teeth be mine!", "spoken": "Harr harr! Yer gold, and yer teeth, be mine!" },
-    { "file": "ann-wins-blackbeard", "who": "announcer", "text": "Blackbeard wins" }
+    { "file": "ann-wins-blackbeard", "who": "announcer", "text": "Blackbeard wins" },
+    { "file": "blackbeard-win-1", "who": "blackbeard", "text": "Your ship sank before it left the dock.", "win": true },
+    { "file": "blackbeard-win-2", "who": "blackbeard", "text": "Fetch me a mop. There is a landlubber on my deck.", "win": true },
+    { "file": "blackbeard-win-3", "who": "blackbeard", "text": "I have buried treasure deeper than you will ever get up from.", "win": true },
+    { "file": "blackbeard-win-vs-joan", "who": "blackbeard", "text": "Fire on deck does not scare me, lass. I keep my own beard lit.", "win": "joan" }
   ]
 }

@@ -475,16 +475,5 @@ export function cleo(): CharDef {
     finisher: { name: 'Final Reading', cmd: [6, 4, 2], btn: 'hp', text: 'F, B, D + HP (any range)', range: [0, 400] },
     fatality: finalReading,
     fatalityDraw: drawFinal,
-    quotes: [
-      'THE CARDS SAID YOU WOULD LOSE, {L}. THE CARDS ARE NEVER WRONG.',
-      'I SAW THAT COMING. I SEE EVERYTHING COMING.',
-      'YOUR READING IS OVER. NEXT CALLER, PLEASE.',
-      'THE FIRST BEATING IS ON THE HOUSE, DARLING.',
-    ],
-    quotesVs: {
-      blaine: 'CARD TRICKS? CHILD, MY CARDS TELL THE FUTURE.',
-      oprah: 'I PREDICTED YOUR GIVEAWAY. I PREDICTED THIS TOO.',
-      hawking: 'YOU STUDY THE STARS. I READ THEM.',
-    },
   };
 }

@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "jackson-intro", "who": "jackson", "text": "Hee hee! Try to keep up." },
-    { "file": "ann-wins-jackson", "who": "announcer", "text": "Michael Jackson wins" }
+    { "file": "ann-wins-jackson", "who": "announcer", "text": "Michael Jackson wins" },
+    { "file": "jackson-win-1", "who": "jackson", "text": "You never even saw my feet move.", "win": true },
+    { "file": "jackson-win-2", "who": "jackson", "text": "I danced backwards the whole time. Still too fast for you.", "win": true },
+    { "file": "jackson-win-3", "who": "jackson", "text": "Dance lessons cost less than hospital bills.", "win": true },
+    { "file": "jackson-win-vs-lincoln", "who": "jackson", "text": "Nice hat, mister president. Mine spins better.", "win": "lincoln" }
   ]
 }

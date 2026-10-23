@@ -48,3 +48,34 @@ describe('voice lines', () => {
     for (const t of want) expect(texts.has(t), t).toBe(true);
   });
 });
+
+describe('win-screen taunts', () => {
+  const ids = new Set(roster().map((c) => c.id));
+  const wins = manifest.lines.filter((l) => l.win);
+
+  it('gives every fighter at least three of its own voiced taunts', () => {
+    for (const c of roster()) {
+      const own = wins.filter((l) => l.who === c.id && l.win === true);
+      expect(own.length, `${c.id} win lines`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('keeps every taunt unique across the roster, aimed only at real opponents', () => {
+    const seen = new Set<string>();
+    for (const l of wins) {
+      expect(seen.has(l.text), l.text).toBe(false);
+      seen.add(l.text);
+      expect(l.text, l.file).not.toMatch(/\{L\}/);
+      if (l.win !== true) expect(ids.has(l.win as string), `${l.file} targets ${l.win}`).toBe(true);
+    }
+  });
+
+  it('picks the winner\'s own line, or the one written for this opponent', async () => {
+    vi.stubGlobal('window', { addEventListener: () => {} }); // the input module listens for keys on import
+    const { pickQuote, winLines } = await import('../src/scenes/postmatch');
+    const r = roster(), by = (id: string) => r.find((c) => c.id === id)!;
+    const [hawking, tesla, lincoln] = ['hawking', 'tesla', 'lincoln'].map(by);
+    expect(pickQuote(hawking, tesla, () => 0)).toBe(winLines(hawking, tesla).vs);
+    expect(winLines(hawking, lincoln).any).toContain(pickQuote(hawking, lincoln, () => 0.9));
+  });
+});

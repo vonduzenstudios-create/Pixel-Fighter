@@ -551,20 +551,5 @@ export function jesus(): CharDef {
     selectSet: LAKESIDE_SET, homeStage: 'heaven',
     finisher: { name: 'Feeding of the Five Thousand', cmd: [4, 2, 6], btn: 'lp', text: 'B, D, F + LP (any range)', range: [0, 400] },
     fatality: feedFiveThousand, fatalityDraw: drawFeeding,
-    quotes: [
-      'I FORGIVE YOU, {L}. I ALSO BEAT YOU. BOTH CAN BE TRUE.',
-      'LOVE YOUR ENEMIES. ESPECIALLY THE ONES LYING ON THE FLOOR.',
-      'GET UP, {L}. I HAVE SEEN WORSE COMEBACKS. AND BETTER ONES.',
-      'I WAS A CARPENTER. I KNOW HOW TO FLATTEN THINGS.',
-      'THE MEEK SHALL INHERIT THE EARTH. YOU MAY HAVE THIS SPOT OF FLOOR.',
-    ],
-    quotesVs: {
-      teresa: 'GOOD FIGHT, MOTHER. YOU HIT HARDER THAN THEY SAY.',
-      ramsay: 'I MAKE BREAD FROM NOTHING. YOU STILL SEND IT BACK.',
-      fieri: 'I TURN WATER INTO WINE. YOU TURNED A DINER INTO A FIRE HAZARD.',
-      blaine: 'NICE LEVITATION. I DO IT WITHOUT THE CAMERA CREW.',
-      lumpsum: 'SELL WHAT YOU HAVE AND GIVE IT TO THE POOR. START WITH YOUR SUIT.',
-      blackbeard: 'YOU SHOULD SEE WHAT I DO WITH A STORM AT SEA.',
-    },
   };
 }

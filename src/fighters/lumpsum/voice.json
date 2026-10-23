@@ -4,6 +4,10 @@
   },
   "lines": [
     { "file": "lumpsum-intro", "who": "lumpsum", "text": "Your payments are about to END!", "spoken": "Your payments... are about to end!" },
-    { "file": "ann-wins-lumpsum", "who": "announcer", "text": "J.G. Spentworth wins", "spoken": "J. G. Spentworth wins" }
+    { "file": "ann-wins-lumpsum", "who": "announcer", "text": "J.G. Spentworth wins", "spoken": "J. G. Spentworth wins" },
+    { "file": "lumpsum-win-1", "who": "lumpsum", "text": "Your settlement has arrived. One black eye, paid in full.", "win": true },
+    { "file": "lumpsum-win-2", "who": "lumpsum", "text": "Structured settlement? More like structured beatdown!", "win": true },
+    { "file": "lumpsum-win-3", "who": "lumpsum", "text": "Hold the note... hold it... and you are down.", "win": true },
+    { "file": "lumpsum-win-vs-chuck", "who": "lumpsum", "text": "You never blink? Then watch me cash you out.", "win": "chuck" }
   ]
 }

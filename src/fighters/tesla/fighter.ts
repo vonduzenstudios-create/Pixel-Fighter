@@ -68,13 +68,6 @@ export function tesla(): CharDef {
     id: 'tesla', name: 'Nikola Tesla', short: 'TESLA', title: 'Wizard of Current', look: TESLA_LOOK,
     alt: { ...TESLA_LOOK, coat: '#3e2a46', pants: '#2c2232', necktie: '#d0a020', glove: '#2a2a2a' },
     specials: teslaSpecials, voice: 140, props: {}, intro: TESLA_INTRO,
-    quotes: [
-      'YOUR RESISTANCE WAS LOW. MY CURRENT WAS NOT.',
-      'I SAW THIS DEFEAT IN A VISION. IT WAS FUNNIER IN PERSON.',
-      'ALTERNATING BLOWS, {L}. YOU ONLY BLOCKED THE FIRST ONE.',
-      'EVEN A PIGEON PUTS UP A BETTER FIGHT.',
-    ],
-    quotesVs: { lincoln: 'A FINE HAT, MR PRESIDENT. A SHAME IT CONDUCTS SO WELL.' },
     portrait: {
       front: (p, c) => {
         // static crackling off the hair

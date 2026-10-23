@@ -82,11 +82,6 @@ export function bruceLee(): CharDef {
     id: 'brucelee', name: 'Bruce Lee', short: 'BRUCE LEE', title: 'The Little Dragon', look: LEE_LOOK,
     alt: { ...LEE_LOOK, pants: '#e4e0d4', boots: '#d8d4c8', sash: '#b01818', wraps: '#2a2a30' },
     specials: leeSpecials, voice: 180, props: { nunchaku: nunchaku() },
-    quotes: [
-      'BE LIKE WATER. YOU WERE MORE LIKE A PUDDLE.',
-      'BOARDS DO NOT HIT BACK. NEITHER, IT TURNS OUT, DO YOU.',
-      'I FEAR THE MAN WHO PRACTISED ONE KICK TEN THOUSAND TIMES. NOT YOU, {L}.',
-    ],
     finisher: { name: 'Hundred-Fist Finale', cmd: [4, 6, 4], btn: 'lp', text: 'B, F, B + LP (close)', range: [0, 90] },
   };
 }

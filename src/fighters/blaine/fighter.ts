@@ -396,16 +396,5 @@ export function blaine(): CharDef {
     specials, voice: 120, props: {}, intro: BLAINE_INTRO, portrait: PORTRAIT,
     finisher: { name: 'Fifty-Two Pickup', cmd: [4, 6, 2], btn: 'lp', text: 'B, F, D + LP (close)', range: [0, 90] },
     fatality: blaineFatality,
-    quotes: [
-      'PICK A CARD, {L}. ANY CARD. THEY ALL SAY YOU LOST.',
-      'I STOOD IN ICE FOR THREE DAYS. YOUR PUNCHES WERE NOT EVEN COLD.',
-      'THE REAL TRICK WAS MAKING YOUR DEFENSE DISAPPEAR.',
-      'I HELD MY BREATH LONGER THAN YOU HELD YOUR GUARD.',
-    ],
-    quotesVs: {
-      tesla: 'I HAVE STOOD INSIDE A MILLION VOLTS. YOUR LITTLE COIL TICKLES.',
-      hawking: 'I MADE GRAVITY DISAPPEAR TOO, PROFESSOR. NO MATH REQUIRED.',
-      bobross: 'NO ACCIDENT THERE. I PLANNED EVERY BIT OF IT.',
-    },
   };
 }

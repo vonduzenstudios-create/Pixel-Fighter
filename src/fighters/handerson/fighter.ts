@@ -662,18 +662,5 @@ export function handerson(): CharDef {
     sprites: (L) => buildHand(styleOf(L)),
     finisher: { name: 'Swat & Flick', cmd: [4, 6, 4], btn: 'hp', text: 'B, F, B + HP (close)', range: [0, 100] },
     fatality: swatAndFlick, fatalityDraw: drawSwat, intro: HANDERSON_INTRO, portrait: HANDERSON_PORTRAIT,
-    quotes: [
-      'TALK IS CHEAP, {L}. SLAPS ARE FREE.',
-      'I HAVE GOT FIVE FINGERS AND YOU FELT EVERY ONE.',
-      'DO NOT TOUCH THE NAILS. THEY ARE STILL WET.',
-      'THAT WAS NOT A FIGHT. THAT WAS A MANICURE WITH EXTRA STEPS.',
-      'HANDS DOWN, THE BEST. HANDS UP, STILL THE BEST.',
-    ],
-    quotesVs: {
-      jackson: 'ONE GLOVE? HONEY, I AM THE WHOLE HAND.',
-      brucelee: 'ONE-INCH PUNCH? I DID IT WITH ONE FINGER.',
-      ramsay: 'YOU WANTED IT HANDS-ON, CHEF. YOU GOT IT.',
-      blaine: 'SLEIGHT OF HAND? I AM THE HAND.',
-    },
   };
 }
