@@ -10,6 +10,7 @@ import { MushroomStage } from './mushroom';
 import { BlizzardStage } from './blizzard';
 import { UndergroundStage } from './underground';
 import { BurgerStage } from './burger';
+import { FlavortownStage } from './flavortown';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -52,6 +53,7 @@ export const STAGES: StageEntry[] = [
   { id: 'blizzard', name: 'THE HOWLING PASS', make: (b) => new BlizzardStage(b) },
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
+  { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
