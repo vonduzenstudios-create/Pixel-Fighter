@@ -3,10 +3,10 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import manifest from '../src/audio/voicelines.json';
 import { roster } from '../src/chars/roster';
-import { HAWKING_LINES } from '../src/chars/hawking';
-import { IRWIN_LINES } from '../src/chars/irwin';
+import { HAWKING_LINES } from '../src/fighters/hawking/fighter';
+import { IRWIN_LINES } from '../src/fighters/irwin/fighter';
 import { DEFAULT_INTRO } from '../src/game/intro';
-import { RAMSAY_LINES } from '../src/chars/ramsay';
+import { RAMSAY_LINES } from '../src/fighters/ramsay/fighter';
 
 // roster() paints its prop sprites, so give it a canvas that accepts and ignores every call
 const inert: any = new Proxy(() => inert, { get: (_, k) => (k === Symbol.toPrimitive ? () => 0 : inert), apply: () => inert });

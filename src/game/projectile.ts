@@ -6,15 +6,15 @@ import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 import { playCue, PROJ_SOUNDS } from '../audio/specials';
-import { drawMiniHole } from '../chars/hawking';
-import { drawSmolder } from '../chars/glare';
-import { drawTinRobot } from '../chars/buster';
-import { drawGift } from '../chars/oprah';
-import { drawDrumstick, drawGrease } from '../chars/colonel';
-import { drawCard } from '../chars/blaine';
-import { drawBasketball } from '../chars/shaq';
-import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
-import { ANIMALS, drawAnimal, updateAnimal } from '../chars/irwin';
+import { drawMiniHole } from '../fighters/hawking/fighter';
+import { drawSmolder } from '../fighters/glare/fighter';
+import { drawTinRobot } from '../fighters/buster/fighter';
+import { drawGift } from '../fighters/oprah/fighter';
+import { drawDrumstick, drawGrease } from '../fighters/colonel/fighter';
+import { drawCard } from '../fighters/blaine/fighter';
+import { drawBasketball } from '../fighters/shaq/fighter';
+import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../fighters/fieri/fighter';
+import { ANIMALS, drawAnimal, updateAnimal } from '../fighters/irwin/fighter';
 
 export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball' | 'croc' | 'roo' | 'snake' | 'smolder' | 'card' | 'steak';
 

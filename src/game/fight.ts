@@ -13,13 +13,13 @@ import { Fighter, tickPoseClock } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
-import { jacksonFatality } from '../chars/jackson';
-import { confetti } from '../chars/oprah';
+import { jacksonFatality } from '../fighters/jackson/fighter';
+import { confetti } from '../fighters/oprah/fighter';
 import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
-import { drawHawkingFatality, runHawkingFatality } from '../chars/hawking';
+import { drawHawkingFatality, runHawkingFatality } from '../fighters/hawking/fighter';
 
 type Phase = 'entrance' | 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
 

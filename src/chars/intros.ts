@@ -3,7 +3,7 @@ import { rand } from '../core/rng';
 import { pxLine } from '../gfx/painter';
 import { A, P, STANCE, CROUCH, TUCK, VICTORY, LAND, WALK } from '../game/anims';
 import type { Fighter } from '../game/fighter';
-import { cashRain, floatNote } from './lumpsum';
+import { cashRain, floatNote } from '../fighters/lumpsum/fighter';
 import { ease, lerp, offscreenX, type Intro } from '../game/intro';
 
 // Round 1 entrances for the original four. Poses follow the conventions in gfx/rig.ts.
