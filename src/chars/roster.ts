@@ -9,6 +9,7 @@ import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { glare } from './glare';
 import { colonelCrisp } from './colonel';
+import { blaine } from './blaine';
 import { kingTut } from './kingtut';
 import { guyFieri } from './fieri';
 import { shaqDef } from './shaq';
@@ -486,6 +487,7 @@ export function roster(): CharDef[] {
     },
     glare(),
     oprah(),
+    blaine(),
     buster(),
     kingTut(),
     guyFieri(),
