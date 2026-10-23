@@ -1,11 +1,11 @@
 {
-  "_about": "Every spoken line in the game. scripts/gen_voices.py renders each one with Kokoro TTS (stock voices only) into public/voices/<file>.mp3. The game matches a line by its exact text, so edit the text here and in the code together, then re-run the script. 'spoken' overrides what the TTS reads when the subtitle text would read badly.",
+  "_about": "Every spoken line in the game. scripts/gen_voices.py renders each one with Kokoro TTS (stock voices only) into public/voices/<file>.mp3. The game matches a line by its exact text, so edit the text here and in the code together, then re-run the script. Each speaker must sound distinct: a Kokoro voice no other speaker uses, or one whose pitch differs by 0.1+ (tests/voicelines.test.ts enforces it; README has the casting table): pick an unused one that fits the character's gender and accent. Voice ids: a/b = American/British English, f/m = female/male; other language packs (e.g. ff_siwis French) read the English text with that accent. 'spoken' overrides what the TTS reads when the subtitle text would read badly.",
   "speakers": {
     "announcer":  { "voice": "am_onyx",    "speed": 0.85, "pitch": 0.86, "gain": 1.1 },
-    "default":    { "voice": "am_eric",    "speed": 0.95 },
+    "default":    { "voice": "bm_fable",   "speed": 0.95 },
     "lincoln":    { "voice": "am_adam",    "speed": 0.88, "pitch": 0.94 },
     "tesla":      { "voice": "bm_lewis",   "speed": 1.0 },
-    "joan":       { "voice": "bf_emma",    "speed": 1.0 },
+    "joan":       { "voice": "ff_siwis",   "speed": 0.95 },
     "blackbeard": { "voice": "bm_george",  "speed": 0.85, "pitch": 0.9 },
     "brucelee":   { "voice": "am_liam",    "speed": 1.08 },
     "chuck":      { "voice": "am_fenrir",  "speed": 0.85, "pitch": 0.93 },
