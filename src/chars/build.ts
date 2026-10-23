@@ -26,7 +26,7 @@ export interface Look {
   hatColor?: string;
   hatTrim?: string;
   hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout';
-  beard?: 'chinstrap' | 'braided' | 'full';
+  beard?: 'chinstrap' | 'braided' | 'full' | 'goatee';
   beardRibbon?: string;
   mustache?: boolean;
   bowtie?: string;
@@ -246,12 +246,10 @@ function head(L: Look): Painter {
     p.line(14, 36, 14, 42, br, true);
     if (L.beardRibbon) for (const [x, y] of [[11, 39], [14, 40], [12, 37]]) p.set(x, y, L.beardRibbon);
     p.set(15, 33, '#5a2a2a');
-  } else if (L.beard === 'full') {
-    // short, dense beard from sideburn to sideburn with a heavy mustache
-    p.poly([[7.5, 29], [9.5, 32], [12.5, 32.5], [17.5, 31.5], [17.5, 35.5], [15.5, 38.5], [11, 39], [7.5, 35.5]], L.hair);
-    p.poly([[12, 31.5], [17.5, 31], [17.5, 33], [12, 33]], darken(L.hair, 0.15));
-    p.line(9, 35, 14, 37, lighten(L.hair, 0.2));
-    p.line(14, 34, 16, 34, '#5a2a2a');
+  } else if (L.beard === 'goatee') {
+    // a neat tuft on the chin under the lip
+    p.poly([[12.5, 35], [16.5, 35], [16, 38], [14, 40], [12.5, 38.5]], L.hair);
+    p.set(14, 34, '#5a2a2a');
   }
   if (L.glasses) {
     p.rect(11, 26, 6, 4, L.glasses);
