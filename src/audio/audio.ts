@@ -122,9 +122,9 @@ export function noise(o: NoiseOpts) {
 }
 
 /** A sliding vowel through formant filters: grunts, screams and a crude announcer growl. */
-export function voice(f0: number, f1: number, dur: number, vol = 0.25, formants = [700, 1150, 2500]) {
+export function voice(f0: number, f1: number, dur: number, vol = 0.25, formants = [700, 1150, 2500], at?: number) {
   if (!ctx) return;
-  const t = ctx.currentTime;
+  const t = at ?? ctx.currentTime;
   const osc = ctx.createOscillator();
   osc.type = 'sawtooth';
   osc.frequency.setValueAtTime(f0, t);

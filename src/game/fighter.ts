@@ -8,6 +8,7 @@ import * as MV from './moves';
 import type { Fight } from './fight';
 import type { Anim, Btn, Finisher, HitDef, Move, Special } from './types';
 import type { Look } from '../chars/build';
+import type { Intro } from './intro';
 import { chance } from '../core/rng';
 
 export interface CharDef {
@@ -23,6 +24,8 @@ export interface CharDef {
   /** Pitch of grunts. */
   voice: number;
   props: Partial<Record<'axe' | 'sword' | 'cutlass', Part>>;
+  /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
+  intro?: Intro;
 }
 
 export interface Controller {
