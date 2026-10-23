@@ -1,6 +1,7 @@
 import type { SongName } from '../audio/music';
 import type { PartSet, Pose } from '../gfx/rig';
 import type { Fight } from './fight';
+import type { Fighter } from './fighter';
 import { MoonStage } from './moon';
 import { Stage } from './stage';
 import { TrainStage } from './train';
@@ -10,10 +11,13 @@ import { MushroomStage } from './mushroom';
 import { BlizzardStage } from './blizzard';
 import { UndergroundStage } from './underground';
 import { BurgerStage } from './burger';
+import { ConcertStage } from './concert';
+import type { Particles } from './particles';
 import { FlavortownStage } from './flavortown';
 import { DojoStage } from './dojo';
 import { RunwayStage } from './runway';
 import { BeachStage } from './beach';
+import { LabStage } from './lab';
 
 /** A custom bottom-of-the-pit landing for the uppercut stage finish, in place of the spikes. */
 export interface PitLanding {
@@ -33,6 +37,8 @@ export interface PitLanding {
   fall?(f: Fight, y: number): void;
   /** Drawn over the victim while they are still falling. */
   drawFall?(ctx: CanvasRenderingContext2D): void;
+  /** Per-frame changes to the landed victim before they are drawn (pose, x-ray, tint); returns a y offset. */
+  victim?(l: Fighter, it: number): number;
 }
 
 /** Anything the fight can be staged in. */
@@ -57,6 +63,8 @@ export interface Arena {
   update?(f: Fight): void;
   /** Drawn over the victim in the uppercut-finish close-up; replaces the spike-impale finish. */
   pitFront?: HTMLCanvasElement;
+  /** Extra effects each frame after the victim lands in a pitFront finish (it = frames since landing). */
+  pitTick?(p: Particles, it: number): void;
   /** Colour of the stake tip drawn through the victim in the pit finish; defaults to steel. */
   stakeColor?: string;
   /** Optional vertical offset (screen px) for the floor, fighters and effects, e.g. a rocking deck. */
@@ -80,10 +88,12 @@ export const STAGES: StageEntry[] = [
   { id: 'blizzard', name: 'THE HOWLING PASS', make: (b) => new BlizzardStage(b) },
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
+  { id: 'concert', name: 'THE DECIBEL DOME', make: (b) => new ConcertStage(b) },
   { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
   { id: 'dojo', name: 'IRONWOOD DOJO', make: (b) => new DojoStage(b) },
   { id: 'runway', name: 'THE RUNWAY', make: (b) => new RunwayStage(b) },
   { id: 'beach', name: 'CORAL COVE', make: () => new BeachStage() },
+  { id: 'lab', name: 'THE COIL WORKS', make: (b) => new LabStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 

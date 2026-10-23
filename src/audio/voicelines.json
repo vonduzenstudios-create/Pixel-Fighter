@@ -15,7 +15,9 @@
     "jackson":    { "voice": "am_puck",    "speed": 1.05, "pitch": 1.15 },
     "hawking":    { "voice": "am_eric",    "speed": 0.88, "robot": true },
     "oprah":      { "voice": "af_heart",   "speed": 0.95, "pitch": 0.94 },
-    "colonel":    { "voice": "am_santa",   "speed": 0.82, "pitch": 0.94 }
+    "colonel":    { "voice": "am_santa",   "speed": 0.82, "pitch": 0.94 },
+    "kingtut":    { "voice": "bm_fable",   "speed": 0.88, "pitch": 0.92 },
+    "fieri":      { "voice": "am_fenrir",  "speed": 1.12, "pitch": 1.03, "gain": 1.05 }
   },
   "lines": [
     { "file": "default-intro", "who": "default", "text": "Let's settle this." },
@@ -31,9 +33,12 @@
     { "file": "jackson-intro", "who": "jackson", "text": "Hee hee! Try to keep up." },
     { "file": "hawking-intro", "who": "hawking", "text": "Let us test the laws of physics." },
     { "file": "colonel-intro", "who": "colonel", "text": "Evening, friend. I'll have you golden brown by suppertime.", "spoken": "Evening, friend... I'll have you golden brown, by suppertime." },
+    { "file": "kingtut-intro", "who": "kingtut", "text": "The boy king wakes. Kneel, or be buried." },
     { "file": "hawking-finisher", "who": "hawking", "text": "You have crossed the event horizon." },
     { "file": "oprah-intro", "who": "oprah", "text": "Welcome to the show! Today's topic: your defeat.", "spoken": "Welcome to the show! Today's topic... your defeat." },
     { "file": "oprah-finisher", "who": "oprah", "text": "Surprise! It comes with a bow." },
+    { "file": "fieri-intro", "who": "fieri", "text": "Fire up the grill. You are on the menu!", "spoken": "Fire up the grill! You're on the menu!" },
+    { "file": "fieri-finisher", "who": "fieri", "text": "Extra crispy. Just how I like it." },
 
     { "file": "ann-round-1", "who": "announcer", "text": "Round 1", "spoken": "Round one!" },
     { "file": "ann-round-2", "who": "announcer", "text": "Round 2", "spoken": "Round two!" },
@@ -55,6 +60,8 @@
     { "file": "ann-wins-lumpsum", "who": "announcer", "text": "J.G. Spentworth wins", "spoken": "J. G. Spentworth wins" },
     { "file": "ann-wins-bobross", "who": "announcer", "text": "Bob Ross wins" },
     { "file": "ann-wins-oprah", "who": "announcer", "text": "Oprah Winfrey wins" },
-    { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" }
+    { "file": "ann-wins-colonel", "who": "announcer", "text": "Colonel Crisp wins" },
+    { "file": "ann-wins-kingtut", "who": "announcer", "text": "King Tut wins" },
+    { "file": "ann-wins-fieri", "who": "announcer", "text": "Guy Fieri wins" }
   ]
 }
