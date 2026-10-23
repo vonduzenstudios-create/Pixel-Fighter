@@ -22,7 +22,14 @@ import { drawHawkingFatality, runHawkingFatality } from '../fighters/hawking/fig
 
 type Phase = 'entrance' | 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
 
-interface Banner { text: string; t: number; dur: number; scale: number; grad: [string, string] }
+interface Banner { text: string; t: number; dur: number; scale: number; grad: [string, string]; y?: number }
+
+/** The knockout blow plays out at a third of normal speed for this many screen frames. */
+const KO_SLOW = 3, KO_SLOW_FRAMES = 150;
+/** Frames between a finisher's input and its scene: the sting, the vignette and the camera pan. */
+const FATAL_PRE = 84;
+/** Online, both games wait this long for a finisher's last line instead of listening for it. */
+const LINE_WAIT = 150;
 
 // Where the moon-launch victim meets the Earth's atmosphere on the space backdrop.
 const SPACE_END: [number, number] = [140, 60];
@@ -63,6 +70,26 @@ export class Fight {
    * depend on the fighters' controllers (never on the keyboard, the clock or the speech synth).
    */
   lockstep = false;
+  /** Screen frames of knockout slow motion left; the fight only steps on every KO_SLOW'th one. */
+  slowmo = 0;
+  /** The knocked-out fighter has hit the floor. */
+  koLanded = false;
+  /** Frames of the finisher's lead-in left (sting, vignette, camera pan) before its scene runs. */
+  fatalPre = 0;
+  /** Where the lead-in slides the fighters' midpoint to, so the camera can centre them. */
+  fatalMid = 0;
+  /** Vignette strength, 0..1. */
+  vignette = 0;
+  /** matchEnd: the frame the victory call happened, or -1 while waiting for a line to finish. */
+  endAt = -1;
+  /** Frames the speech has been quiet for (matchEnd, offline only). */
+  quiet = 0;
+  /**
+   * Announcer calls waiting for the current voice line to end, so they never cut one off. Only the
+   * sound waits here: the banners and the fight's own clock never depend on it.
+   */
+  calls: string[] = [];
+  callGap = 0;
 
   constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
@@ -136,6 +163,9 @@ export class Fight {
     this.shownHp = [MAX_HP, MAX_HP];
     this.pitView = false;
     this.fatal = null;
+    this.slowmo = 0;
+    this.koLanded = false;
+    this.vignette = 0;
   }
 
   banner(text: string, dur = 90, scale = 3, grad: [string, string] = ['#ffe890', '#d04010']) {
@@ -151,8 +181,27 @@ export class Fight {
     this.matchOver = w.wins >= 2;
     this.phase = 'ko';
     this.pt = 0;
-    this.hitstop = 14;
+    this.koLanded = false;
+    // a short freeze on the blow, then the rest plays out in slow motion
+    this.hitstop = 8;
+    this.slowmo = KO_SLOW_FRAMES;
     this.shake(8);
+    sfx.boom();
+    sfx.hit(3);
+  }
+
+  /** Queue an announcer call; it waits for any voice line that is still playing. */
+  call(text: string) {
+    this.calls.push(text);
+  }
+
+  /** Sound only: speak the next queued call once nothing else is talking. */
+  flushCalls() {
+    if (this.callGap > 0) this.callGap--;
+    if (!this.calls.length || this.callGap > 0 || speaking()) return;
+    announce(this.calls.shift()!);
+    // speech can report "not speaking" for a moment after it starts
+    this.callGap = 20;
   }
 
   timeOver() {
@@ -187,6 +236,11 @@ export class Fight {
     l.poseOverride = AN.DIZZY;
     this.banners = [];
     stopSong();
+    // the lead-in: the screen closes in, a dread sting, and the camera swings round to centre them
+    this.fatalPre = FATAL_PRE;
+    const mid = (w.x + l.x) / 2;
+    this.fatalMid = Math.max(W / 2, Math.min(this.sw - W / 2, mid));
+    sfx.dread();
   }
 
   startPitFatality(w: Fighter) {
@@ -239,6 +293,8 @@ export class Fight {
       if (this.phase === 'entrance' && this.pt > 10 && (e.start || e.lp || e.hp || e.lk || e.hk)) this.endEntrances();
     }
     if (this.paused) return;
+    this.flushCalls();
+    if (this.slowmo > 0 && this.slowmo-- % KO_SLOW !== 0) return;
     for (const b of this.banners) b.t++;
     this.banners = this.banners.filter((b) => b.t < b.dur);
     this.particles.update();
@@ -288,11 +344,25 @@ export class Fight {
           if (--this.timer <= 0) this.timeOver();
         }
         break;
-      case 'ko':
+      case 'ko': {
+        const l = this.loser!;
+        const finish = this.matchOver && l.hp <= 0;
+        // outside the final round's "end them", the knockout blow always puts them down
+        if (!finish && l.hp <= 0) this.knockDown(l);
         this.step();
-        if (this.pt === 60) {
-          const l = this.loser!;
-          if (this.matchOver && l.hp <= 0) {
+        if (!this.koLanded && l.state === 'dead') {
+          this.koLanded = true;
+          sfx.crunch();
+          sfx.boom();
+          this.shake(10);
+          this.particles.dust(l.x, 10);
+          this.particles.dust(l.x + 10, 6);
+          this.particles.dust(l.x - 10, 6);
+        }
+        // wait for the body to hit the floor before the round is called (time-up draws skip this)
+        const down = finish || l.hp > 0 || (this.koLanded && this.pt >= 60) || this.pt >= 150;
+        if (this.pt >= 60 && down) {
+          if (finish) {
             l.y = 0;
             l.vy = 0;
             l.vx = 0;
@@ -308,6 +378,7 @@ export class Fight {
           }
         }
         break;
+      }
       case 'finish':
         this.step();
         if (this.pt > FINISH_WINDOW && this.loser!.state === 'dizzy') {
@@ -327,7 +398,7 @@ export class Fight {
           w.locked = true;
           if (!w.airborne) w.setState('victory', AN.VICTORY_ANIM);
           this.banner(`${w.ch.short} WINS`, 140, 2, ['#ffffff', '#e0c050']);
-          announce(`${w.ch.name} wins`);
+          this.call(`${w.ch.name} wins`);
           if (w.hp === MAX_HP) this.banners.push({ text: 'PERFECT', t: -40, dur: 140, scale: 2, grad: ['#c0ffff', '#2080ff'] });
         }
         if (this.pt >= 210) {
@@ -340,23 +411,8 @@ export class Fight {
         break;
       case 'matchEnd':
         if (!this.pitView) this.step();
-        if (this.pt === 1 && this.hadFatality) {
-          this.banner('OBLITERATION!', 110, 2, ['#ffe0e0', '#c00000']);
-          announce('Obliteration!');
-        }
-        const at = this.hadFatality ? 110 : 1;
-        if (this.pt === at) {
-          const w = this.winner!;
-          if (!this.pitView && w.state !== 'victory') {
-            w.poseOverride = null;
-            w.propOverride = null;
-            w.setState('victory', AN.VICTORY_ANIM);
-          }
-          this.banner(`${w.ch.short} WINS`, 200, 2, ['#ffffff', '#e0c050']);
-          if (this.hadFatality) announce(`${w.ch.name} wins`);
-          playSong('victory', false);
-        }
-        if (this.pt >= at + 200) this.onDone(this.winner!);
+        if (this.vignette > 0) this.vignette = Math.max(0, this.vignette - 0.02);
+        this.runMatchEnd();
         break;
     }
     if (this.phase !== 'fatal' || !this.pitView) for (const f of this.f) f.computePose();
@@ -429,6 +485,53 @@ export class Fight {
   toMatchEnd() {
     this.phase = 'matchEnd';
     this.pt = 0;
+    this.quiet = 0;
+    this.endAt = this.hadFatality ? -1 : 1;
+  }
+
+  /**
+   * After a finisher, let its scene and any line in it finish, then the victory call, then
+   * "OBLITERATION!". Offline it listens for the line to end; online both games wait a fixed time.
+   */
+  runMatchEnd() {
+    const w = this.winner!;
+    if (this.endAt < 0) {
+      this.quiet = !this.lockstep && !speaking() && !this.calls.length ? this.quiet + 1 : 0;
+      const ready = this.lockstep ? this.pt >= LINE_WAIT : (this.pt >= 30 && this.quiet >= 20) || this.pt >= 600;
+      if (ready) this.endAt = this.pt;
+    }
+    const at = this.endAt;
+    if (at < 0) return;
+    if (this.pt === at) {
+      if (!this.pitView && w.state !== 'victory') {
+        w.poseOverride = null;
+        w.propOverride = null;
+        w.setState('victory', AN.VICTORY_ANIM);
+      }
+      this.banner(`${w.ch.short} WINS`, this.hadFatality ? 300 : 200, 2, ['#ffffff', '#e0c050']);
+      if (this.hadFatality) this.call(`${w.ch.name} wins`);
+      playSong('victory', false);
+    }
+    if (this.hadFatality && this.pt === at + 90) {
+      this.banners.push({ text: 'OBLITERATION!', t: 0, dur: 210, scale: 2, grad: ['#ffe0e0', '#c00000'], y: 106 });
+      this.call('Obliteration!');
+    }
+    if (this.pt >= at + (this.hadFatality ? 300 : 200)) this.onDone(w);
+  }
+
+  /** A knockout blow that left them on their feet sends them crashing down instead. */
+  knockDown(l: Fighter) {
+    const s = l.state;
+    if (s === 'lying') l.state = 'dead';
+    if (s === 'dead' || s === 'fall' || s === 'launched' || s === 'thrown' || s === 'lying') return;
+    const away = l.x >= l.opp.x ? 1 : -1;
+    l.move = null;
+    l.stun = 0;
+    l.vy = 3.4;
+    l.y = Math.max(l.y, 1);
+    l.vx = away * 2.2;
+    l.setState('fall', AN.FALL);
+    sfx.scream();
   }
 
   /** One frame of normal fighting simulation. */
@@ -558,6 +661,10 @@ export class Fight {
 
   // ------------------------------------------------------------- finishing moves
   runFatality() {
+    if (this.fatalPre > 0) {
+      this.runFatalLeadIn();
+      return;
+    }
     const F = this.fatal!;
     const tt = F.t++;
     const w = this.winner!, l = this.loser!;
@@ -895,6 +1002,27 @@ export class Fight {
     }
   }
 
+  /** Before a finisher's scene: close in the vignette, and glide the camera (and if needed the pair) to centre. */
+  runFatalLeadIn() {
+    const t = FATAL_PRE - this.fatalPre--;
+    const w = this.winner!, l = this.loser!;
+    this.vignette = Math.min(1, t / 24);
+    // a quick swing: most of the move happens in the first half second
+    if (t < 30) {
+      const mid = (w.x + l.x) / 2;
+      const d = (this.fatalMid - mid) * 0.18;
+      w.x += d;
+      l.x += d;
+    }
+    const target = Math.max(0, Math.min(this.sw - W, (w.x + l.x) / 2 - W / 2));
+    this.camX += (target - this.camX) * 0.22;
+    if (this.fatalPre === 0) this.camX = target;
+    w.animT++;
+    l.animT++;
+    w.computePose();
+    l.computePose();
+  }
+
   /** Turn a fighter into a pile of falling bones (and ash). */
   collapse(l: Fighter, bones: boolean, ash: string) {
     const P = bones ? l.bones : l.parts;
@@ -937,16 +1065,33 @@ export class Fight {
     if (this.pitView) this.fatal?.kind === 'space' ? this.drawSpace(ctx) : this.drawPit(ctx);
     else this.drawArena(ctx);
     ctx.restore();
+    if (this.vignette > 0) this.drawVignette(ctx);
     this.drawHUD(ctx);
     this.toasty.draw(ctx);
     for (const b of this.banners) {
       if (b.t < 0) continue;
-      const y = b.text === 'PERFECT' ? 108 : 80;
+      const y = b.y ?? (b.text === 'PERFECT' ? 108 : 80);
       const pop = b.t < 6 ? 1 + (6 - b.t) * 0.0 : 1;
       if (b.t % 30 < 26 || b.t < 30) drawText(ctx, b.text, W / 2, y, '#fff', { scale: Math.round(b.scale * pop), align: 'center', grad: b.grad, outline: '#000', shadow: '#300' });
     }
     if (this.phase === 'entrance') this.drawCaption(ctx);
     if (this.paused) this.drawPause(ctx);
+  }
+
+  /** The finisher's closing-in darkness: stepped rings like an old palette fade, with a red edge. */
+  drawVignette(ctx: CanvasRenderingContext2D) {
+    const k = this.vignette;
+    // centred on the fighters' bodies, with hard steps rather than a smooth ramp to keep the 16-bit look
+    const cx = W / 2, cy = H / 2 + 26;
+    const g = ctx.createRadialGradient(cx, cy, 34, cx, cy, W * 0.66);
+    const bands = [0, 0.3, 0.55, 0.75, 0.88, 0.96];
+    bands.forEach((a, i) => {
+      const c = `rgba(${12 + i * 5},0,${i},${(a * k).toFixed(3)})`;
+      g.addColorStop(i / bands.length, c);
+      g.addColorStop((i + 1) / bands.length - 0.001, c);
+    });
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
   }
 
   /** Name tag and subtitle for the current entrance line. */
