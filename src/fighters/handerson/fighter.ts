@@ -658,7 +658,7 @@ export const HANDERSON_PORTRAIT: PortraitStyle = {
 export function handerson(): CharDef {
   return {
     id: 'handerson', name: 'Pamela Handerson', short: 'HANDERSON', title: 'Five-Finger Fury', look: HAND_LOOK, alt: HAND_ALT,
-    specials, voice: 330, props: {}, scale: 1.25,
+    specials, voice: 330, props: {}, scale: 1.25, homeStage: 'lifeguard',
     sprites: (L) => buildHand(styleOf(L)),
     finisher: { name: 'Swat & Flick', cmd: [4, 6, 4], btn: 'hp', text: 'B, F, B + HP (close)', range: [0, 100] },
     fatality: swatAndFlick, fatalityDraw: drawSwat, intro: HANDERSON_INTRO, portrait: HANDERSON_PORTRAIT,
