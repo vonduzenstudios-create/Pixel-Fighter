@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "kroft": { "voice": "bf_emma", "speed": 1.02 }
+  },
+  "lines": [
+    { "file": "kroft-intro", "who": "kroft", "text": "Mind your step. Everything down here is trapped, including me.", "spoken": "Mind your step. Everything down here is trapped... including me." },
+    { "file": "kroft-finisher", "who": "kroft", "text": "That relic belongs in my satchel. You belong in the sand." },
+    { "file": "ann-wins-kroft", "who": "announcer", "text": "Laura Kroft wins" }
+  ]
+}
