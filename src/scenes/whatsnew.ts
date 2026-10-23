@@ -142,10 +142,7 @@ export class WhatsNewScene implements Scene {
 
   leave() {
     sfx.menuPick();
-    const t = new TitleScene(this.app);
-    t.menu = true;
-    t.sel = 4;
-    this.app.go(t);
+    this.app.go(TitleScene.at(this.app, 'options', 2));
   }
 
   update() {

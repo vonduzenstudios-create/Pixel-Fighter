@@ -50,7 +50,7 @@ interface Dancer { c: CharDef; x: number; i: number }
 export class CongaLine {
   dancers: Dancer[] = [];
   next = 0;
-  /** Rebuilt on each call so fighters added to the registry show up without a reload. */
+  /** Every fighter auto-discovered under src/fighters/ joins the line. */
   private chars() {
     return roster();
   }
