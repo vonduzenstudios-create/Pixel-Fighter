@@ -822,7 +822,8 @@ export class Fight {
               D.y = 150;
               sfx.scream();
               this.shake(10);
-              if (this.stage.pitFront) {
+              if (this.stage.pitLanding) this.stage.pitLanding.land(this);
+              else if (this.stage.pitFront) {
                 // a vat landing instead of spikes: a big splash of hot oil
                 sfx.explode();
                 sfx.fire();
@@ -835,7 +836,8 @@ export class Fight {
             }
           } else {
             D.it++;
-            if (this.stage.pitFront) {
+            if (this.stage.pitLanding) this.stage.pitLanding.tick(this, D.it);
+            else if (this.stage.pitFront) {
               if (D.it % 4 === 0) this.pitParticles.smoke(128 + rand(-24, 24), H - 150 + rand(-4, 4), 1, '#d8d0c0');
               if (D.it % 10 === 0) this.pitParticles.sparks(128 + rand(-20, 20), H - 152, 2, '#ffe070');
               if (D.it % 30 === 0) sfx.fire();
@@ -1040,7 +1042,8 @@ export class Fight {
     ctx.drawImage(this.stage.pit!, 0, 0);
     const l = this.loser!;
     const vat = this.stage.pitFront;
-    const pose = D.impaled && !vat ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
+    const landing = this.stage.pitLanding;
+    const pose = D.impaled && landing ? landing.pose : D.impaled && !vat ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
     l.hidden.clear();
     l.alpha = 1;
     l.tint = null;
@@ -1060,7 +1063,9 @@ export class Fight {
     l.draw(ctx, 0, Math.round(D.y + sink));
     l.x = savedX;
     if (vat) ctx.drawImage(vat, 0, 0);
-    else if (D.impaled) {
+    if (landing) {
+      if (D.impaled) landing.draw(ctx, D.it ?? 0);
+    } else if (!vat && D.impaled) {
       ctx.fillStyle = this.stage.stakeColor ?? '#8a8290';
       ctx.fillRect(127, D.y - 22, 2, 14);
       ctx.fillRect(128, D.y - 26, 1, 4);
