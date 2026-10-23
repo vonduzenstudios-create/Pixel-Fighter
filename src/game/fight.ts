@@ -234,7 +234,6 @@ export class Fight {
       if (this.phase === 'entrance' && this.pt > 10 && (e.start || e.lp || e.hp || e.lk || e.hk)) this.endEntrances();
     }
     if (this.paused) return;
-    this.pt++;
     for (const b of this.banners) b.t++;
     this.banners = this.banners.filter((b) => b.t < b.dur);
     this.particles.update();
@@ -249,6 +248,9 @@ export class Fight {
     }
     tickPoseClock();
     this.stage.update?.(this);
+    // the phase clock only runs outside hitstop, so the exact-frame cues below (KO -> round end,
+    // banners) can't be skipped when a hit lands on that frame, e.g. the winner still kicking the body
+    this.pt++;
 
     switch (this.phase) {
       case 'entrance':
