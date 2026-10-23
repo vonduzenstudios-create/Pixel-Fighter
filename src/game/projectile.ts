@@ -9,8 +9,9 @@ import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
 import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
+import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'scarab' | 'sarcophagus';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -22,7 +23,7 @@ const makeSprites = () => ({
 let SPR: ReturnType<typeof makeSprites> | null = null;
 const spr = () => (SPR ??= makeSprites());
 
-const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: number; speed: number }> = {
+const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: number; speed: number; sturdy?: boolean }> = {
   hat: { dmg: 70, level: 'high', effect: 'heavy', r: 7, speed: 4.4 },
   bolt: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 6.2 },
   holy: { dmg: 90, level: 'high', effect: 'knockdown', r: 7, speed: 3.6 },
@@ -44,6 +45,9 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   scarab: { dmg: 80, level: 'high', effect: 'heavy', r: 9, speed: 3.4 },
   // drops out of the sky onto the opponent: block it standing
   sarcophagus: { dmg: 105, level: 'overhead', effect: 'knockdown', r: 12, speed: 0 },
+  // lobbed flaming cheeseburger and a hot rod that drives across the deck (jump it)
+  burger: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 3.9 },
+  ragtop: { dmg: 100, level: 'mid', effect: 'knockdown', r: 12, speed: 5.6, sturdy: true },
 };
 
 /** Frames a grease puddle keeps burning after it lands. */
@@ -65,12 +69,15 @@ export class Projectile {
   dmg: number; level: Level; effect: Effect; r: number;
   /** Frame a lobbed grease blob hit the floor. */
   landed = 0;
+  /** Survives clashes and hits (it stops hurting once spent). */
+  sturdy: boolean;
   /** Paint colour index for paint blobs. */
   hue = Math.floor(Math.random() * PAINTS.length);
   constructor(public owner: Fighter, public kind: ProjKind, public x: number, public y: number) {
     const s = STATS[kind];
     this.vx = s.speed * owner.facing;
     this.dmg = s.dmg; this.level = s.level; this.effect = s.effect; this.r = s.r;
+    this.sturdy = !!s.sturdy;
     playCue(PROJ_SOUNDS[kind]?.launch);
   }
 
@@ -188,6 +195,12 @@ export class Projectile {
         }
         break;
       }
+      case 'burger':
+        updateBurger(this, f);
+        break;
+      case 'ragtop':
+        updateRagtop(this, f);
+        break;
       case 'tree': {
         // rumbles underground (out of reach), then shoots up from the deck
         if (this.t < TREE_WARN) {
@@ -295,6 +308,12 @@ export class Projectile {
         ctx.drawImage(s.sarcophagus, sx - 11, sy - 22);
         break;
       }
+      case 'burger':
+        drawBurger(ctx, this);
+        break;
+      case 'ragtop':
+        drawRagtop(ctx, this);
+        break;
       case 'paint':
         ctx.drawImage(s.paint[this.hue], -7, -7);
         ctx.fillStyle = PAINTS[this.hue];

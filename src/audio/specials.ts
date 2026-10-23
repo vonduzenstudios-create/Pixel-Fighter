@@ -336,6 +336,36 @@ export const FX: Record<string, () => void> = {
     noise({ dur: 0.18, vol: 0.28, type: 'highpass', freq: 2500 * vary(), to: 1200 });
     tone({ type: 'sine', freq: 160, to: 80, dur: 0.08, vol: 0.12 });
   },
+  // ---------------------------------------------------------------- kitchen and hot rods
+  /** Grill flaring up: a whoomp of gas catching. */
+  flareUp() {
+    noise({ dur: 0.5, vol: 0.4, type: 'lowpass', freq: 300, to: 2400, attack: 0.04 });
+    tone({ type: 'sine', freq: 70, to: 140, dur: 0.35, vol: 0.3 });
+    FX.fireCrackle();
+  },
+  /** Spatula pressing a patty flat: a metal clank and a hiss. */
+  smashPress() {
+    tone({ type: 'square', freq: 700 * vary(), to: 420, dur: 0.05, vol: 0.08, filter: { type: 'bandpass', freq: 1600, q: 4 } });
+    noise({ dur: 0.18, vol: 0.12, type: 'highpass', freq: 4500 });
+  },
+  /** Two-finger whistle calling the car round. */
+  whistleCall() {
+    const t = now();
+    tone({ type: 'sine', freq: 1900, to: 2700, dur: 0.14, vol: 0.12 });
+    tone({ type: 'sine', freq: 2700, to: 2100, dur: 0.22, vol: 0.12, at: t + 0.16 });
+  },
+  /** V8 revving up. */
+  engineRev() {
+    tone({ type: 'sawtooth', freq: 45, to: 120, dur: 0.6, vol: 0.14, filter: { type: 'lowpass', freq: 500, to: 1200 } });
+    tone({ type: 'square', freq: 90, to: 240, dur: 0.6, vol: 0.05, filter: { type: 'lowpass', freq: 700 } });
+    noise({ dur: 0.6, vol: 0.06, type: 'bandpass', freq: 200, to: 600, q: 2 });
+  },
+  /** Car slamming into a body. */
+  carCrash() {
+    FX.clang();
+    sfx.thud();
+    noise({ dur: 0.3, vol: 0.3, type: 'lowpass', freq: 2000, to: 300 });
+  },
   shatter() {
     const t = now();
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
@@ -406,6 +436,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     proj_sarc: { frames: { 2: 'curseChant', 12: 'stoneGrind' } },
     sandstorm: { frames: { 1: 'sandWind', 14: 'sandWind', 28: 'sandWind' }, impact: 'sandHit' },
   },
+  fieri: {
+    proj_burger: { frames: { 1: 'inhale', 9: 'sizzle' } },
+    proj_ragtop: { frames: { 12: 'engineRev' } },
+    smash: { frames: { 1: 'heave', 8: 'smashPress', 14: 'smashPress', 20: 'smashPress', 26: 'smashPress', 32: 'smashPress' }, impact: ['smashPress', 'sizzle'], blocked: 'clang' },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
@@ -447,6 +482,8 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
   scarab: { travel: { every: 12, cue: 'buzz' }, impact: ['buzz', 'crunch'], blocked: 'buzz' },
   sarcophagus: { impact: ['stoneGrind', 'crunch'], blocked: 'stoneGrind' },
+  burger: { travel: { every: 12, cue: 'fireCrackle' }, impact: ['splat', 'flameBurst'] },
+  ragtop: { launch: ['horn', 'screech'], travel: { every: 16, cue: 'engineRev' }, impact: 'carCrash', blocked: 'carCrash' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */
