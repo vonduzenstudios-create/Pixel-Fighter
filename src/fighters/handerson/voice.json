@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "handerson": { "voice": "af_nova", "speed": 1.0 }
+  },
+  "lines": [
+    { "file": "handerson-intro", "who": "handerson", "text": "Hands down, I'm the best in the business." },
+    { "file": "handerson-finisher", "who": "handerson", "text": "Consider yourself handled.", "spoken": "Consider yourself... handled." },
+    { "file": "ann-wins-handerson", "who": "announcer", "text": "Pamela Handerson wins" }
+  ]
+}
