@@ -3,6 +3,7 @@ import { rand } from '../core/rng';
 import { pxLine } from '../gfx/painter';
 import { A, P, STANCE, CROUCH, TUCK, VICTORY, LAND, WALK } from '../game/anims';
 import type { Fighter } from '../game/fighter';
+import { cashRain, floatNote } from './lumpsum';
 import { ease, lerp, offscreenX, type Intro } from '../game/intro';
 
 // Round 1 entrances for the original four. Poses follow the conventions in gfx/rig.ts.
@@ -184,4 +185,161 @@ export const BLACKBEARD_INTRO: Intro = {
     ctx.fillStyle = '#8a6a40';
     pxLine(ctx, D.home - cam, FLOOR - ROPE_TOP, hx - cam, FLOOR - hy);
   },
+};
+
+// ------------------------------------------------------------------ fighters added after the intro hook
+
+const FLY_KICK = P(STANCE, { t: -14, h: -6, lf: -95, kf: 0, ff: -10, lb: 30, kb: 100, af: -40, ef: -100, ab: 20, eb: -60 });
+const NUNCHAKU_GUARD = P(STANCE, { t: 4, h: -6, af: -80, ef: -40, ab: -40, eb: -110, lf: -30, kf: 20 });
+
+export const BRUCE_LEE_INTRO: Intro = {
+  line: 'Your guard is a door. I brought the key.',
+  speech: { pitch: 1.1, rate: 1.1 },
+  speakAt: 72,
+  dur: 140,
+  update(self, f, t, home) {
+    if (t <= 26) {
+      // flying side kick in from off screen
+      const k = t / 26;
+      self.x = lerp(offscreenX(self, f), home, k);
+      self.y = Math.sin(k * Math.PI) * 46;
+      self.poseOverride = FLY_KICK;
+      if (t === 0) f.sfx('kiai', 360);
+    } else if (t < 34) {
+      self.y = 0;
+      self.poseOverride = null;
+      if (t === 27) {
+        self.setAnim(LAND);
+        f.sfx('land');
+      }
+    } else if (t < 66) {
+      // nunchaku twirl
+      self.propOverride = self.ch.props.nunchaku ?? null;
+      const a = (t - 34) * 0.7;
+      self.poseOverride = P(NUNCHAKU_GUARD, { af: -110 + Math.sin(a) * 60, ef: -30 + Math.cos(a) * 30, pa: (t * 47) % 360 });
+      if (t % 6 === 0) f.sfx('whoosh');
+    } else {
+      self.propOverride = self.ch.props.nunchaku ?? null;
+      // nunchaku tucked under the arm, the back hand beckons
+      self.poseOverride = P(NUNCHAKU_GUARD, { ab: -80, eb: t % 30 < 15 ? -150 : -110 });
+    }
+  },
+};
+
+const ARMS_CROSSED = P(STANCE, { t: -2, h: -4, af: -30, ef: -110, ab: -35, eb: -105, lf: -16, kf: 6, lb: 16, kb: 4 });
+
+export const CHUCK_NORRIS_INTRO: Intro = {
+  line: 'I came here to finish. Fighting is optional.',
+  speech: { pitch: 0.4, rate: 0.8 },
+  speakAt: 66,
+  dur: 140,
+  update(self, f, t, home) {
+    self.x = home;
+    if (t < 24) {
+      // drops straight out of the sky
+      self.y = Math.max(0, 260 * (1 - (t / 24) ** 2));
+      self.poseOverride = P(STANCE, { lf: -30, kf: 40, lb: 10, kb: 30, af: -60, ef: -80, ab: -50, eb: -80 });
+      if (t === 0) f.sfx('whoosh', 1);
+    } else if (t < 44) {
+      self.y = 0;
+      self.poseOverride = P(CROUCH, { t: 30, af: -20, ef: -20, ab: 10 });
+      if (t === 24) {
+        f.sfx('thud');
+        f.sfx('boom');
+        f.shake(12);
+        for (const s of [-1, 1]) f.particles.smoke(home + s * 12, 1, 8, '#8a8078');
+        f.particles.sparks(home, 1, 14);
+      }
+    } else self.poseOverride = ARMS_CROSSED;
+  },
+};
+
+const GUARD_UP = P(STANCE, { t: 4, h: -6, af: -70, ef: -120, ab: -60, eb: -125 });
+
+export const ALI_INTRO: Intro = {
+  line: 'Step into my ring!',
+  speech: { pitch: 1.0, rate: 1.15 },
+  speakAt: 70,
+  dur: 130,
+  update(self, f, t, home) {
+    if (t <= 44) {
+      // dances in on his toes
+      self.x = lerp(offscreenX(self, f), home, t / 44);
+      self.y = Math.abs(Math.sin(t * 0.35)) * 5;
+      self.poseOverride = P(GUARD_UP, t % 12 < 6 ? { lf: -30, kf: 30, lb: 10, kb: 20 } : { lf: -10, kf: 20, lb: 25, kb: 30 });
+    } else if (t < 70) {
+      // shadow-boxing: quick jab, jab, cross
+      self.y = Math.abs(Math.sin(t * 0.35)) * 3;
+      const k = (t - 44) % 8;
+      const cross = Math.floor((t - 44) / 8) % 3 === 2;
+      self.poseOverride = k < 4 ? (cross ? P(GUARD_UP, { ab: -92, eb: -4, t: 14 }) : P(GUARD_UP, { af: -92, ef: -4, t: 8 })) : GUARD_UP;
+      if (k === 0) f.sfx('whoosh');
+    } else {
+      self.y = Math.abs(Math.sin(t * 0.35)) * 3;
+      self.poseOverride = P(GUARD_UP, { af: -150, ef: -40, h: -14 });
+      if (t === 70) f.sfx('bell');
+    }
+  },
+};
+
+const CHECK_HIGH = P(STANCE, { t: -6, h: -10, af: -165, ef: -10, ab: -150, eb: -30 });
+
+export const LUMPSUM_INTRO: Intro = {
+  line: 'Your payments are about to END!',
+  speech: { pitch: 1.25, rate: 0.9 },
+  speakAt: 68,
+  dur: 140,
+  update(self, f, t, home) {
+    self.propOverride = self.ch.props.check ?? null;
+    if (t <= 48) {
+      // marches in holding the big check over his head
+      self.x = lerp(offscreenX(self, f), home, t / 48);
+      const w = t % 24 < 12;
+      self.poseOverride = P(CHECK_HIGH, w ? { lf: -25, kf: 15, lb: 20, kb: 25 } : { lf: 15, kf: 25, lb: -20, kb: 15 });
+    } else {
+      self.poseOverride = P(CHECK_HIGH, { af: -175, h: -16 });
+      if (t === 49) {
+        f.sfx('kaching');
+        f.sfx('sing');
+      }
+      if (t < 120 && t % 4 === 0) cashRain(f, home, 1);
+      if (t % 10 === 0) floatNote(f, self.x + self.facing * 6, 74, t % 20 === 0);
+    }
+  },
+};
+
+const PAINT_COLORS = ['#2a6ae0', '#f0d020', '#e03020', '#30a040', '#ffffff'];
+
+export const BOB_ROSS_INTRO: Intro = {
+  line: 'Easy now. Nice, soft strokes.',
+  speech: { pitch: 0.75, rate: 0.75 },
+  speakAt: 86,
+  dur: 160,
+  update(self, f, t, home) {
+    self.propOverride = self.ch.props.brush ?? null;
+    if (t <= 60) {
+      // an unhurried stroll
+      if (t === 0) self.setAnim(WALK);
+      self.x = lerp(offscreenX(self, f), home, t / 60);
+      self.poseOverride = null;
+    } else {
+      // dabs a happy little cloud in the air
+      const a = (t - 60) * 0.12;
+      self.poseOverride = P(STANCE, { t: -4, h: -6, af: -115 + Math.sin(a) * 18, ef: -35 + Math.cos(a * 2) * 15, ab: -50, eb: -90 });
+      if (t % 3 === 0) {
+        const hx = self.wx(self.skel.handF[0]), hy = self.wy(self.skel.handF[1]);
+        f.particles.sparks(hx + self.facing * 10, hy + 6, 1, PAINT_COLORS[Math.floor(t / 12) % PAINT_COLORS.length]);
+      }
+      if (t === 64 || t === 130) f.sfx('twinkle');
+    }
+  },
+};
+
+/** Entrances by character id, for fighters whose CharDef lives in its own file. */
+export const INTROS: Record<string, Intro> = {
+  brucelee: BRUCE_LEE_INTRO,
+  chuck: CHUCK_NORRIS_INTRO,
+  ali: ALI_INTRO,
+  lumpsum: LUMPSUM_INTRO,
+  bobross: BOB_ROSS_INTRO,
 };
