@@ -479,7 +479,9 @@ export class Fight {
       const d = p.owner.opp;
       for (const q of this.projectiles)
         if (q !== p && !q.dead && q.owner !== p.owner && Math.abs(q.x - p.x) < 12 && Math.abs(q.y - p.y) < 14) {
-          p.dead = q.dead = true;
+          // sturdy projectiles (a car) plough straight through whatever they meet
+          if (!p.sturdy) p.dead = true;
+          if (!q.sturdy) q.dead = true;
           this.particles.sparks((p.x + q.x) / 2, p.y, 16, '#ffffff');
           sfx.block(true);
           playCue(PROJ_SOUNDS[p.kind]?.clash);
@@ -487,8 +489,8 @@ export class Fight {
         }
       if (p.dead || p.spent || d.invulnerable) continue;
       if (circleRect(p.x, p.y, p.r, d.hurtbox())) {
-        // a sprouted tree stays standing after it hits; everything else breaks
-        if (p.kind === 'tree') p.spent = true;
+        // a sprouted tree stays standing after it hits, a car keeps driving; everything else breaks
+        if (p.kind === 'tree' || p.sturdy) p.spent = true;
         else p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         const res = this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
