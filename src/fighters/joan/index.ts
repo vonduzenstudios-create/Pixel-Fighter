@@ -8,7 +8,7 @@ export default {
   make() {
     const c = joan();
     c.selectSet ??= SETS.castle;
-    c.homeStage ??= 'gorge';
+    c.homeStage ??= 'courtyard';
     return c;
   },
   moveSounds: {
