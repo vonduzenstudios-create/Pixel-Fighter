@@ -7,6 +7,9 @@ import { FLOOR } from '../core/consts';
 import { pxCircle } from '../gfx/painter';
 import { rand } from '../core/rng';
 import { ac, noise, tone } from '../audio/audio';
+import { say } from '../audio/sfx';
+import { lerp, offscreenX, type Intro } from '../game/intro';
+import type { PortraitStyle } from '../gfx/portrait';
 
 // Stephen Hawking: a cosmologist riding a jointed, rocket-assisted mech-chair.
 // Everything here is self-contained so the shared fight code only needs a couple of hooks.
@@ -22,28 +25,11 @@ export const HAWKING_ALT: Look = {
 };
 
 // Original voice lines, spoken through the browser's speech synth like his famous voice computer.
-// TODO: wire into the round-intro hook once it lands.
 export const HAWKING_LINES = {
-  intro: ['Let us test the laws of physics.', 'I have calculated your defeat.'],
-  win: ['Gravity always wins.', 'The universe tends toward your disorder.'],
+  intro: 'Let us test the laws of physics.',
   finisher: 'You have crossed the event horizon.',
 };
-
-export function hawkingSay(text: string) {
-  const ss = window.speechSynthesis;
-  if (!ss) return;
-  try {
-    const u = new SpeechSynthesisUtterance(text);
-    const vs = ss.getVoices();
-    const v = vs.find((x) => /en/i.test(x.lang) && /fred|zarvox|ralph|daniel|david/i.test(x.name)) ?? vs.find((x) => /en/i.test(x.lang));
-    if (v) u.voice = v;
-    u.pitch = 0.7;
-    u.rate = 0.85;
-    ss.speak(u);
-  } catch {
-    /* speech is optional */
-  }
-}
+const VOICE = { pitch: 0.7, rate: 0.85 };
 
 // ------------------------------------------------------------------ sounds
 export const hsfx = {
@@ -192,7 +178,7 @@ export function runHawkingFatality(fight: Fight, tt: number, tick: () => void, d
     }
     fight.spawnParts(l, l.bones, 3, 5);
   }
-  if (tt === 215) hawkingSay(HAWKING_LINES.finisher);
+  if (tt === 215) say(HAWKING_LINES.finisher, VOICE);
   if (tt === 220) {
     w.poseOverride = VICTORY;
   }
@@ -238,3 +224,70 @@ export function drawMiniHole(ctx: CanvasRenderingContext2D, t: number) {
   ctx.fillStyle = '#000';
   pxCircle(ctx, 0, 0, 4.5);
 }
+
+// Post-match taunts. {L} is replaced with the loser's short name.
+export const HAWKING_QUOTES = [
+  'Gravity always wins, {L}. I simply help it along.',
+  'I ran the numbers. You never stood a chance.',
+  'The universe tends toward disorder. So did your defense.',
+];
+export const HAWKING_QUOTES_VS: Record<string, string> = {
+  tesla: 'Brilliant ideas, Tesla. Shame about the follow-through.',
+};
+
+// ------------------------------------------------------------------ round-one entrance
+// Rockets in from off screen on the chair's thrusters, touches down, and runs a quick systems check.
+export const HAWKING_INTRO: Intro = {
+  line: HAWKING_LINES.intro,
+  speech: VOICE,
+  speakAt: 70,
+  dur: 130,
+  update(self, f, t, home) {
+    if (t <= 40) {
+      const k = t / 40;
+      self.x = lerp(offscreenX(self, f), home, k);
+      self.y = Math.sin(k * Math.PI) * 40 + (1 - k) * 10;
+      self.poseOverride = P(STANCE, { t: 14, h: 4, af: -70, ef: -10, ab: -50, eb: -20, lf: -60, kf: 80, lb: -40, kb: 70 });
+      if (t === 0) hsfx.thrust();
+      if (t === 20) hsfx.thrust();
+      const bx = self.x - self.facing * 16;
+      f.particles.fire(bx, self.y + 22, 2, 2);
+      if (t % 3 === 0) f.particles.smoke(bx, self.y + 18, 1, '#4a4a58');
+    } else {
+      self.y = 0;
+      if (t === 41) {
+        f.sfx('thud');
+        f.shake(4);
+        f.particles.smoke(self.x, 2, 6, '#6a6470');
+      }
+      // console flicker, then a raised hand
+      self.poseOverride = t < 66 ? P(STANCE, { t: 10, af: -40, ef: -60 }) : P(STANCE, { t: -4, h: -8, af: -160, ef: -30 });
+      if (t >= 46 && t < 66 && t % 4 === 0) {
+        const a = rand(0, Math.PI * 2);
+        f.particles.add({ kind: 'spark', x: self.x + Math.cos(a) * 18, y: 40 + Math.sin(a) * 12, life: 10, max: 10, color: '#7ae8ff', floor: false });
+      }
+      if (t === 66) hsfx.radiate();
+    }
+  },
+};
+
+// ------------------------------------------------------------------ post-match portrait
+export const HAWKING_PORTRAIT: PortraitStyle = {
+  front(p, c) {
+    // thick-rimmed glasses over both eyes, with a glint
+    const fr = c.look.glasses ?? '#1a1418';
+    const lens = (x: number, y: number, w: number) => {
+      p.rect(x - w, y - 5, w * 2 + 1, 2, fr);
+      p.rect(x - w, y + 4, w * 2 + 1, 2, fr);
+      p.rect(x - w, y - 5, 2, 11, fr);
+      p.rect(x + w - 1, y - 5, 2, 11, fr);
+      if (!c.beaten) p.set(x - w + 3, y - 2, '#ffffff');
+    };
+    const [ax, ay] = c.geom.eyeA, [bx, by] = c.geom.eyeB;
+    lens(ax, ay, 7);
+    lens(bx, by, 6);
+    p.rect(ax + 7, Math.min(ay, by) - 3, bx - 6 - ax - 7, 2, fr);
+    p.rect(c.geom.ear[0] + 4, ay - 4, ax - 7 - c.geom.ear[0] - 4, 2, fr);
+    if (c.beaten) p.line(bx - 4, by - 3, bx + 3, by + 3, '#e8f4ff');
+  },
+};
