@@ -309,6 +309,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   paint: { impact: 'splat' },
   hole: { travel: { every: 24, cue: 'drone' }, impact: 'gravityHit' },
   tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
+  smolder: { travel: { every: 10, cue: 'twinkle' }, impact: ['sparkle', 'glovePop'], blocked: 'sparkle' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */

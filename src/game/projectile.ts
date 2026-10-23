@@ -7,8 +7,9 @@ import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
+import { drawSmolder } from '../chars/glare';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'smolder';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -33,6 +34,7 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   fedora: { dmg: 75, level: 'high', effect: 'heavy', r: 7, speed: 5.2 },
   paint: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.2 },
   tree: { dmg: 95, level: 'low', effect: 'launch', r: 9, speed: 0 },
+  smolder: { dmg: 80, level: 'high', effect: 'heavy', r: 7, speed: 6.4 },
 };
 
 /** Frames a sprouting tree rumbles underground before it bursts up. */
@@ -72,6 +74,10 @@ export class Projectile {
         // flat spinning throw with a sparkle trail
         if (this.t % 3 === 0) p.sparks(this.x - Math.sign(this.vx) * 6, this.y, 1, '#ffffff');
         if (this.t % 14 === 0) f.sfx('hatSpin');
+        break;
+      case 'smolder':
+        // leaves a trail of pink glints
+        if (this.t % 2 === 0) p.sparks(this.x - Math.sign(this.vx) * 14, this.y + rand(-2, 2), 1, this.t % 4 ? '#ff8ad8' : '#ffffff');
         break;
       case 'bolt':
         if (this.t % 2 === 0) p.zap(this.x, this.y, 2);
@@ -180,6 +186,9 @@ export class Projectile {
         ctx.drawImage(s.note, -3 + d * 4, -12 + Math.round(Math.sin(this.t * 0.5) * 2));
         break;
       }
+      case 'smolder':
+        drawSmolder(ctx, this.t, Math.sign(this.vx) || 1);
+        break;
       case 'hole':
         drawMiniHole(ctx, this.t);
         break;

@@ -4,6 +4,7 @@ import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
+import { glare } from './glare';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
 import type { Move, Special } from '../game/types';
@@ -475,6 +476,7 @@ export function roster(): CharDef[] {
       ],
       quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
     },
+    glare(),
   ];
   for (const c of cache) c.intro ??= INTROS[c.id];
   return cache;
