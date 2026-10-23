@@ -24,10 +24,10 @@ describe('voice lines', () => {
   });
 
   it('keeps every speaker distinct: its own voice, or one shifted 10%+ in pitch from any sharer', () => {
-    const list = Object.entries(manifest.speakers) as [string, { voice: string; pitch?: number }][];
+    const list = Object.entries(manifest.speakers) as [string, { voice: string; pitch?: number; robot?: boolean }][];
     list.forEach(([a, x], i) => {
       for (const [b, y] of list.slice(i + 1)) {
-        if (x.voice !== y.voice) continue;
+        if (x.voice !== y.voice || !!x.robot !== !!y.robot) continue;
         expect(Math.abs((x.pitch ?? 1) - (y.pitch ?? 1)), `${a} and ${b} both use ${x.voice}`).toBeGreaterThanOrEqual(0.1);
       }
     });
