@@ -249,6 +249,9 @@ export class Fight {
 
     if (this.hitstop > 0) {
       this.hitstop--;
+      // keep listening through the freeze: a special or chain typed over the hit goes into the
+      // input buffer instead of being lost
+      if (this.phase === 'fight' || this.phase === 'finish') for (const f of this.f) f.readInput(this);
       return;
     }
     tickPoseClock();

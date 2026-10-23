@@ -169,13 +169,13 @@ const hit = (h: Omit<HitDef, 'limb'> & { limb?: HitDef['limb'] }): HitDef => ({ 
 const JAB: Move = {
   id: 'legs_jab',
   anim: A([
-    [P(STANCE, { lf: -64, kf: 96, t: -2, ...ARMS_BACK }), 2, 'out'],
+    [P(STANCE, { lf: -64, kf: 96, t: -2, ...ARMS_BACK }), 1, 'out'],
     [P(STANCE, { lf: -70, kf: 2, ff: -10, t: -10, h: 4, ...ARMS_BACK }), 1, 'lin'],
     [P(STANCE, { lf: -70, kf: 6, ff: -6, t: -8, h: 4, ...ARMS_BACK }), 3],
-    [P(STANCE, { lf: -54, kf: 80, t: -2 }), 3, 'out'],
-    [STANCE, 5],
+    [P(STANCE, { lf: -54, kf: 80, t: -2 }), 2, 'out'],
+    [STANCE, 3],
   ]),
-  active: [3, 6],
+  active: [2, 5],
   hit: hit({ r: 5, dmg: 28, level: 'mid', effect: 'light', push: 2.5, stun: 13 }),
   whoosh: true,
 };
@@ -195,13 +195,13 @@ const HIGH: Move = {
 const LOW: Move = {
   id: 'legs_lk',
   anim: A([
-    [P(STANCE, { lf: -40, kf: 80, ff: 10, t: 2 }), 3, 'in'],
+    [P(STANCE, { lf: -40, kf: 80, ff: 10, t: 2 }), 2, 'in'],
     [P(STANCE, { lf: -48, kf: 0, ff: 16, t: -6, ...ARMS_BACK }), 1, 'lin'],
     [P(STANCE, { lf: -48, kf: 4, ff: 12, t: -6, ...ARMS_BACK }), 4],
-    [P(STANCE, { lf: -34, kf: 60, t: 0 }), 3, 'out'],
-    [STANCE, 5],
+    [P(STANCE, { lf: -34, kf: 60, t: 0 }), 2, 'out'],
+    [STANCE, 3],
   ]),
-  active: [4, 8],
+  active: [3, 7],
   hit: hit({ r: 5, dmg: 42, level: 'mid', effect: 'light', push: 3, stun: 14 }),
   whoosh: true,
 };
@@ -252,15 +252,15 @@ const SWEEP: Move = {
 const CROUCH_POKE: Move = {
   id: 'legs_cp',
   crouch: true,
-  anim: A([[CR({ lf: -70, kf: 100 }), 2, 'out'], [CR({ lf: -84, kf: 0, ff: 6, t: 14 }), 1, 'lin'], [CR({ lf: -84, kf: 4, ff: 6, t: 14 }), 4], [CR({ lf: -76, kf: 90 }), 3, 'out'], [CROUCH, 4]]),
-  active: [3, 7],
+  anim: A([[CR({ lf: -70, kf: 100 }), 1, 'out'], [CR({ lf: -84, kf: 0, ff: 6, t: 14 }), 1, 'lin'], [CR({ lf: -84, kf: 4, ff: 6, t: 14 }), 3], [CR({ lf: -76, kf: 90 }), 2, 'out'], [CROUCH, 3]]),
+  active: [2, 5],
   hit: hit({ r: 5, dmg: 28, level: 'low', effect: 'light', push: 2.5, stun: 13 }),
 };
 const CROUCH_KICK: Move = {
   id: 'legs_ck',
   crouch: true,
-  anim: A([[CR({ lf: -60, kf: 100 }), 3, 'in'], [CR({ lf: -72, kf: 0, ff: 18, t: 18 }), 1, 'lin'], [CR({ lf: -72, kf: 2, ff: 18, t: 20 }), 5], [CR({ lf: -66, kf: 90, t: 10 }), 3, 'out'], [CROUCH, 6]]),
-  active: [4, 9],
+  anim: A([[CR({ lf: -60, kf: 100 }), 2, 'in'], [CR({ lf: -72, kf: 0, ff: 18, t: 18 }), 1, 'lin'], [CR({ lf: -72, kf: 2, ff: 18, t: 20 }), 4], [CR({ lf: -66, kf: 90, t: 10 }), 2, 'out'], [CROUCH, 3]]),
+  active: [3, 7],
   hit: hit({ r: 5, dmg: 40, level: 'low', effect: 'light', push: 2.5, stun: 14 }),
 };
 const CROUCH_HIGH: Move = {

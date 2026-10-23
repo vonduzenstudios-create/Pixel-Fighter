@@ -1,19 +1,21 @@
 import { A, P, STANCE, CROUCH, TUCK } from './anims';
 import type { Move } from './types';
 
-// Normal attacks shared by every fighter. Frame data loosely follows 16-bit era fighters:
-// quick jabs, slower heavy hits, and an uppercut that launches.
+// Normal attacks shared by every fighter. Frame data follows 16-bit era fighters: jabs and short
+// kicks hit within 4-5 frames and recover in about 6 (so they can be chained and are safe up close),
+// heavies are slower and punishable on block, and the launchers and sweeps are big commitments.
+// tests/anims.test.ts pins these numbers so animation polish can't quietly change them.
 
 export const JAB: Move = {
   id: 'jab',
   anim: A([
-    [P(STANCE, { af: -52, ef: -118, t: 6, h: -2, ab: -40, eb: -110 }), 2, 'out'],
+    [P(STANCE, { af: -52, ef: -118, t: 6, h: -2, ab: -40, eb: -110 }), 1, 'out'],
     [P(STANCE, { af: -91, ef: -2, t: 16, h: -7, rx: 2, ab: -30, eb: -122 }), 1, 'lin'],
     [P(STANCE, { af: -88, ef: -6, t: 14, h: -6, rx: 1, ab: -30, eb: -120 }), 3],
-    [P(STANCE, { af: -68, ef: -76, t: 11 }), 3, 'out'],
-    [STANCE, 5],
+    [P(STANCE, { af: -68, ef: -76, t: 11 }), 2, 'out'],
+    [STANCE, 3],
   ]),
-  active: [3, 6],
+  active: [2, 5],
   hit: { limb: 'handF', r: 5, dmg: 30, level: 'high', effect: 'light', push: 2.5, stun: 13 },
   whoosh: true,
 };
@@ -25,8 +27,8 @@ export const HIGH_PUNCH: Move = {
     [P(STANCE, { af: -94, ef: -26, t: 16, h: -8, rx: 2, ab: -28, eb: -90 }), 1, 'lin'],
     [P(STANCE, { af: -104, ef: -2, t: 22, h: -10, rx: 4, ab: -12, eb: -70, lf: -28, kf: 26, lb: 24, kb: 6 }), 4],
     [P(STANCE, { af: -100, ef: -10, t: 20, h: -8, rx: 3, ab: -16, eb: -76, lf: -28, kf: 26, lb: 24, kb: 6 }), 3, 'out'],
-    [P(STANCE, { af: -70, ef: -96, t: 13, h: -6 }), 4],
-    [STANCE, 4],
+    [P(STANCE, { af: -70, ef: -96, t: 13, h: -6 }), 3],
+    [STANCE, 3],
   ]),
   active: [4, 8],
   hit: { limb: 'handF', r: 5, dmg: 50, level: 'high', effect: 'heavy', push: 3.5, stun: 17 },
@@ -35,13 +37,13 @@ export const HIGH_PUNCH: Move = {
 export const LOW_KICK: Move = {
   id: 'lk',
   anim: A([
-    [P(STANCE, { lf: -70, kf: 98, ff: 12, t: -4, ab: -40, af: -50 }), 3, 'in'],
+    [P(STANCE, { lf: -70, kf: 98, ff: 12, t: -4, ab: -40, af: -50 }), 2, 'in'],
     [P(STANCE, { lf: -82, kf: 30, ff: 20, t: -10, ab: -32, af: -44 }), 1, 'lin'],
-    [P(STANCE, { lf: -88, kf: 0, ff: 8, t: -14, h: 4, ab: -24, eb: -100, af: -36, ef: -90 }), 5],
-    [P(STANCE, { lf: -62, kf: 82, ff: 10, t: -6 }), 3, 'out'],
-    [STANCE, 6],
+    [P(STANCE, { lf: -88, kf: 0, ff: 8, t: -14, h: 4, ab: -24, eb: -100, af: -36, ef: -90 }), 4],
+    [P(STANCE, { lf: -62, kf: 82, ff: 10, t: -6 }), 2, 'out'],
+    [STANCE, 3],
   ]),
-  active: [4, 9],
+  active: [3, 7],
   hit: { limb: 'toeF', r: 5, dmg: 45, level: 'mid', effect: 'light', push: 3, stun: 14 },
   whoosh: true,
 };
@@ -49,14 +51,14 @@ export const HIGH_KICK: Move = {
   id: 'hk',
   anim: A([
     [P(STANCE, { t: -4, lf: -40, kf: 62, lb: 12, kb: 10, af: -50, ef: -110 }), 2, 'in'],
-    [P(STANCE, { lf: -96, kf: 122, ff: 22, t: -14, h: 6, af: -30, ef: -80, ab: 10, eb: -60 }), 3, 'in'],
+    [P(STANCE, { lf: -96, kf: 122, ff: 22, t: -14, h: 6, af: -30, ef: -80, ab: 10, eb: -60 }), 2, 'in'],
     [P(STANCE, { lf: -120, kf: 42, ff: -8, t: -24, h: 10, af: -24, ef: -66, ab: 24, eb: -40, lb: 10, kb: 0 }), 1, 'lin'],
     [P(STANCE, { lf: -132, kf: -4, ff: -40, t: -30, h: 12, af: -20, ef: -60, ab: 30, lb: 10, kb: 0 }), 5],
     [P(STANCE, { lf: -127, kf: 10, ff: -30, t: -28, h: 10, af: -20, ef: -60, ab: 28, lb: 10, kb: 0 }), 2, 'out'],
     [P(STANCE, { lf: -82, kf: 102, ff: 16, t: -12, h: 4 }), 4],
-    [STANCE, 7],
+    [STANCE, 4],
   ]),
-  active: [6, 12],
+  active: [5, 11],
   hit: { limb: 'toeF', r: 6, dmg: 60, level: 'high', effect: 'heavy', push: 4, stun: 18 },
   whoosh: true,
 };
@@ -97,29 +99,29 @@ export const SWEEP: Move = {
 export const CROUCH_PUNCH: Move = {
   id: 'cp',
   crouch: true,
-  anim: A([[CR({ af: -60, ef: -100, t: 22 }), 2, 'out'], [CR({ af: -90, ef: -2, t: 32, rx: 1 }), 1, 'lin'], [CR({ af: -88, ef: -5, t: 30 }), 4], [CR({ af: -72, ef: -80 }), 3, 'out'], [CROUCH, 4]]),
-  active: [3, 7],
+  anim: A([[CR({ af: -60, ef: -100, t: 22 }), 1, 'out'], [CR({ af: -90, ef: -2, t: 32, rx: 1 }), 1, 'lin'], [CR({ af: -88, ef: -5, t: 30 }), 3], [CR({ af: -72, ef: -80 }), 2, 'out'], [CROUCH, 3]]),
+  active: [2, 5],
   hit: { limb: 'handF', r: 5, dmg: 30, level: 'mid', effect: 'light', push: 2.5, stun: 13 },
 };
 export const CROUCH_KICK: Move = {
   id: 'ck',
   crouch: true,
-  anim: A([[CR({ lf: -60, kf: 92 }), 3, 'in'], [CR({ lf: -70, kf: 30, ff: 18, lb: -60, kb: 140, t: 18 }), 1, 'lin'], [CR({ lf: -72, kf: 2, ff: 22, lb: -60, kb: 140, t: 20 }), 5], [CR({ lf: -66, kf: 70, t: 10 }), 3, 'out'], [CROUCH, 6]]),
-  active: [4, 9],
+  anim: A([[CR({ lf: -60, kf: 92 }), 2, 'in'], [CR({ lf: -70, kf: 30, ff: 18, lb: -60, kb: 140, t: 18 }), 1, 'lin'], [CR({ lf: -72, kf: 2, ff: 22, lb: -60, kb: 140, t: 20 }), 4], [CR({ lf: -66, kf: 70, t: 10 }), 2, 'out'], [CROUCH, 3]]),
+  active: [3, 7],
   hit: { limb: 'toeF', r: 5, dmg: 40, level: 'low', effect: 'light', push: 2.5, stun: 14 },
 };
 export const CROUCH_HIGH_KICK: Move = {
   id: 'chk',
   crouch: true,
   anim: A([
-    [CR({ lf: -70, kf: 112, t: 30 }), 4, 'in'],
+    [CR({ lf: -70, kf: 112, t: 30 }), 3, 'in'],
     [CR({ lf: -98, kf: 50, ff: -10, lb: -60, kb: 140, t: 36, h: -2, af: -40, ab: 10 }), 1, 'lin'],
     [CR({ lf: -112, kf: 4, ff: -30, lb: -60, kb: 140, t: 40, h: -4, af: -40, ab: 10 }), 5],
     [CR({ lf: -108, kf: 14, ff: -24, lb: -60, kb: 140, t: 38, h: -4, af: -40, ab: 10 }), 2, 'out'],
     [CR({ lf: -76, kf: 96, t: 30 }), 4],
-    [CROUCH, 6],
+    [CROUCH, 4],
   ]),
-  active: [5, 11],
+  active: [4, 10],
   hit: { limb: 'toeF', r: 6, dmg: 55, level: 'mid', effect: 'heavy', push: 3.5, stun: 17 },
   whoosh: true,
 };

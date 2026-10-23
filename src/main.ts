@@ -1,5 +1,5 @@
 import { H, W } from './core/consts';
-import { onKey } from './core/input';
+import { endInputFrame, onKey } from './core/input';
 import { initAudio } from './audio/audio';
 import { loadVoiceLines } from './audio/voicelines';
 import { Stage } from './stages/gorge/stage';
@@ -57,6 +57,7 @@ function frame(now: number) {
   last = now;
   while (acc >= STEP) {
     scene.update();
+    endInputFrame();
     acc -= STEP;
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0);

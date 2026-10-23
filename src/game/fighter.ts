@@ -77,6 +77,16 @@ const NORMALS = new Set<Move>([
   MV.CROUCH_PUNCH, MV.CROUCH_KICK, MV.CROUCH_HIGH_KICK, MV.UPPERCUT,
 ]);
 
+/**
+ * Input buffer: a button press is remembered for this many frames, so pressing a moment before
+ * the fighter can act (end of an attack, blockstun, landing) still comes out on the first free frame.
+ */
+const BUFFER = 6;
+/** Frames after a normal's active window ends that it can still be cancelled once it has connected. */
+const CANCEL_LATE = 4;
+/** Frames a fighter stays squashed on landing before they can act. */
+const LAND_LAG = 3;
+
 /** Command step matching: a diagonal also counts for the cardinal directions beside it. */
 function dirMatches(got: number, want: number) {
   if (got === want) return true;
@@ -133,6 +143,8 @@ export class Fighter {
   hist: { d: number; f: number }[] = [{ d: 5, f: 0 }];
   /** Recent press frames per button, for mash specials. */
   taps: Record<Btn, number[]> = { lp: [], hp: [], lk: [], hk: [] };
+  /** Frame each button was last pressed and not yet used, for the input buffer (-99 when none). */
+  buf: Record<Btn, number> = { lp: -99, hp: -99, lk: -99, hk: -99 };
   /** Skeleton in world units (scaled by the character's size). Hitboxes and effects use this. */
   skel: Skeleton;
   /** Unscaled skeleton the sprites are drawn from. */
@@ -238,17 +250,20 @@ export class Fighter {
    * Lenient on purpose: a diagonal counts for its neighbouring direction (DB is fine for B or D),
    * steps can be spread over `window` frames, and the last one can be let go of a moment early.
    */
-  matchCmd(cmd: number[], window = 28) {
+  matchCmd(cmd: number[], window = 28, at = this.frame) {
+    // `at` is the frame the button went down: a buffered press is judged by the stick at that moment
     let j = cmd.length - 1;
+    let end = at;
     for (let i = this.hist.length - 1; i >= 0; i--) {
       const h = this.hist[i];
-      const end = i === this.hist.length - 1 ? this.frame : this.hist[i + 1].f;
-      if (end < this.frame - window) break;
+      if (h.f > at) continue;
+      if (end < at - window) break;
       if (dirMatches(h.d, cmd[j])) {
-        if (j === cmd.length - 1 && end < this.frame - 14) return false;
+        if (j === cmd.length - 1 && end < at - 14) return false;
         j--;
         if (j < 0) return true;
       }
+      end = h.f;
     }
     return false;
   }
@@ -268,6 +283,7 @@ export class Fighter {
     for (const sp of this.ch.specials) {
       if (!sp.mash || !this.btnPressed(sp.mash) || !this.mashed(sp.mash)) continue;
       for (const k in this.taps) this.taps[k as Btn].length = 0;
+      this.clearBuffer();
       this.startMove(sp.move, f);
       f.onSpecial(this, sp);
       return true;
@@ -292,6 +308,22 @@ export class Fighter {
     return p[b];
   }
 
+  /** A ground normal: shared or this character's own (not a special, throw or jump attack). */
+  isNormal(m: Move) {
+    return NORMALS.has(m) || this.ownNormal(m);
+  }
+
+  /** The most recent press still waiting in the input buffer (heavier buttons win a tie). */
+  bufferedButton(): Btn | null {
+    let best: Btn | null = null;
+    for (const b of ['hp', 'hk', 'lp', 'lk'] as Btn[])
+      if (this.frame - this.buf[b] <= BUFFER && (!best || this.buf[b] > this.buf[best])) best = b;
+    return best;
+  }
+  clearBuffer() {
+    for (const k in this.buf) this.buf[k as Btn] = -99;
+  }
+
   // ---------------------------------------------------------------- update
   readInput(f: Fight) {
     this.frame++;
@@ -303,7 +335,7 @@ export class Fighter {
     this.pressed = p;
     for (const k in this.taps) {
       const list = this.taps[k as Btn];
-      if (p[k]) list.push(this.frame);
+      if (p[k]) list.push(this.frame), (this.buf[k as Btn] = this.frame);
       while (list.length && list[0] < this.frame - MASH_WINDOW) list.shift();
     }
     const d = this.dir;
@@ -326,7 +358,7 @@ export class Fighter {
     const s = this.state;
 
     if (NEUTRAL.has(s) && !this.airborne) {
-      if (s !== 'land' || this.t >= 5) {
+      if (s !== 'land' || this.t >= LAND_LAG) {
         this.faceOpp();
         if (!this.tryMash(f) && !this.tryAttack(f)) this.neutral(f);
       }
@@ -342,7 +374,7 @@ export class Fighter {
     } else if (s === 'jump') {
       if (!this.airAttacked) this.tryAirAttack(f);
     } else if (s === 'attack') {
-      if (!this.tryMash(f)) this.updateMove(f);
+      if (!this.tryMash(f) && !this.tryCancel(f)) this.updateMove(f);
     } else if (s === 'hitstun' || s === 'blockstun') {
       this.vx *= 0.8;
       if (--this.stun <= 0) {
@@ -418,43 +450,76 @@ export class Fighter {
   }
 
   tryAttack(f: Fight): boolean {
-    const b = this.pressedButton();
+    const b = this.bufferedButton();
     if (!b) return false;
+    const at = this.buf[b];
+    this.buf[b] = -99;
     // finishing move during the "end them" window
     if (f.canFinish(this)) {
       const fin = this.ch.finisher;
       const dist = Math.abs(this.opp.x - this.x);
-      if (b === fin.btn && this.matchCmd(fin.cmd, 60) && dist >= fin.range[0] && dist <= fin.range[1]) {
+      if (b === fin.btn && this.matchCmd(fin.cmd, 60, at) && dist >= fin.range[0] && dist <= fin.range[1]) {
         f.startFatality(this);
         return true;
       }
     }
+    if (this.trySpecial(f, b, at)) return true;
+    if (this.dir === 6 && b === 'lp' && Math.abs(this.opp.x - this.x) < 34 && f.tryThrow(this)) return true;
+    this.startMove(this.normalFor(b), f);
+    return true;
+  }
+
+  /** Start the special whose command ends with button `b` pressed at frame `at`, if there is one. */
+  trySpecial(f: Fight, b: Btn, at: number): boolean {
     const specials = [...this.ch.specials].sort((a, z) => z.cmd.length - a.cmd.length);
     for (const sp of specials) {
       const btnOk = sp.btn === 'p' ? b === 'lp' || b === 'hp' : sp.btn === 'k' ? b === 'lk' || b === 'hk' : sp.btn === b;
-      if (btnOk && this.matchCmd(sp.cmd)) {
+      if (btnOk && this.matchCmd(sp.cmd, 28, at)) {
         if (sp.move.id.startsWith('proj') && this.projOut) continue;
         this.startMove(sp.move, f);
         f.onSpecial(this, sp);
         return true;
       }
     }
+    return false;
+  }
+
+  /** The ground normal button `b` gives with the stick where it is now. */
+  normalFor(b: Btn): Move {
     const d = this.dir;
-    const dist = Math.abs(this.opp.x - this.x);
     let m: Move;
     if (d <= 3) m = b === 'lp' ? MV.CROUCH_PUNCH : b === 'hp' ? MV.UPPERCUT : b === 'lk' ? MV.CROUCH_KICK : MV.CROUCH_HIGH_KICK;
     else if (d === 4) m = b === 'lk' ? MV.SWEEP : b === 'hk' ? MV.ROUNDHOUSE : b === 'lp' ? MV.JAB : MV.HIGH_PUNCH;
-    else if (d === 6 && b === 'lp' && dist < 34) {
-      if (f.tryThrow(this)) return true;
-      m = MV.JAB;
-    } else m = b === 'lp' ? MV.JAB : b === 'hp' ? MV.HIGH_PUNCH : b === 'lk' ? MV.LOW_KICK : MV.HIGH_KICK;
-    this.startMove(this.normal(m), f);
+    else m = b === 'lp' ? MV.JAB : b === 'hp' ? MV.HIGH_PUNCH : b === 'lk' ? MV.LOW_KICK : MV.HIGH_KICK;
+    return this.normal(m);
+  }
+
+  /**
+   * Cancels, as in the 16-bit classics: once a ground normal connects (hit or block), a special
+   * command cuts its recovery short, and a light attack can chain straight into another light.
+   */
+  tryCancel(f: Fight): boolean {
+    const m = this.move!;
+    if (this.airborne || !this.hits || !m.active || !this.isNormal(m) || this.mf > m.active[1] + CANCEL_LATE) return false;
+    const b = this.bufferedButton();
+    if (!b) return false;
+    const at = this.buf[b];
+    if (this.trySpecial(f, b, at)) {
+      this.buf[b] = -99;
+      return true;
+    }
+    if (m.hit?.effect !== 'light') return false;
+    const next = this.normalFor(b);
+    if (next.hit?.effect !== 'light') return false;
+    this.buf[b] = -99;
+    this.startMove(next, f);
     return true;
   }
 
   tryAirAttack(f: Fight) {
-    const b = this.pressedButton();
+    const b = this.bufferedButton();
     if (!b || this.t < 3) return;
+    this.buf[b] = -99;
     this.airAttacked = true;
     this.startMove(this.normal(b === 'lp' || b === 'hp' ? MV.JUMP_PUNCH : MV.JUMP_KICK), f);
   }
