@@ -1,17 +1,18 @@
-import { FLOOR, H, MAX_HP, STAGE_W, W } from '../core/consts';
+import { FINISH_WINDOW, FLOOR, H, MAX_HP, STAGE_W, W } from '../core/consts';
 import { Edge, readPlayer } from '../core/input';
 import { rand } from '../core/rng';
 import { drawText } from '../gfx/font';
 import { pxLine } from '../gfx/painter';
 import { keg as kegSprite, skull } from '../gfx/props';
 import { PartSet, Part } from '../gfx/rig';
-import { announce, sfx } from '../audio/sfx';
+import { announce, sfx, strengthOf } from '../audio/sfx';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
 import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import { Stage } from './stage';
+import { Toasty } from './toasty';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
 
@@ -26,6 +27,7 @@ export class Fight {
   projectiles: Projectile[] = [];
   particles = new Particles();
   pitParticles = new Particles();
+  toasty = new Toasty();
   camX = (STAGE_W - W) / 2;
   shakeT = 0;
   hitstop = 0;
@@ -55,12 +57,12 @@ export class Fight {
   }
 
   // ------------------------------------------------------------- helpers used by fighters
-  sfx(name: string, arg?: number) {
+  sfx(name: string, ...args: any[]) {
     switch (name) {
-      case 'hitHeavy': sfx.hit(true); break;
-      case 'hitLight': sfx.hit(false); break;
+      case 'hitHeavy': sfx.hit(2); break;
+      case 'hitLight': sfx.hit(0); break;
       case 'grunt': sfx.grunt(); break;
-      default: (sfx as any)[name]?.(arg);
+      default: (sfx as any)[name]?.(...args);
     }
   }
   shake(n: number) {
@@ -76,6 +78,9 @@ export class Fight {
     if (this.phase !== 'fight' || d.airborne) return false;
     if (!['idle', 'walkF', 'walkB', 'crouch', 'block', 'cblock', 'land', 'hitstun'].includes(d.state)) return false;
     if (Math.abs(d.x - a.x) > 34) return false;
+    // leave room behind the thrower so the judo flip always swaps sides, even in a corner
+    const room = 40;
+    a.x = a.facing === 1 ? Math.max(a.x, 14 + room) : Math.min(a.x, STAGE_W - 14 - room);
     a.startMove(THROW, this);
     d.move = null;
     d.thrower = a;
@@ -91,6 +96,7 @@ export class Fight {
 
   // ------------------------------------------------------------- round flow
   resetRound() {
+    this.toasty.reset();
     this.f[0].resetRound(STAGE_W / 2 - 50);
     this.f[1].resetRound(STAGE_W / 2 + 50);
     this.f[0].facing = 1;
@@ -192,6 +198,7 @@ export class Fight {
     this.banners = this.banners.filter((b) => b.t < b.dur);
     this.particles.update();
     this.pitParticles.update();
+    this.toasty.update();
     if (this.shakeT > 0) this.shakeT--;
     for (let i = 0; i < 2; i++) this.shownHp[i] += (this.f[i].hp - this.shownHp[i]) * (this.shownHp[i] > this.f[i].hp ? 0.04 : 1);
 
@@ -233,6 +240,7 @@ export class Fight {
             l.y = 0;
             l.vy = 0;
             l.vx = 0;
+            l.stun = 0;
             l.setState('dizzy', AN.DIZZY_ANIM);
             this.phase = 'finish';
             this.pt = 0;
@@ -246,7 +254,7 @@ export class Fight {
         break;
       case 'finish':
         this.step();
-        if (this.pt > 330 && this.loser!.state === 'dizzy') {
+        if (this.pt > FINISH_WINDOW && this.loser!.state === 'dizzy') {
           this.loser!.setState('fall', AN.FALL);
           this.loser!.vy = 2;
           this.loser!.y = 1;
@@ -392,15 +400,21 @@ export class Fight {
         this.startPitFatality(a);
         return;
       }
-      d.receive({ ...hit, effect: 'knockdown' }, a, this, at, projectile);
-      this.particles.blood(at.x, at.y, a.facing, 20);
-      sfx.hit(true);
-      this.endFinish();
+      // they just stand there and take it until the window runs out
+      d.reel(a, at);
+      const heavy = hit.dmg >= 60;
+      this.particles.blood(at.x, at.y, a.facing, heavy ? 16 : 9, heavy ? 1.3 : 1);
+      this.particles.sparks(at.x, at.y, 4, '#ffffff');
+      sfx.hit(strengthOf(hit.dmg), isKick(hit));
+      if (Math.random() < 0.5) sfx.blood();
+      if (Math.random() < 0.45) sfx.grunt();
+      this.hitstop = heavy ? 6 : 3;
+      if (heavy) this.shake(3);
       return;
     }
     const res = d.receive(hit, a, this, at, projectile);
     if (res === 'block') {
-      sfx.block();
+      sfx.block(hit.dmg >= 60);
       this.particles.sparks(at.x, at.y, 6);
       this.hitstop = 3;
       return;
@@ -408,7 +422,7 @@ export class Fight {
     const heavy = hit.dmg >= 60;
     if (hit.sfx === 'slash') sfx.slash();
     else if (hit.sfx === 'zap') sfx.zap(0.15);
-    else sfx.hit(heavy);
+    else sfx.hit(hit.effect === 'launch' || hit.effect === 'knockdown' ? 3 : strengthOf(hit.dmg), isKick(hit));
     if (hit.sfx === 'zap') this.particles.zap(at.x, at.y, 8);
     if (projectile && (hit.dmg >= 80)) this.particles.fire(at.x, at.y, 6, 4);
     this.particles.blood(at.x, at.y, a.facing, Math.round(hit.dmg / 6), heavy ? 1.3 : 1);
@@ -416,6 +430,7 @@ export class Fight {
     if (Math.random() < 0.5) sfx.blood();
     this.hitstop = heavy ? 7 : 4;
     if (heavy) this.shake(4);
+    if (a.move?.id === 'uppercut' && !projectile) this.toasty.roll();
   }
 
   // ------------------------------------------------------------- finishing moves
@@ -530,15 +545,19 @@ export class Fight {
         break;
       }
       case 'chuck': {
-        // close in, a blur of boots, then one roundhouse that sends them into orbit
+        // a blur of boots, then three heel drops that hammer them down through the bridge deck like a nail
         const kick = (k: number) =>
           k % 2
             ? AN.P(AN.STANCE, { lb: -128, kb: -4, fb: -40, t: -36, h: 10, af: -10, ef: -40, ab: 10, lf: 6, kf: 4 })
             : AN.P(AN.STANCE, { lf: -120, kf: -4, ff: -30, t: -26, h: 10, af: -30, ef: -70, ab: 30 });
+        const RAISE = AN.P(AN.STANCE, { lf: -172, kf: -2, ff: -20, t: -14, h: 6, af: -40, ef: -60, ab: 30, eb: -40, lb: 6, kb: 4 });
+        const DROP = AN.P(AN.STANCE, { lf: -52, kf: 4, ff: 20, t: 22, h: 8, af: -20, ef: -60, ab: 20, eb: -40, lb: 20, kb: 20 });
+        D.sink ??= 0;
+        D.target ??= 0;
         if (tt < 16) {
-          w.x += (l.x - w.facing * 30 - w.x) * 0.2;
+          w.x += (l.x - w.facing * 38 - w.x) * 0.2;
           w.poseOverride = AN.P(AN.STANCE, { af: -80, ef: -120, ab: -70, eb: -125, t: -4, h: -6 });
-        } else if (tt < 88) {
+        } else if (tt < 64) {
           const k = Math.floor((tt - 16) / 4);
           w.poseOverride = kick(k);
           if ((tt - 16) % 4 === 1) {
@@ -551,51 +570,104 @@ export class Fight {
             if (k % 4 === 0) sfx.whoosh();
           }
           if (tt === 40) sfx.scream();
-        } else if (tt < 100) {
-          w.poseOverride = AN.P(AN.STANCE, { t: 25, lb: -30, kb: 90, af: -20, ab: -60 });
-          l.poseOverride = AN.DIZZY;
-        } else if (tt === 100) {
-          w.poseOverride = kick(1);
-          sfx.whoosh(true);
-          sfx.hit(true);
-          sfx.cannon();
-          this.shake(16);
-          this.particles.blood(l.x, 50, w.facing, 50, 1.8);
-          D.fly = true;
-          l.vy = 7;
-          l.vx = w.facing * 2.2;
-          l.y = Math.max(l.y, 4);
-        }
-        if (D.fly) {
-          l.x += l.vx;
-          l.y += l.vy;
-          l.vy *= 1.02;
-          l.poseOverride = AN.P(AN.LAUNCHED, { rot: -(tt - 100) * 24 });
-          l.animT++;
-          if (tt % 2 === 0) this.particles.blood(l.x, l.y + 40, rand(-1, 1), 2);
-          if (l.y > 260) {
-            D.fly = false;
-            l.alpha = 0;
-            D.star = tt;
-            D.sx = Math.max(20, Math.min(W - 20, l.x - this.camX));
-            sfx.twinkle();
+        } else if (tt < 190) {
+          // drops land at 84, 124 and 164; each one drives them further into the planks
+          const ph = (tt - 64) % 40;
+          l.poseOverride = AN.P(AN.DIZZY, { af: -20, ab: -10 });
+          w.poseOverride = ph < 14 ? RAISE : ph < 20 ? AN.P(RAISE, { lf: -120 }) : DROP;
+          if (ph === 20) {
+            const n = (tt - 84) / 40;
+            D.target = [26, 52, 92][n];
+            sfx.crunch();
+            sfx.hit(true);
+            this.shake(n === 2 ? 14 : 8);
+            this.particles.blood(l.x, Math.max(6, 70 - D.target), w.facing, n === 2 ? 40 : 14, n === 2 ? 1.6 : 1);
+            this.particles.sparks(l.x, 2, 8, '#a8743a');
+            this.particles.smoke(l.x, 2, 6, '#6a5040');
+            if (n === 1) sfx.scream();
           }
         }
-        if (tt === 116) w.poseOverride = AN.P(AN.STANCE, { af: -70, ef: -125, ab: -60, eb: -125, t: 0, h: -10 });
-        if (D.star != null && tt === D.star + 80) {
-          // what goes up comes back down, in pieces
-          const hx = this.camX + D.sx;
-          this.particles.chunk(l.parts.head.img, l.parts.head.px, l.parts.head.py, hx, 230, 0, -2, 0.3);
-          for (let i = 0; i < 12; i++) this.particles.blood(hx + rand(-30, 30), 230, rand(-1, 1), 3, 0.3);
+        D.sink += (D.target - D.sink) * 0.35;
+        l.y = 0;
+        l.vy = 0;
+        if (tt >= 166 && tt < 260 && tt % 5 === 0) {
+          // what is left gushes out of the hole
+          this.particles.blood(l.x + rand(-4, 4), 2, rand(-1, 1), 4, 1.3);
+          if (tt % 20 === 0) sfx.blood();
         }
-        if (D.star != null && tt === D.star + 113) {
-          sfx.thud();
-          this.shake(4);
-        }
+        if (tt === 200) w.poseOverride = AN.P(AN.STANCE, { af: -70, ef: -125, ab: -60, eb: -125, t: 0, h: -10 });
         w.update(this);
         w.computePose();
         l.computePose();
-        if (tt >= 330) done();
+        if (tt >= 300) done();
+        break;
+      }
+      case 'brucelee': {
+        // a blur of fists and nunchaku, a beat of stillness, then one short punch that sends them into orbit
+        if (tt < 14) {
+          w.x += (l.x - w.facing * 26 - w.x) * 0.25;
+          w.poseOverride = AN.P(AN.STANCE, { af: -70, ef: -80, t: 4 });
+        } else if (tt < 74) {
+          const k = tt % 6;
+          w.propOverride = tt >= 44 ? w.ch.props.nunchaku ?? null : null;
+          w.poseOverride = tt < 44
+            ? AN.P(AN.STANCE, k < 3 ? { af: -92, ef: -4, ab: -40, eb: -100, t: 20 } : { af: -40, ef: -100, ab: -90, eb: -6, t: 18 })
+            : AN.P(AN.STANCE, { af: k < 3 ? -150 : -100, ef: -30, t: 10, pa: tt * 50 });
+          if (k === 0 || k === 3) {
+            l.shake = 4;
+            l.poseOverride = AN.P(k ? AN.HIT_HIGH : AN.HIT_MID, { h: rand(-30, 20), t: k ? rand(-30, -14) : rand(20, 34) });
+            const hx = l.x - w.facing * 4, hy = rand(36, 66);
+            this.particles.blood(hx, hy, w.facing, 6, 1.2);
+            this.particles.sparks(hx, hy, 2, '#ffffff');
+            sfx.hit(tt % 12 === 0);
+          }
+          if (tt === 20 || tt === 50) sfx.kiai(360 + rand(-20, 20));
+        } else if (tt < 100) {
+          w.propOverride = null;
+          w.poseOverride = AN.P(AN.STANCE, { af: -86, ef: -14, ab: -30, eb: -110, t: 12, lf: -36, kf: 34 });
+          l.poseOverride = AN.DIZZY;
+          l.shake = 0;
+          if (tt === 76) this.particles.blood(l.x, 60, -w.facing, 20, 0.6);
+          if (tt === 92) sfx.kiai(420);
+        }
+        if (tt === 100) {
+          w.poseOverride = AN.P(AN.STANCE, { af: -92, ef: -2, ab: -20, eb: -120, t: 26, h: -8, lf: -44, kf: 42, lb: 28, kb: 6 });
+          sfx.hit(true);
+          sfx.boom();
+          sfx.scream();
+          this.shake(18);
+          this.hitstop = 10;
+          this.particles.blood(l.x, 50, w.facing, 70, 2);
+          this.particles.sparks(l.x - w.facing * 6, 50, 14, '#fff2c0');
+          l.poseOverride = null;
+          l.setAnim(AN.TUMBLE);
+          D.vx = w.facing * 3.5;
+          D.vy = 8.5;
+        }
+        if (tt === 150) w.poseOverride = AN.P(AN.STANCE, { af: -60, ef: -95, t: 6, h: 4 });
+        w.update(this);
+        w.computePose();
+        if (tt > 100 && D.vx != null) {
+          // fly up and away, ignoring the stage walls
+          l.x += D.vx;
+          l.y += D.vy;
+          D.vy -= 0.05;
+          l.animT++;
+          if (tt % 2 === 0) this.particles.blood(l.x, l.y + 40, -w.facing, 2, 0.6);
+          const sx = l.x - this.camX;
+          if (D.gone == null && (sx < -40 || sx > W + 40 || l.y > FLOOR + 40)) {
+            D.gone = tt;
+            D.sx = Math.max(10, Math.min(W - 10, sx)) + this.camX;
+            l.alpha = 0;
+          }
+        }
+        l.computePose();
+        if (D.gone != null && tt === D.gone + 20) {
+          this.particles.sparks(D.sx, FLOOR - 16, 12, '#ffffff');
+          this.particles.sparks(D.sx, FLOOR - 16, 6, '#ffe060');
+          sfx.twinkle();
+        }
+        if (tt >= 280) done();
         break;
       }
       case 'pit': {
@@ -678,6 +750,7 @@ export class Fight {
     else this.drawArena(ctx);
     ctx.restore();
     this.drawHUD(ctx);
+    this.toasty.draw(ctx);
     for (const b of this.banners) {
       if (b.t < 0) continue;
       const y = b.text === 'PERFECT' ? 108 : 80;
@@ -687,13 +760,60 @@ export class Fight {
     if (this.paused) this.drawPause(ctx);
   }
 
+  /** Little stars circling a dazed fighter's head. */
+  drawStars(ctx: CanvasRenderingContext2D, f: Fighter, cam: number) {
+    if (f.alpha <= 0) return;
+    const top = f.skel.headTop;
+    const cx = Math.round(f.wx(top[0]) - cam), cy = Math.round(FLOOR - f.wy(top[1]) - 12);
+    const n = 3;
+    for (let i = 0; i < n; i++) {
+      const a = this.t * 0.08 + (i * Math.PI * 2) / n;
+      const x = Math.round(cx + Math.cos(a) * 14), y = Math.round(cy + Math.sin(a) * 4);
+      const front = Math.sin(a) > 0;
+      // 5-point pixel star with a black outline
+      ctx.fillStyle = '#000';
+      ctx.fillRect(x - 3, y - 2, 7, 4);
+      ctx.fillRect(x - 1, y - 4, 3, 8);
+      ctx.fillRect(x - 2, y + 2, 1, 2);
+      ctx.fillRect(x + 2, y + 2, 1, 2);
+      ctx.fillStyle = front ? '#fff26a' : '#c89a20';
+      ctx.fillRect(x - 2, y - 1, 5, 2);
+      ctx.fillRect(x, y - 3, 1, 6);
+      ctx.fillRect(x - 1, y - 1, 3, 3);
+      ctx.fillRect(x - 2, y + 2, 1, 1);
+      ctx.fillRect(x + 2, y + 2, 1, 1);
+      if (front && (this.t + i * 7) % 20 < 10) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x, y - 1, 1, 1);
+      }
+    }
+  }
+
   drawArena(ctx: CanvasRenderingContext2D) {
     const cam = Math.round(this.camX);
     this.stage.draw(ctx, cam, this.t);
     for (const f of this.f) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
-    for (const f of order) f.draw(ctx, cam);
+    for (const f of order) {
+      if (this.fatal?.kind === 'chuck' && f === this.loser && this.fatal.data.sink > 0.5) {
+        // hammered into the deck: only what is above the planks shows, over a splintered hole
+        const sink = Math.round(this.fatal.data.sink), hx = Math.round(f.x - cam);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, W, FLOOR + 1);
+        ctx.clip();
+        f.draw(ctx, cam, FLOOR + sink);
+        ctx.restore();
+        ctx.fillStyle = '#100808';
+        ctx.fillRect(hx - 9, FLOOR, 18, 2);
+        ctx.fillStyle = '#a8743a';
+        for (const [dx, h] of [[-10, 3], [-6, 2], [5, 3], [9, 2]]) ctx.fillRect(hx + dx, FLOOR - h + 1, 1, h);
+        continue;
+      }
+      f.draw(ctx, cam);
+    }
+    for (const f of this.f) if (f.state === 'dizzy' || (this.fatal && f === this.loser && f.poseOverride === AN.DIZZY)) this.drawStars(ctx, f, cam);
     for (const p of this.projectiles) p.draw(ctx, cam);
     if (this.fatal?.kind === 'blackbeard' && this.fatal.data.kx != null) {
       ctx.save();
@@ -719,18 +839,6 @@ export class Fight {
     }
     this.particles.draw(ctx, cam);
     this.stage.drawFront(ctx, cam, this.t);
-    if (this.fatal?.kind === 'chuck' && this.fatal.data.star != null) {
-      const k = this.fatal.t - this.fatal.data.star;
-      if (k < 60) {
-        // twinkle where they left the atmosphere
-        const r = k < 10 ? k * 0.7 : Math.max(0, 7 - (k - 10) / 7);
-        const x = Math.round(this.fatal.data.sx), y = 44;
-        ctx.fillStyle = k % 6 < 3 ? '#ffffff' : '#fff0a0';
-        ctx.fillRect(x - Math.round(r * 2), y, Math.round(r * 4) + 1, 1);
-        ctx.fillRect(x, y - Math.round(r * 2), 1, Math.round(r * 4) + 1);
-        ctx.fillRect(x - Math.round(r / 2), y - Math.round(r / 2), Math.round(r) + 1, Math.round(r) + 1);
-      }
-    }
   }
 
   drawPit(ctx: CanvasRenderingContext2D) {
@@ -799,7 +907,8 @@ export class Fight {
     ctx.fillRect(0, 0, W, H);
     drawText(ctx, 'PAUSED', W / 2, 30, '#fff', { scale: 2, align: 'center', grad: ['#ffe890', '#d04010'], outline: '#000' });
     const list = this.humans[1] ? [this.f[0], this.f[1]] : [this.f[0]];
-    let y = 56;
+    const two = list.length > 1;
+    let y = two ? 48 : 56;
     for (const f of list) {
       drawText(ctx, f.ch.name, 16, y, '#e0c050');
       y += 11;
@@ -811,9 +920,13 @@ export class Fight {
       drawText(ctx, f.ch.finisher.name, 20, y, '#f66');
       y += 9;
       drawText(ctx, f.ch.finisher.text, W - 16, y, '#f99', { align: 'right' });
-      y += 14;
+      y += two ? 11 : 14;
     }
-    drawText(ctx, 'STAGE FINISH: UPPERCUT (D+HP) WHEN THEY ARE DAZED', W / 2, y, '#fa8', { align: 'center' });
+    drawText(ctx, 'D+HP UPPERCUT  B+HK ROUNDHOUSE', W / 2, y, '#8cf', { align: 'center' });
+    drawText(ctx, 'B+LK SWEEP  F+LP JUDO THROW', W / 2, y + 9, '#8cf', { align: 'center' });
+    drawText(ctx, 'D+LP / D+LK / D+HK CROUCH ATTACKS', W / 2, y + 18, '#8cf', { align: 'center' });
+    y += two ? 27 : 32;
+    drawText(ctx, 'PIT DROP: D+HP WHEN THEY ARE DAZED', W / 2, y, '#fa8', { align: 'center' });
     drawText(ctx, 'PRESS START TO RESUME', W / 2, H - 16, '#fff', { align: 'center' });
   }
 }
@@ -824,3 +937,5 @@ function circleRect(cx: number, cy: number, r: number, b: [number, number, numbe
   const dx = cx - nx, dy = cy - ny;
   return dx * dx + dy * dy <= r * r;
 }
+
+const isKick = (hit: HitDef) => hit.limb.startsWith('toe');

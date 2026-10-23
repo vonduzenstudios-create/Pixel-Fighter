@@ -25,24 +25,25 @@ Pushing to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`
 | Action      | Gamepad          | Keyboard (P1) | Keyboard (P2)          |
 |-------------|------------------|---------------|------------------------|
 | Move        | D-pad / stick    | W A S D       | Arrow keys             |
-| Low punch   | X                | U             | `[` or Numpad 4        |
-| High punch  | Y                | I             | `]` or Numpad 5        |
-| Low kick    | A                | J             | `;` or Numpad 1        |
-| High kick   | B                | K             | `'` or Numpad 2        |
+| Low punch   | A                | U             | `[` or Numpad 4        |
+| High punch  | X                | I             | `]` or Numpad 5        |
+| Low kick    | B                | J             | `;` or Numpad 1        |
+| High kick   | Y                | K             | `'` or Numpad 2        |
 | Block       | LB, RB, LT, RT   | L or Space    | `/` or Numpad 0        |
 | Start/pause | Start            | Enter         | `\`                    |
 
-Holding back also blocks. Commands below are written for a fighter facing right
+Holding back also blocks. In menus, A or Start confirms and B (or Esc) goes back. Commands below are written for a fighter facing right
 (F = toward the opponent, B = away, D = down).
 
 ### Everyone
 
 | Move                    | Command                            |
 |-------------------------|------------------------------------|
-| Uppercut                | D + HP                             |
-| Sweep                   | B + LK                             |
-| Roundhouse              | B + HK                             |
-| Throw (close)           | F + LP                             |
+| Uppercut (launches up)  | D + HP                             |
+| Roundhouse (launches)   | B + HK                             |
+| Sweep (knockdown)       | B + LK                             |
+| Crouching attacks       | D + LP, D + LK, D + HK             |
+| Judo throw (close, swaps sides) | F + LP                     |
 | Pit drop (stage finish) | D + HP while the opponent is dazed |
 
 ### Specials and finishers
