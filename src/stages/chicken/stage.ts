@@ -8,7 +8,8 @@ import { P, LIE } from '../../game/anims';
 import type { SongName } from '../../audio/music';
 import type { Fight } from '../../game/fight';
 
-// "Patty Pete's": a 90s burger joint after closing time. Teal and grape walls, a checker floor,
+// "The Cluck Hut": Colonel Crisp's home turf, a 90s fried-chicken joint after closing time.
+// Green and chocolate walls, a checker floor,
 // booths under the windows, the order counter, and at the far right end the Fun Zone ball pit,
 // whose balls are simulated and get kicked around by the fighters. All painted at load time.
 
@@ -20,53 +21,69 @@ const PIT_FLOOR = 216;
 const BALL_R = 3;
 const BALL_COLS = ['#e83040', '#f8c820', '#2c78e8', '#30c060', '#ff8a20', '#a050e0', '#ff60b0'];
 
-// house colours: teal, grape and tangerine, with hot pink and lemon accents
-const TEAL = '#1e9a96', GRAPE = '#4a2a78', TANG = '#ff8a24', PINK = '#ff4a9a', LEMON = '#ffe04a';
+// house colours: forest green, chocolate brown and mustard, with paprika and cream accents
+const TEAL = '#2e7a46', GRAPE = '#5a2e16', TANG = '#e8a020', PINK = '#e0582a', LEMON = '#ffe8a0', GOLD = '#f0c030';
 
-/** Patty Pete, the house mascot: a grinning burger in shades, sneakers and a thumbs up. */
-function pete(p: Painter, cx: number, base: number, s: number) {
+/** A golden fried drumstick with its bone knob sticking out. */
+function drumstick(p: Painter, x: number, y: number, s: number, flip = false) {
+  const d = flip ? -1 : 1;
+  p.capsule(x - d * s * 2, y, s * 3.2, x + d * s * 3, y - s * 1.5, s * 1.4, '#c8782a');
+  p.ellipse(x - d * s * 2.6, y - s, s * 1.4, s * 1, '#e8a048');
+  p.rect(x + d * s * 3.5 - (flip ? s * 2 : 0), y - s * 2.2, s * 2, s * 1.2, '#f8f0e0');
+  p.ellipse(x + d * s * 5.6, y - s * 2.2, s * 0.9, s * 0.9, '#f8f0e0');
+  p.ellipse(x + d * s * 5.6, y - s * 1.2, s * 0.9, s * 0.9, '#f8f0e0');
+}
+
+/** A flaky buttermilk biscuit. */
+function biscuit(p: Painter, x: number, y: number, s: number) {
+  p.ellipse(x, y, s * 4, s * 2.6, '#d89a50');
+  p.ellipse(x, y - s * 0.8, s * 3.4, s * 1.6, '#f0c070');
+  p.rect(x - s * 3, y + s * 0.2, s * 6, Math.max(1, s * 0.6), '#fff0c8');
+}
+
+/** Clucky, the house mascot: a plump grinning hen in shades and a bow tie, giving a thumbs up. */
+function clucky(p: Painter, cx: number, base: number, s: number) {
   const u = (v: number) => v * s;
-  // legs and sneakers
+  // scaly orange legs and three-toed feet
   for (const d of [-1, 1]) {
-    p.rect(cx + u(d * 5) - u(1.5), base - u(14), u(3), u(10), '#f4ead8');
-    p.ellipse(cx + u(d * 6) + u(2) * d, base - u(3), u(5), u(3), '#ffffff');
-    p.rect(cx + u(d * 6) - u(3) + u(2) * d, base - u(2), u(8), u(2), PINK);
+    const lx = cx + u(d * 6);
+    p.rect(lx - u(1), base - u(15), u(2), u(14), '#f09020');
+    for (const t of [-1, 0, 1]) p.line(lx, base - u(1), lx + u(t * 4 + d), base, '#f09020');
   }
-  const by = base - u(14);
-  // bottom bun, patty, cheese, lettuce, top bun
-  p.ellipse(cx, by - u(4), u(17), u(5), '#d88a3a');
-  p.rect(cx - u(18), by - u(10), u(36), u(5), '#6a3418');
-  p.ellipse(cx - u(18), by - u(7.5), u(2.5), u(2.5), '#6a3418');
-  p.ellipse(cx + u(18), by - u(7.5), u(2.5), u(2.5), '#6a3418');
-  p.poly([[cx - u(16), by - u(10)], [cx + u(16), by - u(10)], [cx + u(10), by - u(5)], [cx + u(4), by - u(10)], [cx - u(6), by - u(4)]], LEMON);
-  for (let i = -18; i <= 18; i += 3) p.ellipse(cx + u(i), by - u(11), u(2.2), u(1.6), '#4ac040');
-  const ty = by - u(12);
-  for (let y = Math.floor(ty - u(18)); y <= ty; y++)
-    for (let x = Math.floor(cx - u(19)); x <= cx + u(19); x++) {
-      const dx = (x + 0.5 - cx) / u(19), dy = (y + 0.5 - ty) / u(18);
+  // tail feathers fanned out behind
+  for (const [tx, ty, rx] of [[-17, -40, 6], [-20, -34, 6], [-19, -28, 5]]) p.ellipse(cx + u(tx), base + u(ty), u(rx), u(3), '#e8e0cc');
+  // round body, lit from the upper left
+  const by = base - u(28);
+  for (let y = Math.floor(by - u(15)); y <= by + u(15); y++)
+    for (let x = Math.floor(cx - u(17)); x <= cx + u(17); x++) {
+      const dx = (x + 0.5 - cx) / u(17), dy = (y + 0.5 - by) / u(15);
       if (dx * dx + dy * dy > 1) continue;
       const l = -dx * 0.5 - dy * 0.6;
-      let c: Color = '#e89a48';
-      if (l > 0.55 && bayer(x, y) < (l - 0.55) * 3) c = '#ffc070';
-      else if (l < -0.1 && bayer(x, y) < (-0.1 - l) * 2) c = '#b86a28';
+      let c: Color = '#f8f2e2';
+      if (l < -0.1 && bayer(x, y) < (-0.1 - l) * 2) c = '#d8ccb0';
       p.set(x, y, c);
     }
-  // sesame seeds
-  for (const [sx, sy] of [[-10, -12], [-3, -15], [5, -13], [11, -9], [-14, -6], [2, -8]]) p.ellipse(cx + u(sx), ty + u(sy), u(1), u(0.6), '#fff4d8');
-  // shades and a big grin on the top bun
-  p.rect(cx - u(12), ty - u(8), u(24), u(2), '#101018');
-  p.ellipse(cx - u(6), ty - u(5.5), u(5), u(3), '#101018');
-  p.ellipse(cx + u(6), ty - u(5.5), u(5), u(3), '#101018');
-  p.set(cx - u(8), ty - u(6.5), '#80e0ff');
-  p.set(cx + u(4), ty - u(6.5), '#80e0ff');
-  for (let x = -8; x <= 8; x += 0.5) p.set(cx + u(x), ty - u(0.5) + u(x * x * 0.03), '#5a1810');
-  p.ellipse(cx, ty + u(0.8), u(4), u(1.2), '#ffffff', true);
-  // arms: one waving, one thumbs up
-  p.capsule(cx - u(18), by - u(8), u(1.6), cx - u(26), by - u(18), u(1.6), '#f4ead8');
-  p.ellipse(cx - u(27), by - u(20), u(3), u(3), '#ffffff');
-  p.capsule(cx + u(18), by - u(8), u(1.6), cx + u(25), by - u(14), u(1.6), '#f4ead8');
-  p.ellipse(cx + u(26), by - u(15), u(3), u(2.6), '#ffffff');
-  p.rect(cx + u(25), by - u(21), u(2), u(5), '#ffffff');
+  // head with a red comb and wattle, yellow beak
+  const hx = cx + u(5), hy = base - u(48);
+  p.ellipse(hx, hy + u(4), u(6), u(5), '#f8f2e2');
+  p.ellipse(hx, hy, u(9), u(9), '#f8f2e2');
+  for (const [kx, ky, kr] of [[-4, -9, 2.6], [0, -11, 3], [4, -9, 2.6]]) p.ellipse(hx + u(kx), hy + u(ky), u(kr), u(kr), '#e03030');
+  p.poly([[hx + u(8), hy - u(2)], [hx + u(16), hy + u(1)], [hx + u(8), hy + u(4)]], '#ffc020');
+  p.ellipse(hx + u(8), hy + u(6.5), u(2), u(3), '#e03030');
+  // shades and a grin
+  p.rect(hx - u(7), hy - u(4), u(16), u(2), '#101018');
+  p.ellipse(hx - u(2), hy - u(1.5), u(4), u(2.5), '#101018');
+  p.ellipse(hx + u(5), hy - u(1.5), u(3.4), u(2.5), '#101018');
+  p.set(hx - u(4), hy - u(2.5), '#80e0ff');
+  for (let x = -4; x <= 3; x += 0.5) p.set(hx + u(x), hy + u(4.5) + u(x * x * 0.04), '#5a1810');
+  // gold bow tie at the neck
+  p.poly([[hx - u(6), hy + u(7)], [hx - u(1), hy + u(9.5)], [hx - u(6), hy + u(12)]], GOLD);
+  p.poly([[hx + u(4), hy + u(7)], [hx - u(1), hy + u(9.5)], [hx + u(4), hy + u(12)]], GOLD);
+  p.ellipse(hx - u(1), hy + u(9.5), u(1.4), u(1.4), darken(GOLD, 0.3));
+  // one wing waving, the other giving a thumbs up
+  p.ellipse(cx - u(16), by - u(10), u(4), u(9), '#ece4d0');
+  p.capsule(cx + u(12), by, u(3.5), cx + u(23), by - u(8), u(3), '#ece4d0');
+  p.ellipse(cx + u(24), by - u(13), u(1.6), u(4), '#ece4d0');
 }
 
 function outside(glows: Glow[]): HTMLCanvasElement {
@@ -104,15 +121,15 @@ function outside(glows: Glow[]): HTMLCanvasElement {
     p.rect(lx - 4, 68, 10, 3, '#3a3448');
     glows.push({ x: lx + 1, y: 74, r: 30, col: '#ffb860', ph: lx });
   }
-  // the roadside pole sign, Pete on top
+  // the roadside pole sign, Clucky on top
   const sx = 180;
   p.rect(sx - 2, 60, 5, 90, '#4a4458');
-  p.rect(sx - 30, 64, 61, 22, GRAPE);
-  p.rect(sx - 28, 66, 57, 18, TEAL);
-  pete(p, sx, 62, 0.8);
+  p.rect(sx - 32, 64, 65, 22, GRAPE);
+  p.rect(sx - 30, 66, 61, 18, TEAL);
+  clucky(p, sx, 64, 0.75);
   glows.push({ x: sx, y: 70, r: 50, col: PINK, ph: 1 });
   const cv = p.canvas();
-  drawText(cv.getContext('2d')!, "PETE'S", sx + 1, 72, LEMON, { align: 'center', outline: GRAPE });
+  drawText(cv.getContext('2d')!, 'CLUCK HUT', sx + 1, 72, LEMON, { align: 'center', outline: GRAPE });
   return cv;
 }
 
@@ -174,12 +191,11 @@ function room(glows: Glow[], lights: number[]): HTMLCanvasElement {
     p.rect(mid - 22, 164, 44, 1, '#b8b4a8');
     p.rect(mid - 2, 165, 4, 33, '#c0c8d0');
     p.rect(mid - 10, 196, 20, 2, '#808890');
-    // supper on a tray: burger, fries, a cup
-    p.rect(mid - 16, 158, 22, 2, '#e04040');
-    p.ellipse(mid - 10, 155, 5, 3, '#e8a050');
-    p.rect(mid - 14, 156, 9, 2, '#6a3418');
-    p.rect(mid - 2, 151, 6, 7, '#e83040');
-    for (let k = 0; k < 4; k++) p.rect(mid - 1 + k, 148 + (k % 2), 1, 3, LEMON);
+    // supper on a tray: drumsticks, a biscuit, a cup
+    p.rect(mid - 16, 158, 22, 2, '#7a3e1a');
+    drumstick(p, mid - 11, 155, 1);
+    drumstick(p, mid - 6, 152, 0.9, true);
+    biscuit(p, mid + 2, 155, 0.9);
     p.rect(mid + 10, 150, 6, 10, '#ffffff');
     p.rect(mid + 10, 153, 6, 2, TEAL);
     p.rect(mid + 13, 146, 1, 4, PINK);
@@ -188,19 +204,16 @@ function room(glows: Glow[], lights: number[]): HTMLCanvasElement {
   const C0 = 340, C1 = 552;
   p.rect(C0, 86, C1 - C0, 60, '#3a3440');
   for (let y = 88; y < 144; y += 6) for (let x = C0 + 2; x < C1 - 2; x += 8) p.rect(x + ((y / 6) % 2) * 4, y, 7, 5, '#d8d4c4');
-  // heat lamps over the pass with burgers in waiting
+  // heat lamps over the pass with chicken in waiting
   for (let hx = C0 + 30; hx < C1 - 20; hx += 50) {
     p.rect(hx - 1, 86, 2, 20, '#606070');
     p.poly([[hx - 9, 112], [hx - 5, 104], [hx + 5, 104], [hx + 9, 112]], '#a0a0b0');
     glows.push({ x: hx, y: 118, r: 22, col: '#ff7030', ph: hx * 0.3 });
-    for (let k = -1; k <= 1; k++) {
-      p.rect(hx + k * 8 - 3, 136, 7, 4, '#f0e8c8');
-      p.rect(hx + k * 8 - 3, 136, 7, 1, '#e8b040');
-    }
+    for (let k = -1; k <= 1; k++) drumstick(p, hx + k * 9, 138, 0.8, k > 0);
   }
   p.rect(C0 - 4, 82, C1 - C0 + 8, 4, '#d8e0e8');
   // three backlit menu boards
-  const boards: [string, string, string][] = [['BURGERS', '#2a1840', '1.49'], ['FRIES', '#2a1840', '.79'], ['SHAKES', '#2a1840', '.99']];
+  const boards: [string, string, string][] = [['TENDERS', '#2a1a10', '2.49'], ['WINGS', '#2a1a10', '1.99'], ['BISCUITS', '#2a1a10', '.69']];
   boards.forEach(([, bg], i) => {
     const bx = C0 + 6 + i * 70;
     p.rect(bx, 24, 64, 54, '#101018');
@@ -208,23 +221,19 @@ function room(glows: Glow[], lights: number[]): HTMLCanvasElement {
     p.rect(bx + 2, 26, 60, 9, i === 1 ? TANG : i === 2 ? PINK : TEAL);
     // a little picture of each item
     if (i === 0) {
-      p.ellipse(bx + 16, 48, 9, 5, '#e89a48');
-      p.rect(bx + 7, 50, 18, 3, '#6a3418');
-      p.rect(bx + 7, 49, 18, 1, '#4ac040');
-      p.ellipse(bx + 16, 55, 8, 2, '#d88a3a');
+      for (let k = 0; k < 3; k++) p.capsule(bx + 9, 44 + k * 6, 2.5, bx + 23, 42 + k * 6, 2.5, k % 2 ? '#d08838' : '#c8782a');
     } else if (i === 1) {
-      p.poly([[bx + 9, 46], [bx + 23, 46], [bx + 21, 60], [bx + 11, 60]], '#e83040');
-      for (let k = 0; k < 6; k++) p.rect(bx + 10 + k * 2, 40 + (k % 3), 1, 7, LEMON);
+      drumstick(p, bx + 13, 46, 1.4);
+      drumstick(p, bx + 17, 56, 1.4, true);
     } else {
-      p.poly([[bx + 10, 44], [bx + 22, 44], [bx + 20, 62], [bx + 12, 62]], '#ffffff');
-      p.ellipse(bx + 16, 43, 6, 3, '#ffc8e0');
-      p.rect(bx + 17, 34, 1, 8, PINK);
+      biscuit(p, bx + 16, 46, 2);
+      biscuit(p, bx + 16, 57, 2);
     }
     for (let ly = 0; ly < 4; ly++) {
       p.rect(bx + 30, 42 + ly * 7, 18 - (ly % 2) * 6, 2, '#c8c0d8');
       p.rect(bx + 52, 42 + ly * 7, 7, 2, LEMON);
     }
-    glows.push({ x: bx + 32, y: 50, r: 40, col: '#a0e8ff', ph: i * 2 });
+    glows.push({ x: bx + 32, y: 50, r: 40, col: '#ffe0a0', ph: i * 2 });
   });
   // the counter itself: steel top, tangerine and teal front with registers
   p.rect(C0 - 6, 144, C1 - C0 + 12, 5, '#d8e0e8');
@@ -238,10 +247,10 @@ function room(glows: Glow[], lights: number[]): HTMLCanvasElement {
   // drink fountain
   p.rect(C1 - 40, 118, 30, 26, '#c0c8d0');
   for (let k = 0; k < 4; k++) p.rect(C1 - 38 + k * 7, 122, 5, 8, [PINK, LEMON, TEAL, TANG][k]);
-  // Pete on the counter front
-  pete(p, (C0 + C1) / 2, 196, 0.9);
-  // Pete's statue by the Fun Zone door
-  pete(p, 556, FLOOR, 1.4);
+  // Clucky on the counter front
+  clucky(p, (C0 + C1) / 2 - 4, 196, 0.6);
+  // Clucky's statue by the Fun Zone door
+  clucky(p, 554, FLOOR, 1.2);
   p.shade(0.1);
   // ---- the Fun Zone: padded walls, a cargo net, an overhead tube slide
   for (let y = 18; y < FLOOR; y++)
@@ -287,7 +296,7 @@ function room(glows: Glow[], lights: number[]): HTMLCanvasElement {
     const sz = 6 + Math.floor(row / 6) * 2;
     for (let x = 0; x < PIT_X0 - 8; x++) {
       const on = (Math.floor(x / sz) + Math.floor((row + 2) / 7)) % 2 === 0;
-      let c: Color = on ? '#f4f0e8' : '#1e7a78';
+      let c: Color = on ? '#f4f0e8' : '#2a6a40';
       if (bayer(x, y) < 0.08) c = lighten(c, 0.15);
       p.set(x, y, c);
     }
@@ -300,7 +309,7 @@ function room(glows: Glow[], lights: number[]): HTMLCanvasElement {
     drawText(ctx, name, bx + 32, 27, '#ffffff', { align: 'center' });
     drawText(ctx, price, bx + 16, 66, LEMON, { align: 'center' });
   });
-  drawText(ctx, "PATTY PETE'S", (C0 + C1) / 2, 151, '#ffffff', { align: 'center', outline: GRAPE });
+  drawText(ctx, 'THE CLUCK HUT', (C0 + C1) / 2, 151, '#ffffff', { align: 'center', outline: GRAPE });
   drawText(ctx, 'FUN ZONE', PIT_X0 + 60, 32, LEMON, { align: 'center', outline: PINK });
   drawText(ctx, 'EXIT', 34, 30, '#ff5050', { align: 'center' });
   return cv;
@@ -322,7 +331,7 @@ function kitchen(bones: PartSet): [HTMLCanvasElement, HTMLCanvasElement] {
   p.poly([[20, 0], [236, 0], [250, 50], [6, 50]], '#a8b0b8');
   p.rect(6, 50, 244, 6, '#808890');
   for (let x = 40; x < 220; x += 12) p.rect(x, 20, 6, 22, '#70787f');
-  // shelves of buns and a warning sign
+  // shelves of biscuits and a warning sign
   p.rect(10, 72, 50, 3, '#808890');
   for (let k = 0; k < 4; k++) p.ellipse(18 + k * 12, 68, 5, 4, '#e8a050');
   p.rect(200, 64, 40, 26, LEMON);
@@ -380,10 +389,10 @@ const hexA = (c: string, a: number) => {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 };
 
-export class BurgerStage {
-  name = "PATTY PETE'S";
-  blurb = 'BURGERS, BRAWLS AND A BALL PIT';
-  song: SongName = 'burger';
+export class ChickenStage {
+  name = 'THE CLUCK HUT';
+  blurb = 'FRIED CHICKEN AND A BALL PIT';
+  song: SongName = 'chicken';
   width = SW;
   outGlows: Glow[] = [];
   glows: Glow[] = [];
