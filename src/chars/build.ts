@@ -16,12 +16,16 @@ export interface Look {
   boots: string;
   tallBoots?: boolean;
   glove?: string;
+  /** Glove on the front hand only (overrides glove for that hand). */
+  gloveFront?: string;
+  /** Socks showing between the cuff and the shoe. */
+  socks?: string;
   belt?: string;
   buckle?: string;
-  hat?: 'stovepipe' | 'tricorn';
+  hat?: 'stovepipe' | 'tricorn' | 'fedora';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'curls';
   beard?: 'chinstrap' | 'braided';
   beardRibbon?: string;
   mustache?: boolean;
@@ -98,6 +102,11 @@ function head(L: Look): Painter {
   p.rect(8, 35, 5, 7, skinD);
   if (L.hairStyle === 'long') p.poly([[3, 26], [8, 24], [8, 40], [4, 41]], L.hair);
   if (L.hairStyle === 'bob') p.ellipse(9, 29, 7.5, 7.5, L.hair);
+  if (L.hairStyle === 'curls') {
+    // shoulder-length ringlets hanging behind the jaw
+    p.ellipse(7, 28, 6, 7, L.hair);
+    for (const [x, y] of [[3, 33], [5, 36], [8, 38], [3, 37]]) p.ellipse(x, y, 2.2, 2.4, L.hair);
+  }
   p.ellipse(10.5, 29, 6, 7, L.skin);
   p.ellipse(13, 33, 4, 3.5, L.skin);
   p.poly([[15, 28], [17.5, 30.5], [15, 31]], L.skin); // nose
@@ -112,6 +121,9 @@ function head(L: Look): Painter {
   } else if (L.hairStyle === 'bob') {
     p.ellipse(10.5, 24.5, 7, 4, L.hair);
     p.rect(13, 23, 4, 3, L.hair);
+  } else if (L.hairStyle === 'curls') {
+    p.ellipse(10, 24, 7, 3.5, L.hair);
+    p.rect(4, 24, 5, 8, L.hair);
   } else {
     p.ellipse(10, 24.5, 6.5, 3.5, L.hair);
     p.rect(4, 24, 4, 6, L.hair);
@@ -135,6 +147,13 @@ function head(L: Look): Painter {
     if (L.beardRibbon) for (const [x, y] of [[11, 39], [14, 40], [12, 37]]) p.set(x, y, L.beardRibbon);
     p.set(15, 33, '#5a2a2a');
   }
+  if (L.hairStyle === 'curls') {
+    // ringlet highlights and the single curl that falls over the brow
+    const hl = lighten(L.hair, 0.3);
+    for (const [x, y] of [[3, 33], [5, 36], [8, 38], [4, 29]]) p.set(x, y, hl);
+    p.line(15, 23, 16, 26, L.hair);
+    p.set(15, 27, L.hair);
+  }
   if (L.hat === 'stovepipe') {
     const c = L.hatColor ?? '#141218';
     p.rect(4, 2, 13, 21, c);
@@ -152,6 +171,14 @@ function head(L: Look): Painter {
     // skull and crossbones badge
     p.rect(9, 18, 3, 2, '#e8e0d0');
     p.set(10, 20, '#e8e0d0');
+  } else if (L.hat === 'fedora') {
+    const c = L.hatColor ?? '#141218';
+    // pinched crown tipped down over the eyes, wide brim
+    p.poly([[4, 22], [5, 15], [8, 13], [13, 13.5], [16, 15], [17, 22]], c);
+    p.poly([[0, 22], [17, 21], [21, 23], [20, 24], [1, 24]], c);
+    p.rect(5, 19, 12, 2, L.hatTrim ?? '#e8e4dc');
+    p.line(9, 14, 12, 14.5, darken(c, 0.4));
+    p.line(5, 16, 5, 18, lighten(c, 0.25));
   }
   p.outline(OUT);
   return p;
@@ -180,9 +207,11 @@ function foreArm(L: Look, front: boolean): Painter {
     p.rect(2, 4, 8, 7, '#b5652a');
     for (let y = 4; y < 11; y += 2) p.line(2, y, 9, y, '#e8a050');
   }
-  p.ellipse(6, 16, 3.6, 3.6, L.glove ?? L.skin);
+  const hand = (front && L.gloveFront) || L.glove || L.skin;
+  p.ellipse(6, 16, 3.6, 3.6, hand);
   p.shade(0.22);
-  p.line(4, 18, 8, 18, darken(L.glove ?? L.skin, 0.3));
+  p.line(4, 18, 8, 18, darken(hand, 0.3));
+  if (front && L.gloveFront) for (const [x, y] of [[5, 15], [7, 17]]) p.set(x, y, '#ffffff'); // sequin glints
   p.outline(OUT);
   return p;
 }
@@ -209,6 +238,7 @@ function shin(L: Look): Painter {
     p.rect(1, 5, 10, 3, lighten(L.boots, 0.2));
   } else {
     p.rect(2, 16, 8, 6, L.boots);
+    if (L.socks) p.rect(2, 16, 8, 4, L.socks);
   }
   p.shade(0.2);
   p.outline(OUT);

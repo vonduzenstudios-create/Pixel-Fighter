@@ -1,16 +1,16 @@
 import { FLOOR } from '../core/consts';
 import { pxCircle, pxLine } from '../gfx/painter';
-import { ball, keg, stovepipeHat } from '../gfx/props';
+import { ball, fedora, keg, stovepipeHat } from '../gfx/props';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'fedora';
 
-let SPR: { hat: HTMLCanvasElement; keg: HTMLCanvasElement; cannon: HTMLCanvasElement; holy: HTMLCanvasElement; bolt: HTMLCanvasElement } | null = null;
+let SPR: { hat: HTMLCanvasElement; fedora: HTMLCanvasElement; keg: HTMLCanvasElement; cannon: HTMLCanvasElement; holy: HTMLCanvasElement; bolt: HTMLCanvasElement } | null = null;
 const spr = () =>
-  (SPR ??= { hat: stovepipeHat(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true) });
+  (SPR ??= { hat: stovepipeHat(), fedora: fedora(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true) });
 
 const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: number; speed: number }> = {
   hat: { dmg: 70, level: 'high', effect: 'heavy', r: 7, speed: 4.4 },
@@ -18,6 +18,7 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   holy: { dmg: 90, level: 'high', effect: 'knockdown', r: 7, speed: 3.6 },
   cannon: { dmg: 110, level: 'high', effect: 'knockdown', r: 6, speed: 3.0 },
   keg: { dmg: 90, level: 'low', effect: 'sweep', r: 8, speed: 2.8 },
+  fedora: { dmg: 75, level: 'high', effect: 'heavy', r: 7, speed: 5.2 },
 };
 
 export class Projectile {
@@ -43,6 +44,11 @@ export class Projectile {
         if (this.t % 12 === 0) f.sfx('hatSpin');
         break;
       }
+      case 'fedora':
+        // flat spinning throw with a sparkle trail
+        if (this.t % 3 === 0) p.sparks(this.x - Math.sign(this.vx) * 6, this.y, 1, '#ffffff');
+        if (this.t % 14 === 0) f.sfx('hatSpin');
+        break;
       case 'bolt':
         if (this.t % 2 === 0) p.zap(this.x, this.y, 2);
         break;
@@ -76,6 +82,11 @@ export class Projectile {
       case 'hat':
         ctx.rotate(this.t * 0.5);
         ctx.drawImage(s.hat, -8, -12);
+        break;
+      case 'fedora':
+        // spins flat like a disc: squash horizontally instead of rotating
+        ctx.scale(Math.max(0.25, Math.abs(Math.cos(this.t * 0.45))), 1);
+        ctx.drawImage(s.fedora, -11, -6);
         break;
       case 'keg':
         ctx.rotate(this.t * 0.25 * Math.sign(this.vx));

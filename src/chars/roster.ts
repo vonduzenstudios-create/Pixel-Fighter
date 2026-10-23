@@ -1,4 +1,5 @@
 import { buildParts, Look } from './build';
+import { JACKSON_ALT, JACKSON_FINISHER, JACKSON_LOOK, JACKSON_SPECIALS } from './jackson';
 import { axe, cutlass, sword } from '../gfx/props';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
@@ -236,6 +237,10 @@ export function roster(): CharDef[] {
       alt: { ...BEARD_LOOK, coat: '#1c3c2a', coatTrim: '#c0c0c8', pants: '#2a2a30', beardRibbon: '#20a0e0' },
       specials: beardSpecials, voice: 95, props: { cutlass: props.cutlass },
       finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 70] },
+    },
+    {
+      id: 'jackson', name: 'Michael Jackson', short: 'JACKSON', title: 'The Gloved One', look: JACKSON_LOOK, alt: JACKSON_ALT,
+      specials: JACKSON_SPECIALS, voice: 230, props: {}, finisher: JACKSON_FINISHER,
     },
   ];
   return cache;

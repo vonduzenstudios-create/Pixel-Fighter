@@ -12,6 +12,7 @@ import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import { Stage } from './stage';
+import { jacksonFatality } from '../chars/jackson';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
 
@@ -527,6 +528,12 @@ export class Fight {
         }
         tick();
         if (tt >= 300) done();
+        break;
+      }
+      case 'jackson': {
+        const end = jacksonFatality(this, tt, w, l, D);
+        tick();
+        if (end) done();
         break;
       }
       case 'pit': {

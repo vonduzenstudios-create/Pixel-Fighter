@@ -169,9 +169,14 @@ export class SelectScene implements Scene {
     ctx.drawImage(selectBg(), 0, 0);
     drawText(ctx, 'CHOOSE YOUR FIGHTER', W / 2, 10, '#fff', { scale: 2, align: 'center', grad: ['#fff4b0', '#c03010'], outline: '#000' });
     const ch = roster();
-    const cw = 46, gap = 8, x0 = (W - (cw * 4 + gap * 3)) / 2, y0 = 34;
+    // one row of big portraits for a small roster, otherwise rows of up to six smaller ones
+    const big = ch.length <= 4;
+    const cols = big ? ch.length : Math.min(6, Math.ceil(ch.length / 2));
+    const cw = big ? 46 : 28, gap = big ? 8 : 5;
+    const x0 = (W - (cw * cols + gap * (cols - 1))) / 2;
     ch.forEach((c, i) => {
-      const x = x0 + i * (cw + gap);
+      const x = x0 + (i % cols) * (cw + gap);
+      const y0 = 30 + Math.floor(i / cols) * (cw + gap + 8);
       ctx.fillStyle = '#000';
       ctx.fillRect(x - 2, y0 - 2, cw + 4, cw + 4);
       ctx.fillStyle = '#2a1018';
@@ -183,7 +188,9 @@ export class SelectScene implements Scene {
       ctx.beginPath();
       ctx.rect(x, y0, cw, cw);
       ctx.clip();
-      ctx.drawImage(head.img, 0, 0, head.img.width, head.img.height, x + cw / 2 - 22, y0 + cw - 82, head.img.width * 2, head.img.height * 2);
+      // big cells show head and shoulders, small ones are cropped to the face
+      const hy = big ? y0 + cw - 82 : y0 + cw / 2 - 58;
+      ctx.drawImage(head.img, 0, 0, head.img.width, head.img.height, x + cw / 2 - 22, hy, head.img.width * 2, head.img.height * 2);
       ctx.restore();
       for (let pl = 0; pl < 2; pl++) {
         const show = pl === 0 || this.app.settings.players === 2 || this.roulette > 0 || this.picked[1] !== null;
@@ -198,7 +205,7 @@ export class SelectScene implements Scene {
           ctx.fillRect(x - 3, y0 - 3, 2, cw + 6);
           ctx.fillRect(x + cw + 1, y0 - 3, 2, cw + 6);
         }
-        drawText(ctx, pl === 0 ? '1P' : this.app.settings.players === 2 ? '2P' : 'CPU', x + cw / 2, y0 + cw + 5, pl === 0 ? '#ff6040' : '#60a0ff', { align: 'center', outline: '#000' });
+        drawText(ctx, pl === 0 ? '1P' : this.app.settings.players === 2 ? '2P' : 'CPU', x + cw / 2, y0 + cw + (big ? 5 : 3), pl === 0 ? '#ff6040' : '#60a0ff', { align: 'center', outline: '#000' });
       }
     });
     // big previews

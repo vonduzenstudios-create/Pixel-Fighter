@@ -78,6 +78,19 @@ export const sfx = {
   grunt() {
     voice(160 + Math.random() * 40, 110, 0.18, 0.22, [600, 1000, 2400]);
   },
+  /** High falsetto whoop: a short rising "hee". */
+  hee() {
+    voice(780, 1250, 0.22, 0.24, [420, 2300, 3000]);
+  },
+  /** Glottal "ow!" bark, pitched up. */
+  ow() {
+    voice(620, 420, 0.2, 0.26, [750, 1200, 2600]);
+  },
+  sparkle() {
+    const c = ac();
+    if (!c) return;
+    for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2400 + i * 380, dur: 0.08, vol: 0.06, at: c.currentTime + i * 0.035 });
+  },
   scream() {
     voice(520, 160, 1.2, 0.3, [800, 1200, 2600]);
   },
