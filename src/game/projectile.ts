@@ -1,16 +1,19 @@
 import { FLOOR } from '../core/consts';
 import { pxCircle, pxLine } from '../gfx/painter';
-import { ball, keg, stovepipeHat } from '../gfx/props';
+import { ball, bill, cashBrick, keg, musicNote, stovepipeHat } from '../gfx/props';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'gust';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust';
 
-let SPR: { hat: HTMLCanvasElement; keg: HTMLCanvasElement; cannon: HTMLCanvasElement; holy: HTMLCanvasElement; bolt: HTMLCanvasElement } | null = null;
-const spr = () =>
-  (SPR ??= { hat: stovepipeHat(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true) });
+const makeSprites = () => ({
+  hat: stovepipeHat(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true),
+  cash: cashBrick(), bill: bill(), note: musicNote(),
+});
+let SPR: ReturnType<typeof makeSprites> | null = null;
+const spr = () => (SPR ??= makeSprites());
 
 const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: number; speed: number }> = {
   hat: { dmg: 70, level: 'high', effect: 'heavy', r: 7, speed: 4.4 },
@@ -19,6 +22,9 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   cannon: { dmg: 110, level: 'high', effect: 'knockdown', r: 6, speed: 3.0 },
   keg: { dmg: 90, level: 'low', effect: 'sweep', r: 8, speed: 2.8 },
   gust: { dmg: 85, level: 'mid', effect: 'heavy', r: 8, speed: 5.0 },
+  cash: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 4.6 },
+  // short-range sonic blast that can't be ducked
+  aria: { dmg: 70, level: 'mid', effect: 'knockdown', r: 11, speed: 5.2 },
 };
 
 export class Projectile {
@@ -60,6 +66,14 @@ export class Projectile {
       case 'gust':
         if (this.t % 3 === 0) p.smoke(this.x - Math.sign(this.vx) * 8, this.y + rand(-6, 6), 1, '#c8d4e0');
         break;
+      case 'cash':
+        if (this.t % 5 === 0)
+          p.add({ kind: 'img', img: spr().bill, ix: 3, iy: 2, x: this.x, y: this.y, vx: -this.vx * 0.15, vy: 0.6, grav: 0.04, rot: 0, vrot: 0.2, life: 50, max: 50 });
+        break;
+      case 'aria':
+        this.vx *= 0.97;
+        if (this.t > 26) this.dead = true;
+        break;
     }
     this.x += this.vx;
     this.y += this.vy;
@@ -88,6 +102,24 @@ export class Projectile {
       case 'cannon':
         ctx.drawImage(s.cannon, -7, -7);
         break;
+      case 'cash':
+        ctx.rotate(Math.sin(this.t * 0.3) * 0.15);
+        ctx.drawImage(s.cash, -8, -5);
+        break;
+      case 'aria': {
+        // expanding sound rings with a note riding the front
+        const d = Math.sign(this.vx) || 1;
+        for (let k = 0; k < 3; k++) {
+          const r = 4 + ((this.t * 0.8 + k * 4) % 12);
+          ctx.fillStyle = k === 0 ? '#fff4c0' : '#e8b040';
+          for (let a = -50; a <= 50; a += 12) {
+            const ra = (a * Math.PI) / 180;
+            ctx.fillRect(Math.round(Math.cos(ra) * r * d) - 6 * d, Math.round(Math.sin(ra) * r * 1.4), 1, 2);
+          }
+        }
+        ctx.drawImage(s.note, -3 + d * 4, -12 + Math.round(Math.sin(this.t * 0.5) * 2));
+        break;
+      }
       case 'holy': {
         const fl = Math.sin(this.t * 0.8) > 0;
         ctx.fillStyle = fl ? '#ff7010' : '#ff4008';

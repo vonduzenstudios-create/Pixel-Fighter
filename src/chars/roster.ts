@@ -1,5 +1,6 @@
 import { buildParts, Look } from './build';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
+import { lumpsum } from './lumpsum';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
 import type { Move, Special } from '../game/types';
@@ -394,6 +395,7 @@ export function roster(): CharDef[] {
       specials: chuckSpecials, voice: 100, props: {},
       finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 60] },
     },
+    lumpsum(),
   ];
   return cache;
 }
