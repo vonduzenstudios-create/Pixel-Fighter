@@ -1,3 +1,4 @@
+import { FINISH_WINDOW } from '../core/consts';
 import { EMPTY, RawInput, readPlayer } from '../core/input';
 import { chance, rand } from '../core/rng';
 import type { Controller, Fighter } from './fighter';
@@ -157,7 +158,7 @@ export class AICtrl implements Controller {
     }
     const plan = (this as any).plan as string;
     const want = plan === 'pit' ? 28 : plan === 'fatal' ? Math.max(fin.range[0] + 10, Math.min(fin.range[1] - 10, 40)) : 30;
-    if (Math.abs(dist - want) > 10 && f.pt < 280) {
+    if (Math.abs(dist - want) > 10 && f.pt < FINISH_WINDOW - 60) {
       this.holdFor(self, dist > want ? 6 : 4, 4);
       return this.hold;
     }

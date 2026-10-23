@@ -1,4 +1,4 @@
-import { FLOOR, H, MAX_HP, STAGE_W, W } from '../core/consts';
+import { FINISH_WINDOW, FLOOR, H, MAX_HP, STAGE_W, W } from '../core/consts';
 import { Edge, readPlayer } from '../core/input';
 import { rand } from '../core/rng';
 import { drawText } from '../gfx/font';
@@ -236,6 +236,7 @@ export class Fight {
             l.y = 0;
             l.vy = 0;
             l.vx = 0;
+            l.stun = 0;
             l.setState('dizzy', AN.DIZZY_ANIM);
             this.phase = 'finish';
             this.pt = 0;
@@ -249,7 +250,7 @@ export class Fight {
         break;
       case 'finish':
         this.step();
-        if (this.pt > 330 && this.loser!.state === 'dizzy') {
+        if (this.pt > FINISH_WINDOW && this.loser!.state === 'dizzy') {
           this.loser!.setState('fall', AN.FALL);
           this.loser!.vy = 2;
           this.loser!.y = 1;
@@ -395,10 +396,16 @@ export class Fight {
         this.startPitFatality(a);
         return;
       }
-      d.receive({ ...hit, effect: 'knockdown' }, a, this, at, projectile);
-      this.particles.blood(at.x, at.y, a.facing, 20);
-      sfx.hit(true);
-      this.endFinish();
+      // they just stand there and take it until the window runs out
+      d.reel(a, at);
+      const heavy = hit.dmg >= 60;
+      this.particles.blood(at.x, at.y, a.facing, heavy ? 16 : 9, heavy ? 1.3 : 1);
+      this.particles.sparks(at.x, at.y, 4, '#ffffff');
+      sfx.hit(heavy);
+      if (Math.random() < 0.5) sfx.blood();
+      if (Math.random() < 0.45) sfx.grunt();
+      this.hitstop = heavy ? 6 : 3;
+      if (heavy) this.shake(3);
       return;
     }
     const res = d.receive(hit, a, this, at, projectile);
@@ -621,6 +628,35 @@ export class Fight {
     if (this.paused) this.drawPause(ctx);
   }
 
+  /** Little stars circling a dazed fighter's head. */
+  drawStars(ctx: CanvasRenderingContext2D, f: Fighter, cam: number) {
+    if (f.alpha <= 0) return;
+    const top = f.skel.headTop;
+    const cx = Math.round(f.wx(top[0]) - cam), cy = Math.round(FLOOR - f.wy(top[1]) - 12);
+    const n = 3;
+    for (let i = 0; i < n; i++) {
+      const a = this.t * 0.08 + (i * Math.PI * 2) / n;
+      const x = Math.round(cx + Math.cos(a) * 14), y = Math.round(cy + Math.sin(a) * 4);
+      const front = Math.sin(a) > 0;
+      // 5-point pixel star with a black outline
+      ctx.fillStyle = '#000';
+      ctx.fillRect(x - 3, y - 2, 7, 4);
+      ctx.fillRect(x - 1, y - 4, 3, 8);
+      ctx.fillRect(x - 2, y + 2, 1, 2);
+      ctx.fillRect(x + 2, y + 2, 1, 2);
+      ctx.fillStyle = front ? '#fff26a' : '#c89a20';
+      ctx.fillRect(x - 2, y - 1, 5, 2);
+      ctx.fillRect(x, y - 3, 1, 6);
+      ctx.fillRect(x - 1, y - 1, 3, 3);
+      ctx.fillRect(x - 2, y + 2, 1, 1);
+      ctx.fillRect(x + 2, y + 2, 1, 1);
+      if (front && (this.t + i * 7) % 20 < 10) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(x, y - 1, 1, 1);
+      }
+    }
+  }
+
   drawArena(ctx: CanvasRenderingContext2D) {
     const cam = Math.round(this.camX);
     this.stage.draw(ctx, cam, this.t);
@@ -628,6 +664,7 @@ export class Fight {
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
     for (const f of order) f.draw(ctx, cam);
+    for (const f of this.f) if (f.state === 'dizzy' || (this.fatal && f === this.loser && f.poseOverride === AN.DIZZY)) this.drawStars(ctx, f, cam);
     for (const p of this.projectiles) p.draw(ctx, cam);
     if (this.fatal?.kind === 'blackbeard' && this.fatal.data.kx != null) {
       ctx.save();
