@@ -5,7 +5,7 @@ import { drawText } from '../gfx/font';
 import { pxLine } from '../gfx/painter';
 import { keg as kegSprite, skull } from '../gfx/props';
 import { PartSet, Part } from '../gfx/rig';
-import { announce, sfx } from '../audio/sfx';
+import { announce, sfx, strengthOf } from '../audio/sfx';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
 import { Fighter } from './fighter';
@@ -55,12 +55,12 @@ export class Fight {
   }
 
   // ------------------------------------------------------------- helpers used by fighters
-  sfx(name: string, arg?: number) {
+  sfx(name: string, ...args: any[]) {
     switch (name) {
-      case 'hitHeavy': sfx.hit(true); break;
-      case 'hitLight': sfx.hit(false); break;
+      case 'hitHeavy': sfx.hit(2); break;
+      case 'hitLight': sfx.hit(0); break;
       case 'grunt': sfx.grunt(); break;
-      default: (sfx as any)[name]?.(arg);
+      default: (sfx as any)[name]?.(...args);
     }
   }
   shake(n: number) {
@@ -394,13 +394,13 @@ export class Fight {
       }
       d.receive({ ...hit, effect: 'knockdown' }, a, this, at, projectile);
       this.particles.blood(at.x, at.y, a.facing, 20);
-      sfx.hit(true);
+      sfx.hit(3, isKick(hit));
       this.endFinish();
       return;
     }
     const res = d.receive(hit, a, this, at, projectile);
     if (res === 'block') {
-      sfx.block();
+      sfx.block(hit.dmg >= 60);
       this.particles.sparks(at.x, at.y, 6);
       this.hitstop = 3;
       return;
@@ -408,7 +408,7 @@ export class Fight {
     const heavy = hit.dmg >= 60;
     if (hit.sfx === 'slash') sfx.slash();
     else if (hit.sfx === 'zap') sfx.zap(0.15);
-    else sfx.hit(heavy);
+    else sfx.hit(hit.effect === 'launch' || hit.effect === 'knockdown' ? 3 : strengthOf(hit.dmg), isKick(hit));
     if (hit.sfx === 'zap') this.particles.zap(at.x, at.y, 8);
     if (projectile && (hit.dmg >= 80)) this.particles.fire(at.x, at.y, 6, 4);
     this.particles.blood(at.x, at.y, a.facing, Math.round(hit.dmg / 6), heavy ? 1.3 : 1);
@@ -743,3 +743,5 @@ function circleRect(cx: number, cy: number, r: number, b: [number, number, numbe
   const dx = cx - nx, dy = cy - ny;
   return dx * dx + dy * dy <= r * r;
 }
+
+const isKick = (hit: HitDef) => hit.limb.startsWith('toe');
