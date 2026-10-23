@@ -403,8 +403,7 @@ export class Fight {
       // they just stand there and take it until the window runs out
       d.reel(a, at);
       const heavy = hit.dmg >= 60;
-      this.particles.blood(at.x, at.y, a.facing, heavy ? 16 : 9, heavy ? 1.3 : 1);
-      this.particles.sparks(at.x, at.y, 4, '#ffffff');
+      this.particles.impact(at.x, at.y, a.facing, heavy ? 80 : 45, heavy);
       sfx.hit(strengthOf(hit.dmg), isKick(hit));
       if (Math.random() < 0.5) sfx.blood();
       if (Math.random() < 0.45) sfx.grunt();
