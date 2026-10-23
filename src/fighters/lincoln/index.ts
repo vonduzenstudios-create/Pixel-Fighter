@@ -8,6 +8,7 @@ export default {
   make() {
     const c = lincoln();
     c.selectSet ??= SETS.study;
+    c.homeStage ??= 'cabin';
     return c;
   },
   moveSounds: {
