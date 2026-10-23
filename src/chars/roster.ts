@@ -10,7 +10,7 @@ import type { Pose } from '../gfx/rig';
 import { Projectile, ProjKind } from '../game/projectile';
 import type { Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
-import { BLACKBEARD_INTRO, JOAN_INTRO, LINCOLN_INTRO, TESLA_INTRO } from './intros';
+import { BLACKBEARD_INTRO, INTROS, JOAN_INTRO, LINCOLN_INTRO, TESLA_INTRO } from './intros';
 
 // Original takes on historical figures. Commands are relative to facing:
 // 6 = toward the opponent, 4 = away, 2 = down, 3 = down-toward, 1 = down-away.
@@ -385,8 +385,7 @@ export function roster(): CharDef[] {
       finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 70] },
     },
     {
-      // TODO: hook up a round-one entrance and voice line (planned line: "Your guard is a door. I brought the key.")
-      // and a detailed winner/loser portrait once the intro and portrait APIs land on main.
+      // TODO: a detailed winner/loser portrait once the portrait API lands on main. Entrance: chars/intros.ts.
       id: 'brucelee', name: 'Bruce Lee', short: 'BRUCE LEE', title: 'The Little Dragon', look: LEE_LOOK,
       alt: { ...LEE_LOOK, pants: '#e4e0d4', boots: '#d8d4c8', sash: '#b01818', wraps: '#2a2a30' },
       specials: leeSpecials, voice: 180, props: { nunchaku: props.nunchaku },
@@ -402,6 +401,7 @@ export function roster(): CharDef[] {
     lumpsum(),
     bobRoss(),
   ];
+  for (const c of cache) c.intro ??= INTROS[c.id];
   return cache;
 }
 
