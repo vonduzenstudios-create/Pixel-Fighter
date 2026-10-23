@@ -26,8 +26,8 @@ export interface App {
   back: boolean; // set by Escape key
 }
 
-const confirm = (p: RawInput) => p.lp || p.lk || p.start || p.hp;
-const cancel = (p: RawInput, app: App) => p.hk || app.back;
+const confirm = (p: RawInput) => p.lp || p.hp || p.start;
+const cancel = (p: RawInput, app: App) => p.back || app.back;
 
 let bg: HTMLCanvasElement | null = null;
 function selectBg() {
@@ -54,7 +54,7 @@ export class TitleScene implements Scene {
     const back = this.app.back;
     this.app.back = false;
     if (!this.menu) {
-      if (confirm(p) || p.hk) {
+      if (confirm(p) || p.back) {
         this.menu = true;
         sfx.menuPick();
       }
@@ -86,9 +86,10 @@ export class TitleScene implements Scene {
     const cam = 128 + Math.sin(this.t * 0.004) * 100;
     st.draw(ctx, cam, this.t);
     const chars = roster();
+    const step = Math.min(50, (W - 60) / Math.max(1, chars.length - 1));
     chars.forEach((c, i) => {
-      const x = 52 + i * 50;
-      drawFigure(ctx, partsFor(c), sample(IDLE, this.t + i * 9), x, FLOOR, i < 2 ? 1 : -1, 1, ['#0a0208', 0.82]);
+      const x = W / 2 + (i - (chars.length - 1) / 2) * step;
+      drawFigure(ctx, partsFor(c), sample(IDLE, this.t + i * 9), x, FLOOR, i < chars.length / 2 ? 1 : -1, 1, ['#0a0208', 0.82]);
     });
     st.drawFront(ctx, cam, this.t);
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
@@ -114,6 +115,8 @@ export class TitleScene implements Scene {
 }
 
 // ------------------------------------------------------------------ Character select
+const gridCols = (n: number) => (n <= 5 ? n : Math.ceil(n / 2));
+
 export class SelectScene implements Scene {
   t = 0;
   cur = [0, 3];
@@ -137,12 +140,17 @@ export class SelectScene implements Scene {
       }
       if (p.l) (this.cur[i] = (this.cur[i] + n - 1) % n), sfx.menuMove();
       if (p.r) (this.cur[i] = (this.cur[i] + 1) % n), sfx.menuMove();
+      const cols = gridCols(n);
+      if ((p.u || p.d) && n > cols) {
+        const c = this.cur[i] + (p.d ? cols : -cols);
+        if (c >= 0 && c < n) (this.cur[i] = c), sfx.menuMove();
+      }
       if (confirm(p)) {
         this.picked[i] = this.cur[i];
         sfx.menuPick();
         if (!two) this.roulette = 50;
       }
-      if (i === 0 && (p.hk || back) && this.picked[0] === null) {
+      if (i === 0 && (p.back || back) && this.picked[0] === null) {
         this.app.go(new TitleScene(this.app));
         return;
       }
@@ -169,9 +177,14 @@ export class SelectScene implements Scene {
     ctx.drawImage(selectBg(), 0, 0);
     drawText(ctx, 'CHOOSE YOUR FIGHTER', W / 2, 10, '#fff', { scale: 2, align: 'center', grad: ['#fff4b0', '#c03010'], outline: '#000' });
     const ch = roster();
-    const cw = 46, gap = 8, x0 = (W - (cw * 4 + gap * 3)) / 2, y0 = 34;
+    // one row of portraits while the roster is small, two rows once it grows
+    const cols = gridCols(ch.length), rows = Math.ceil(ch.length / cols), gap = rows > 1 ? 5 : 8;
+    const cw = Math.min(46, Math.floor((W - 16 - gap * (cols - 1)) / cols), rows > 1 ? 30 : 46);
+    const x0 = (W - (cw * cols + gap * (cols - 1))) / 2;
     ch.forEach((c, i) => {
-      const x = x0 + i * (cw + gap);
+      const x = x0 + (i % cols) * (cw + gap);
+      const y0 = 34 + Math.floor(i / cols) * (cw + gap + 4);
+      const hs = cw / 23;
       ctx.fillStyle = '#000';
       ctx.fillRect(x - 2, y0 - 2, cw + 4, cw + 4);
       ctx.fillStyle = '#2a1018';
@@ -183,7 +196,7 @@ export class SelectScene implements Scene {
       ctx.beginPath();
       ctx.rect(x, y0, cw, cw);
       ctx.clip();
-      ctx.drawImage(head.img, 0, 0, head.img.width, head.img.height, x + cw / 2 - 22, y0 + cw - 82, head.img.width * 2, head.img.height * 2);
+      ctx.drawImage(head.img, 0, 0, head.img.width, head.img.height, x + cw / 2 - 11 * hs, y0 + cw - 41 * hs, head.img.width * hs, head.img.height * hs);
       ctx.restore();
       for (let pl = 0; pl < 2; pl++) {
         const show = pl === 0 || this.app.settings.players === 2 || this.roulette > 0 || this.picked[1] !== null;
@@ -331,7 +344,7 @@ export class MoveListScene implements Scene {
     const n = roster().length;
     if (p.l) (this.i = (this.i + n - 1) % n), sfx.menuMove();
     if (p.r) (this.i = (this.i + 1) % n), sfx.menuMove();
-    if (p.hk || p.start || this.app.back) {
+    if (p.back || p.start || this.app.back) {
       this.app.back = false;
       this.app.go(new TitleScene(this.app));
     }
@@ -359,12 +372,12 @@ export class MoveListScene implements Scene {
     y += 4;
     drawText(ctx, 'BASIC MOVES', 60, y, '#e0c050');
     y += 11;
-    row('UPPERCUT', 'D + HP');
-    row('SWEEP / ROUNDHOUSE', 'B + LK / B + HK');
-    row('THROW (CLOSE)', 'F + LP');
-    row('BLOCK', 'BLOCK OR HOLD BACK');
+    row('UPPERCUT (LAUNCH)', 'D + HP');
+    row('ROUNDHOUSE (LAUNCH)', 'B + HK');
+    row('SWEEP / JUDO THROW', 'B + LK / F + LP');
+    row('CROUCH ATTACKS', 'D + LP / LK / HK');
     drawText(ctx, 'KEYS: WASD MOVE  U I = LP HP  J K = LK HK  L = BLOCK', W / 2, H - 30, '#a09080', { align: 'center' });
-    drawText(ctx, 'PAD: X Y = LP HP  A B = LK HK  L R = BLOCK', W / 2, H - 20, '#a09080', { align: 'center' });
-    drawText(ctx, 'B = HK / ESC TO GO BACK', W / 2, H - 10, '#806060', { align: 'center' });
+    drawText(ctx, 'PAD: A X = LP HP  B Y = LK HK  L R = BLOCK', W / 2, H - 20, '#a09080', { align: 'center' });
+    drawText(ctx, 'PAD B / K / ESC TO GO BACK', W / 2, H - 10, '#806060', { align: 'center' });
   }
 }

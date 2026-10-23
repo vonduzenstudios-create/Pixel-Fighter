@@ -40,7 +40,7 @@ export const ROUNDHOUSE: Move = {
     [STANCE, 12],
   ]),
   active: [6, 13],
-  hit: { limb: 'toeB', r: 7, dmg: 85, level: 'high', effect: 'knockdown', push: 3, stun: 20 },
+  hit: { limb: 'toeB', r: 7, dmg: 85, level: 'high', effect: 'launch', lift: [5.6, 3.4], push: 3, stun: 20, sfx: 'heavy' },
   whoosh: true,
 };
 const CR = (o = {}) => P(CROUCH, o);
@@ -70,6 +70,18 @@ export const CROUCH_KICK: Move = {
   active: [4, 9],
   hit: { limb: 'toeF', r: 5, dmg: 40, level: 'low', effect: 'light', push: 2.5, stun: 14 },
 };
+export const CROUCH_HIGH_KICK: Move = {
+  id: 'chk',
+  crouch: true,
+  anim: A([
+    [CR({ lf: -70, kf: 110, t: 30 }), 5],
+    [CR({ lf: -112, kf: 4, ff: -30, lb: -60, kb: 140, t: 40, h: -4, af: -40, ab: 10 }), 7],
+    [CROUCH, 10],
+  ]),
+  active: [5, 11],
+  hit: { limb: 'toeF', r: 6, dmg: 55, level: 'mid', effect: 'heavy', push: 3.5, stun: 17 },
+  whoosh: true,
+};
 export const UPPERCUT: Move = {
   id: 'uppercut',
   crouch: true,
@@ -80,7 +92,7 @@ export const UPPERCUT: Move = {
     [STANCE, 8],
   ]),
   active: [6, 14],
-  hit: { limb: 'handF', r: 7, dmg: 120, level: 'mid', effect: 'launch', push: 2, stun: 30, sfx: 'heavy' },
+  hit: { limb: 'handF', r: 7, dmg: 120, level: 'mid', effect: 'launch', lift: [8.4, 1.1], push: 2, stun: 30, sfx: 'heavy' },
   whoosh: true,
 };
 export const JUMP_KICK: Move = {
@@ -99,6 +111,7 @@ export const JUMP_PUNCH: Move = {
   hit: { limb: 'handF', r: 6, dmg: 55, level: 'overhead', effect: 'heavy', push: 3, stun: 18 },
   whoosh: true,
 };
+// Judo throw: grabs the opponent and flips them over to the thrower's back side.
 export const THROW: Move = {
   id: 'throw',
   anim: A([
