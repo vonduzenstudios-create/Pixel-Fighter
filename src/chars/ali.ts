@@ -11,7 +11,7 @@ import { rand } from '../core/rng';
 
 const ALI_LOOK: Look = {
   skin: '#8a5434', hair: '#141012', eye: '#1a1010', shirt: '#8a5434', pants: '#8a5434', boots: '#ece8e0',
-  hairStyle: 'short', bare: true, trunks: { color: '#f0eee8', stripe: '#141218' }, boxingGloves: '#c01818',
+  hairStyle: 'short', bareChest: true, trunks: { color: '#f0eee8', stripe: '#141218' }, boxingGloves: '#c01818',
 };
 const ALI_ALT: Look = { ...ALI_LOOK, trunks: { color: '#b01820', stripe: '#f0eee8' }, boxingGloves: '#f0eee8', boots: '#b01820' };
 

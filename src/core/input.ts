@@ -3,8 +3,10 @@ export interface RawInput {
   l: boolean; r: boolean; u: boolean; d: boolean;
   lp: boolean; hp: boolean; lk: boolean; hk: boolean;
   bl: boolean; start: boolean;
+  /** Menu back: gamepad B, or P1's high kick key. */
+  back: boolean;
 }
-export const EMPTY: RawInput = { l: false, r: false, u: false, d: false, lp: false, hp: false, lk: false, hk: false, bl: false, start: false };
+export const EMPTY: RawInput = { l: false, r: false, u: false, d: false, lp: false, hp: false, lk: false, hk: false, bl: false, start: false, back: false };
 
 const keys = new Set<string>();
 const listeners: ((code: string) => void)[] = [];
@@ -22,12 +24,12 @@ const K = (c: string) => keys.has(c);
 const KEYMAP = [
   {
     l: ['KeyA'], r: ['KeyD'], u: ['KeyW'], d: ['KeyS'],
-    lp: ['KeyU'], hp: ['KeyI'], lk: ['KeyJ'], hk: ['KeyK'], bl: ['KeyL', 'Space', 'KeyO'], start: ['Enter'],
+    lp: ['KeyU'], hp: ['KeyI'], lk: ['KeyJ'], hk: ['KeyK'], bl: ['KeyL', 'Space', 'KeyO'], start: ['Enter'], back: ['KeyK'],
   },
   {
     l: ['ArrowLeft'], r: ['ArrowRight'], u: ['ArrowUp'], d: ['ArrowDown'],
     lp: ['Numpad4', 'BracketLeft'], hp: ['Numpad5', 'BracketRight'], lk: ['Numpad1', 'Semicolon'], hk: ['Numpad2', 'Quote'],
-    bl: ['Numpad0', 'Numpad6', 'Slash'], start: ['NumpadEnter', 'Backslash'],
+    bl: ['Numpad0', 'Numpad6', 'Slash'], start: ['NumpadEnter', 'Backslash'], back: [],
   },
 ];
 
@@ -45,10 +47,10 @@ function pad(i: number): RawInput | null {
   if (!p) return null;
   const b = (n: number) => !!p.buttons[n]?.pressed;
   const ax = p.axes[0] ?? 0, ay = p.axes[1] ?? 0;
-  // Standard mapping: X=LP, Y=HP, A=LK, B=HK, shoulders/triggers=block.
+  // Standard mapping: A=LP, X=HP, B=LK, Y=HK, shoulders/triggers=block.
   return {
     l: b(14) || ax < -0.45, r: b(15) || ax > 0.45, u: b(12) || ay < -0.5, d: b(13) || ay > 0.5,
-    lp: b(2), hp: b(3), lk: b(0), hk: b(1), bl: b(4) || b(5) || b(6) || b(7), start: b(9),
+    lp: b(0), hp: b(2), lk: b(1), hk: b(3), bl: b(4) || b(5) || b(6) || b(7), start: b(9), back: b(1),
   };
 }
 

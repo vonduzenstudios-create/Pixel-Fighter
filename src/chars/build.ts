@@ -21,7 +21,7 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop';
   beard?: 'chinstrap' | 'braided';
   beardRibbon?: string;
   mustache?: boolean;
@@ -32,8 +32,10 @@ export interface Look {
   coil?: boolean;
   sash?: string;
   bandolier?: string;
-  /** Shirtless: muscle lines on the chest and arms (shirt should be the skin colour). */
-  bare?: boolean;
+  /** No shirt: bare skin torso and arms with muscle definition. */
+  bareChest?: boolean;
+  /** Cloth wraps on the wrists and hands. */
+  wraps?: string;
   /** Boxing trunks over bare legs (pants should be the skin colour). */
   trunks?: { color: string; stripe: string };
   /** Padded boxing gloves in this colour. */
@@ -51,7 +53,7 @@ function finish(p: Painter, dimmed = false): HTMLCanvasElement {
 function torso(L: Look): Painter {
   // 28x42, hip pivot at (13,31), shoulders 24px above it at y=7
   const p = new Painter(28, 42);
-  const outer = L.armor ? L.armor.metal : L.coat ?? L.shirt;
+  const outer = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
   if (L.tails && L.coat) {
     // frock coat tails hanging behind the legs
     p.poly([[5, 24], [14, 24], [13, 40], [9, 41], [4, 39]], darken(L.coat, 0.1));
@@ -77,6 +79,15 @@ function torso(L: Look): Painter {
     p.line(9, 13, 19, 13, m.trim);
     p.ellipse(15, 9, 4, 2.5, lighten(m.metal, 0.25));
   }
+  if (L.bareChest) {
+    const d = darken(L.skin, 0.22), hi = lighten(L.skin, 0.18);
+    p.line(14, 8, 20, 9, hi); // collarbone
+    p.line(13, 14, 20, 14, d); // under the pecs
+    p.line(15, 12, 15, 14, d);
+    p.line(16, 16, 16, 21, d); // abs
+    for (const y of [16, 18, 20]) p.line(17, y, 19, y, d);
+    p.set(19, 11, d);
+  }
   if (L.belt) {
     p.rect(7, 23, 13, 2, L.belt);
     if (L.buckle) p.rect(16, 23, 2, 2, L.buckle);
@@ -88,14 +99,6 @@ function torso(L: Look): Painter {
     p.poly([[7, 31], [19, 31], [19.5, 22], [6.5, 22]], L.trunks.color);
     p.rect(7, 22, 13, 2, L.trunks.stripe);
     p.line(18, 24, 18, 33, L.trunks.stripe);
-  }
-  if (L.bare) {
-    const d = darken(L.skin, 0.22);
-    p.line(14, 12, 20, 12, d); // pec line
-    p.line(15, 15, 18, 15, d);
-    p.line(15, 18, 18, 18, d);
-    p.line(16, 13, 16, 21, d); // abs
-    p.set(19, 9, lighten(L.skin, 0.2));
   }
   p.shade(0.2);
   if (L.bowtie) {
@@ -132,6 +135,12 @@ function head(L: Look): Painter {
   } else if (L.hairStyle === 'bob') {
     p.ellipse(10.5, 24.5, 7, 4, L.hair);
     p.rect(13, 23, 4, 3, L.hair);
+  } else if (L.hairStyle === 'mop') {
+    // thick, full cut with a heavy fringe swept over the brow
+    p.ellipse(9.5, 24, 7, 4.5, L.hair);
+    p.rect(3, 23, 5, 9, L.hair);
+    p.poly([[9, 21], [17, 22.5], [16.5, 26], [12, 25], [10, 24]], L.hair);
+    p.line(7, 21, 14, 22, lighten(L.hair, 0.3));
   } else {
     p.ellipse(10, 24.5, 6.5, 3.5, L.hair);
     p.rect(4, 24, 4, 6, L.hair);
@@ -179,8 +188,9 @@ function head(L: Look): Painter {
 
 function upperArm(L: Look): Painter {
   const p = new Painter(12, 21);
-  const c = L.armor ? L.armor.metal : L.coat ?? L.shirt;
+  const c = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
   p.capsule(6, 3, 4.6, 6, 15, 3.6, c);
+  if (L.bareChest) p.line(8, 5, 8, 11, lighten(L.skin, 0.15));
   if (L.armor) {
     p.ellipse(6, 4, 5.5, 4.5, lighten(L.armor.metal, 0.1));
     p.line(1, 7, 11, 7, L.armor.trim);
@@ -192,10 +202,10 @@ function upperArm(L: Look): Painter {
 
 function foreArm(L: Look, front: boolean): Painter {
   const p = new Painter(12, 23);
-  const c = L.armor ? L.armor.metal : L.coat ?? L.shirt;
+  const c = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
   p.capsule(6, 3, 3.9, 6, 12, 3.2, c);
-  const cuff = L.coatTrim ?? (L.coat ? L.shirt : darken(c, 0.2));
-  p.rect(2, 11, 8, 2, cuff);
+  const cuff = L.wraps ?? L.coatTrim ?? (L.coat ? L.shirt : darken(c, 0.2));
+  if (!L.bareChest || L.wraps) p.rect(2, 11, 8, 2, cuff);
   if (L.coil && front) {
     p.rect(2, 4, 8, 7, '#b5652a');
     for (let y = 4; y < 11; y += 2) p.line(2, y, 9, y, '#e8a050');
@@ -209,6 +219,7 @@ function foreArm(L: Look, front: boolean): Painter {
     p.line(2, 19, 7, 20, darken(g, 0.35));
   } else {
     p.ellipse(6, 16, 3.6, 3.6, L.glove ?? L.skin);
+    if (L.wraps) p.rect(3, 14, 6, 2, L.wraps);
     p.shade(0.22);
     p.line(4, 18, 8, 18, darken(L.glove ?? L.skin, 0.3));
   }
