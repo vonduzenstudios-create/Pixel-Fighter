@@ -29,6 +29,10 @@ export interface CharDef {
   props: Partial<Record<PropName, Part>>;
   /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
   fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
+  /** Extra drawing for that finishing move: called behind the fighters, then again in front (front = true). */
+  fatalityDraw?: (ctx: CanvasRenderingContext2D, fight: Fight, cam: number, front: boolean) => void;
+  /** Size relative to the standard frame (1). Big fighters reach further and are easier to hit. */
+  scale?: number;
   /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
   intro?: Intro;
   /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
@@ -76,6 +80,14 @@ export function tickPoseClock() {
   clock++;
 }
 
+/** The skeleton grown about the hip (the local origin). */
+function scaleSkel(s: Skeleton, k: number): Skeleton {
+  if (k === 1) return s;
+  const out: any = { a: s.a };
+  for (const key in s) if (key !== 'a') out[key] = [(s as any)[key][0] * k, (s as any)[key][1] * k];
+  return out;
+}
+
 const [BUF, BCTX] = makeCanvas(200, 200);
 const [SMEAR, SCTX] = makeCanvas(W, H);
 const BO = 100; // buffer origin
@@ -103,7 +115,10 @@ export class Fighter {
   hist: { d: number; f: number }[] = [{ d: 5, f: 0 }];
   /** Recent press frames per button, for mash specials. */
   taps: Record<Btn, number[]> = { lp: [], hp: [], lk: [], hk: [] };
+  /** Skeleton in world units (scaled by the character's size). Hitboxes and effects use this. */
   skel: Skeleton;
+  /** Unscaled skeleton the sprites are drawn from. */
+  rawSkel: Skeleton;
   G = 0;
   pose: Pose = AN.STANCE;
   poseOverride: Pose | null = null;
@@ -121,7 +136,10 @@ export class Fighter {
   stretch = 1;
 
   constructor(public ch: CharDef, public parts: PartSet, public bones: PartSet, public ctrl: Controller, public side: 0 | 1) {
-    this.skel = fk(AN.STANCE);
+    this.skel = this.rawSkel = fk(AN.STANCE);
+  }
+  get scale() {
+    return this.ch.scale ?? 1;
   }
 
   resetRound(x: number) {
@@ -625,13 +643,15 @@ export class Fighter {
       else pose = AN.blendPose(this.blendFrom, pose, k);
     }
     this.pose = pose;
-    this.skel = fk(pose);
-    if (this.state === 'thrown') this.G = AIR_HIP;
+    this.rawSkel = fk(pose);
+    this.skel = scaleSkel(this.rawSkel, this.scale);
+    const airHip = AIR_HIP * this.scale;
+    if (this.state === 'thrown') this.G = airHip;
     else {
       // planted by the feet near the floor, fading to a fixed hip height as the jump rises,
       // so take-offs and landings don't pop
       const planted = groundOffset(this.skel);
-      this.G = this.airborne ? planted + (AIR_HIP - planted) * Math.min(1, this.y / 14) : planted;
+      this.G = this.airborne ? planted + (airHip - planted) * Math.min(1, this.y / 14) : planted;
     }
     this.updateTrail();
   }
@@ -692,11 +712,11 @@ export class Fighter {
     b.setTransform(1, 0, 0, 1, 0, 0);
     b.clearRect(0, 0, 200, 200);
     b.translate(BO, BO);
-    b.scale(this.facing, 1);
+    b.scale(this.facing * this.scale, this.scale);
     const m = this.move;
     const prop = m?.prop ? this.ch.props[m.prop] ?? null : this.propOverride;
     const parts = this.showBones ? { ...this.bones, chair: this.parts.chair, chairF: undefined } : this.parts;
-    drawRig(b, parts, this.skel, { hidden: this.hidden, prop, propBehind: m?.propBehind });
+    drawRig(b, parts, this.rawSkel, { hidden: this.hidden, prop, propBehind: m?.propBehind });
     if (this.tint) {
       b.setTransform(1, 0, 0, 1, 0, 0);
       b.globalCompositeOperation = 'source-atop';
@@ -714,7 +734,7 @@ export class Fighter {
 
   drawShadow(ctx: CanvasRenderingContext2D, camX: number, groundY = FLOOR) {
     if (this.alpha <= 0) return;
-    const w = Math.max(8, 26 - this.y * 0.15);
+    const w = Math.max(8, 26 * this.scale - this.y * 0.15);
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     const cx = Math.round(this.x - camX);
     ctx.fillRect(cx - w / 2, groundY, w, 2);

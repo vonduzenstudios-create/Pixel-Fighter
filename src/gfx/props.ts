@@ -186,6 +186,63 @@ export function pineTree(): HTMLCanvasElement {
   return p.canvas();
 }
 
+/** Pharaoh's crook: a gold-and-blue banded staff with a hooked head. */
+export function crook(): Part {
+  const p = new Painter(10, 30);
+  p.rect(4, 0, 2, 25, '#d8b040');
+  for (let y = 2; y < 24; y += 4) p.rect(4, y, 2, 2, '#1c3a9a');
+  p.rect(4, 24, 2, 2, '#d8b040');
+  p.line(5, 26, 7, 28, '#d8b040');
+  p.line(7, 28, 9, 26, '#d8b040');
+  p.line(9, 26, 9, 23, '#d8b040');
+  return done(p, 5, 2);
+}
+
+/** A sacred scarab beetle seen from above, head toward +x. */
+export function scarab(glow = false): HTMLCanvasElement {
+  const p = new Painter(10, 9);
+  const shell = glow ? '#40d0a0' : '#1a6a5a';
+  for (const y of [1, 4, 7]) p.line(2, y, 7, y + (y === 4 ? 0 : y < 4 ? -1 : 1), '#2a1a10'); // legs
+  p.ellipse(4.5, 4.5, 3.6, 3.2, shell);
+  p.line(1.5, 4.5, 7, 4.5, darken(shell, 0.4));
+  p.ellipse(8, 4.5, 1.6, 1.5, '#2a3a30');
+  p.set(3, 3, lighten(shell, 0.6));
+  p.outline(OUT);
+  return p.canvas();
+}
+
+/** Gilded upright coffin lid with a royal face, 22x44. */
+export function sarcophagus(): HTMLCanvasElement {
+  const p = new Painter(22, 44);
+  const g = '#d8b040', b = '#1c3a9a';
+  p.poly([[5, 3], [17, 3], [20, 12], [19, 32], [16, 43], [6, 43], [3, 32], [2, 12]], g);
+  // headcloth stripes and face
+  for (const y of [5, 8, 11, 14]) p.line(3, y, 19, y, b);
+  p.ellipse(11, 11, 4.5, 5.5, '#c08a52');
+  p.set(9, 10, '#0a0608'), p.set(13, 10, '#0a0608');
+  p.line(8, 9, 10, 9, '#0a0608'), p.line(12, 9, 14, 9, '#0a0608');
+  p.rect(10, 16, 2, 4, b); // false beard
+  // crossed arms with crook and flail, then the feathered wings of the lower case
+  p.poly([[4, 21], [18, 21], [18, 24], [4, 24]], '#c08a52');
+  p.line(5, 19, 16, 25, '#e8c860');
+  p.line(16, 19, 6, 25, b);
+  for (let y = 27; y < 42; y += 3) p.line(5, y, 17, y, y % 2 ? b : '#a02020');
+  p.line(11, 26, 11, 42, darken(g, 0.35));
+  p.shade(0.2);
+  p.outline(OUT);
+  return p.canvas();
+}
+
+/** The open coffin case behind the lid: a dark, dusty interior. */
+export function sarcophagusCase(): HTMLCanvasElement {
+  const p = new Painter(22, 44);
+  p.poly([[5, 3], [17, 3], [20, 12], [19, 32], [16, 43], [6, 43], [3, 32], [2, 12]], '#a07a28');
+  p.poly([[6.5, 5], [15.5, 5], [18, 12], [17, 32], [14.5, 41], [7.5, 41], [5, 32], [4, 12]], '#1a1008');
+  for (const [x, y] of [[8, 14], [13, 22], [9, 33], [14, 37]]) p.set(x, y, '#3a2a18');
+  p.outline(OUT);
+  return p.canvas();
+}
+
 /** Cast-iron skillet, held by the handle, the pan tilted toward the viewer with a steak in it. */
 export function skillet(): Part {
   const p = new Painter(18, 32);

@@ -99,3 +99,39 @@ TypeScript + Vite + plain Canvas 2D at a native 256×224 resolution, scaled up w
   the script). After changing a line's text, re-run the script and commit the new MP3s. A line
   with no clip falls back to the browser's speech synthesis.
 - `src/game/ai.ts` drives the CPU with the same inputs a player would press.
+
+## Voice casting
+
+Each speaker has its own stock Kokoro voice (`src/audio/voicelines.json`). A test fails if two
+speakers share a voice unless their `pitch` differs by at least 0.1. Voice ids: `a`/`b` = American/British English, `f`/`m` = female/male; other language
+packs such as `ff_siwis` (French) read the English lines with that accent.
+
+| Speaker | Voice | Speed | Pitch |
+| --- | --- | --- | --- |
+| announcer | `am_onyx` | 0.85 | 0.86 |
+| default | `bm_fable` | 0.95 | 1 |
+| lincoln | `am_adam` | 0.88 | 0.94 |
+| tesla | `bm_lewis` | 1.0 | 1 |
+| joan | `ff_siwis` | 0.95 | 1 |
+| blackbeard | `bm_george` | 0.85 | 0.9 |
+| brucelee | `am_liam` | 1.08 | 1 |
+| chuck | `am_fenrir` | 0.85 | 0.9 |
+| ali | `am_echo` | 1.1 | 1 |
+| lumpsum | `bm_daniel` | 0.9 | 0.95 |
+| bobross | `am_michael` | 0.82 | 1 |
+| jackson | `am_puck` | 1.05 | 1.15 |
+| hawking | `am_eric` | 0.88 | 1 + robot filter |
+| oprah | `af_heart` | 0.95 | 0.94 |
+| colonel | `am_santa` | 0.82 | 0.94 |
+| buster | `am_santa` | 1.12 | 1.28 |
+| kingtut | `bm_lewis` | 0.92 | 1.12 |
+| fieri | `am_fenrir` | 1.12 | 1.03 |
+| shaq | `am_echo` | 0.92 | 0.82 |
+| irwin | `bm_george` | 1.12 | 1.12 |
+| ramsay | `bm_fable` | 1.12 | 0.88 |
+
+Still unused English voices: `af_alloy`, `af_aoede`, `af_bella`, `af_jessica`, `af_kore`, `af_nicole`, `af_nova`, `af_river`, `af_sarah`, `af_sky`, `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`.
+Every American and British male voice is taken, so a new male fighter should use another
+language pack that suits him (`em_alex` Spanish, `im_nicola` Italian, `pm_alex` Portuguese,
+`hm_omega` / `hm_psi` Hindi, `jm_kumo` Japanese, `zm_yunjian` etc. Mandarin) or reuse a voice
+with a clearly different pitch. New fighters: add a speaker with an unused voice, add the lines, then run `scripts/gen_voices.py`.

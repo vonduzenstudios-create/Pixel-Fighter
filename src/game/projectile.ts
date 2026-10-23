@@ -1,23 +1,27 @@
 import { FLOOR } from '../core/consts';
 import { pxCircle, pxLine } from '../gfx/painter';
-import { ball, bill, cashBrick, fedora, keg, musicNote, pineTree, steak, stovepipeHat } from '../gfx/props';
+import { ball, bill, cashBrick, fedora, keg, musicNote, pineTree, sarcophagus, scarab, steak, stovepipeHat } from '../gfx/props';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
+import { drawTinRobot } from '../chars/buster';
 import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
+import { drawBasketball } from '../chars/shaq';
 import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
+import { ANIMALS, drawAnimal, updateAnimal } from '../chars/irwin';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'steak';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball' | 'croc' | 'roo' | 'snake' | 'steak';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
 const makeSprites = () => ({
   hat: stovepipeHat(), fedora: fedora(), keg: keg(), cannon: ball(5, '#2a2a32'), holy: ball(5, '#ffd040', true), bolt: ball(4, '#9ad8ff', true),
-  cash: cashBrick(), bill: bill(), note: musicNote(), paint: PAINTS.map((c) => ball(5, c)), tree: pineTree(), steak: steak(),
+  cash: cashBrick(), bill: bill(), note: musicNote(), paint: PAINTS.map((c) => ball(5, c)), tree: pineTree(),
+  scarab: scarab(), scarabGlow: scarab(true), sarcophagus: sarcophagus(), steak: steak(),
 });
 let SPR: ReturnType<typeof makeSprites> | null = null;
 const spr = () => (SPR ??= makeSprites());
@@ -41,13 +45,28 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   // lobbed in an arc (vy set by the thrower), then burns on the floor where it lands
   grease: { dmg: 75, level: 'mid', effect: 'heavy', r: 7, speed: 2.6 },
   steak: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 4.4 },
+  // wind-up toy that waddles along the floor: block low
+  robot: { dmg: 80, level: 'low', effect: 'sweep', r: 8, speed: 1.9 },
+  // a buzzing swarm that weaves as it flies
+  scarab: { dmg: 80, level: 'high', effect: 'heavy', r: 9, speed: 3.4 },
+  // drops out of the sky onto the opponent: block it standing
+  sarcophagus: { dmg: 105, level: 'overhead', effect: 'knockdown', r: 12, speed: 0 },
   // lobbed flaming cheeseburger and a hot rod that drives across the deck (jump it)
   burger: { dmg: 85, level: 'high', effect: 'heavy', r: 7, speed: 3.9 },
   ragtop: { dmg: 100, level: 'mid', effect: 'knockdown', r: 12, speed: 5.6, sturdy: true },
+  // bounce pass: hops along the floor, so jumping it is a matter of timing
+  bball: { dmg: 80, level: 'mid', effect: 'heavy', r: 7, speed: 3.9 },
+  // summoned wildlife (chars/irwin.ts): they hit once, then head home instead of breaking (sturdy)
+  croc: { dmg: 85, level: 'low', effect: 'sweep', r: 10, speed: 2.9, sturdy: true },
+  roo: { dmg: 90, level: 'mid', effect: 'knockdown', r: 12, speed: 3.3, sturdy: true },
+  snake: { dmg: 90, level: 'low', effect: 'launch', r: 10, speed: 0, sturdy: true },
 };
 
 /** Frames a grease puddle keeps burning after it lands. */
 const GREASE_BURN = 70;
+
+/** Frames a sarcophagus hangs over its target, shadow on the floor, before it drops. */
+const SARC_WARN = 18;
 
 /** Frames a sprouting tree rumbles underground before it bursts up. */
 const TREE_WARN = 16;
@@ -76,6 +95,7 @@ export class Projectile {
 
   update(f: Fight) {
     this.t++;
+    if (ANIMALS.has(this.kind)) return updateAnimal(this, f);
     const p = f.particles;
     const travel = PROJ_SOUNDS[this.kind]?.travel;
     if (travel && this.t % travel.every === 0) playCue(travel.cue);
@@ -130,8 +150,28 @@ export class Projectile {
         }
         break;
       }
+      case 'bball':
+        this.vy -= 0.34;
+        if (this.y + this.vy <= 7) {
+          this.y = 7;
+          this.vy = 4.6;
+          if (this.t > 1) {
+            playCue('dribble');
+            p.smoke(this.x, 2, 1, '#8a7a6a');
+          }
+        }
+        break;
       case 'paint':
         if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x, y: this.y - 2, vx: -this.vx * 0.1, vy: 0.3, life: 18, max: 18, color: PAINTS[this.hue], grav: 0.15, floor: false });
+        break;
+      case 'robot':
+        this.y = 9;
+        if (this.t % 9 === 0) p.smoke(this.x - Math.sign(this.vx) * 6, 1, 1, '#8a8478');
+        if (this.t > 150) {
+          this.dead = true;
+          p.smoke(this.x, 8, 6, '#c8c0b0');
+          p.sparks(this.x, 10, 6, '#f0c828');
+        }
         break;
       case 'drumstick':
         if (this.t % 4 === 0)
@@ -162,6 +202,38 @@ export class Projectile {
         if (this.t % 5 === 0) p.smoke(this.x - Math.sign(this.vx) * 8, this.y + 4, 1, '#d8d0c8');
         if (this.t % 7 === 0) p.add({ kind: 'spark', x: this.x, y: this.y, vx: -this.vx * 0.2, vy: 0.8, life: 14, max: 14, color: '#ffe8a0', grav: 0.15 });
         break;
+      case 'scarab':
+        this.vy = Math.cos(this.t * 0.25) * 0.9;
+        if (this.t % 4 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 8, y: this.y + rand(-4, 4), vx: -this.vx * 0.2, vy: 0, life: 10, max: 10, color: '#e8c860', floor: false });
+        break;
+      case 'sarcophagus': {
+        const o = this.owner.opp;
+        if (this.t === 1) this.y = 230;
+        if (this.t < SARC_WARN) {
+          // homes in from above while the shadow grows
+          this.x += (o.x - this.x) * 0.12;
+          this.vy = 0;
+        } else if (!this.spent) {
+          this.vy -= 0.55;
+          if (this.y <= 22) {
+            this.y = 22;
+            this.vy = 0;
+            this.spent = true;
+            this.landT = this.t;
+            f.shake(6);
+            f.sfx('thud');
+            for (const s of [-1, 1]) p.smoke(this.x + s * 10, 2, 5, '#c8a870');
+          }
+        } else {
+          this.vy = 0;
+          if (this.t > this.landT + 26) {
+            this.y -= 2; // sinks into the sand
+            if (this.t % 4 === 0) p.smoke(this.x + rand(-10, 10), 2, 1, '#c8a870');
+          }
+          if (this.t > this.landT + 46) this.dead = true;
+        }
+        break;
+      }
       case 'burger':
         updateBurger(this, f);
         break;
@@ -192,6 +264,7 @@ export class Projectile {
     this.y += this.vy;
     if (this.t > 220 || this.x < -40 || this.x > 560) this.dead = true;
   }
+  private landT = 0;
   private dir0 = 0;
   private vx0() {
     if (!this.dir0) this.dir0 = Math.sign(this.vx) || 1;
@@ -203,6 +276,7 @@ export class Projectile {
     const s = spr();
     ctx.save();
     ctx.translate(sx, sy);
+    if (ANIMALS.has(this.kind)) drawAnimal(ctx, this);
     switch (this.kind) {
       case 'hat':
         ctx.rotate(this.t * 0.5);
@@ -245,6 +319,9 @@ export class Projectile {
       case 'hole':
         drawMiniHole(ctx, this.t);
         break;
+      case 'robot':
+        drawTinRobot(ctx, this.t, Math.sign(this.vx) || 1);
+        break;
       case 'gift':
         drawGift(ctx, this.t, Math.sign(this.vx) || 1);
         break;
@@ -254,11 +331,38 @@ export class Projectile {
       case 'grease':
         drawGrease(ctx, this.t, this.landed > 0);
         break;
+      case 'scarab': {
+        // a cluster of beetles: each one bobs on its own little orbit
+        const d = Math.sign(this.vx) || 1;
+        if (d < 0) ctx.scale(-1, 1);
+        for (let k = 0; k < 5; k++) {
+          const a = this.t * 0.4 + k * 1.3;
+          ctx.drawImage(k === 0 ? s.scarabGlow : s.scarab, Math.round(Math.cos(a) * 5 - k * 3) - 5, Math.round(Math.sin(a * 1.3) * 5) - 4);
+        }
+        break;
+      }
+      case 'sarcophagus': {
+        ctx.restore();
+        ctx.save();
+        // floor shadow, growing as it falls
+        const k = Math.max(0.2, 1 - (this.y - 22) / 220);
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(Math.round(sx - 12 * k), FLOOR - 1, Math.round(24 * k), 2);
+        // clipped at the floor so it can sink out of sight
+        ctx.beginPath();
+        ctx.rect(sx - 12, 0, 24, FLOOR);
+        ctx.clip();
+        ctx.drawImage(s.sarcophagus, sx - 11, sy - 22);
+        break;
+      }
       case 'burger':
         drawBurger(ctx, this);
         break;
       case 'ragtop':
         drawRagtop(ctx, this);
+        break;
+      case 'bball':
+        drawBasketball(ctx, this.t * 0.35 * Math.sign(this.vx), this.y <= 8 ? 0.8 : 1);
         break;
       case 'paint':
         ctx.drawImage(s.paint[this.hue], -7, -7);
