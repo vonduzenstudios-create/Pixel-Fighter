@@ -209,7 +209,7 @@ const specials: Special[] = [
 
 export const OPRAH_LINES = {
   intro: "Welcome to the show! Today's topic: your defeat.",
-  finisher: 'Surprise! It comes with a bow.',
+  finisher: 'You get a car! And you get a car! And you get a car!',
 };
 const VOICE = { pitch: 1.0, rate: 1.0, female: true };
 
@@ -254,80 +254,75 @@ export const OPRAH_INTRO: Intro = {
 // ------------------------------------------------------------------ finisher
 
 /**
- * Grand Prize Reveal: she presents the prize, a red sedan with a giant bow roars in behind the
- * loser and flattens them into a shower of parts, screeches to a stop at her feet, honks twice,
- * and the confetti cannons go off.
+ * Grand Prize Reveal: "You get a car!" Each shout drops a prize car out of the sky, the first one
+ * squarely on the loser, then it just rains cars all over the stage and the confetti cannons go off.
  */
 function grandPrize(f: Fight, w: Fighter, l: Fighter, t: number, D: any): boolean {
   const ps = f.particles;
   if (t === 0) {
     D.dir = w.facing;
-    // the car comes from behind the loser and drives toward her
-    D.cx = l.x + D.dir * 230;
-    D.stop = w.x + D.dir * 46;
-    D.v = 0;
+    D.cars = [];
   }
   const dir = D.dir as 1 | -1;
-  if (t < 40) {
-    w.poseOverride = t < 20 ? POINT : PRESENT;
-    if (t === 4) playCue('applause');
-    if (t === 22) say(OPRAH_LINES.finisher, VOICE);
-  }
-  if (t === 40) {
-    playCue('engine');
-    ps.add({ kind: 'img', img: dir === 1 ? spr().carL : spr().carR, ix: 30, iy: 28, x: D.cx, y: 0, life: 9999, max: 9999, grav: 0, floor: false });
-    D.car = ps.list[ps.list.length - 1];
-  }
-  if (D.car && !D.parked) {
-    const car = D.car;
-    // a busy finish can push old particles out of the list; keep the car on stage
+  // back up to give the first car room to land on the loser
+  if (t < 24 && (l.x - w.x) * dir < 70) w.x = Math.max(20, Math.min(f.sw - 20, w.x - dir * 2.5));
+  const drop = (x: number) => {
+    // never on Oprah herself
+    if (Math.abs(x - w.x) < 40) x = w.x + dir * 40 * (x === l.x ? 1 : Math.sign(x - w.x) || 1);
+    const flip = (x - w.x) * dir > 0 ? dir === 1 : rand(0, 1) < 0.5;
+    ps.add({ kind: 'img', img: flip ? spr().carL : spr().carR, ix: 30, iy: 28, x, y: 240, vx: 0, vy: -1, grav: 0.3, rot: rand(-0.3, 0.3), vrot: rand(-0.04, 0.04), life: 9999, max: 9999, floor: true, bounce: 0.25 });
+    const car = ps.list[ps.list.length - 1];
+    D.cars.push(car);
+    playCue('whistle');
+    return car;
+  };
+  // pointing at a new winner on every shout, then arms wide while it pours
+  if (t === 4) playCue('applause');
+  if (t === 14) say(OPRAH_LINES.finisher, VOICE);
+  if (t < 160) w.poseOverride = (t - 14) % 56 < 30 ? POINT : PRESENT;
+  if (t === 24) D.first = drop(l.x);
+  if (t === 70) drop(l.x - dir * 70);
+  if (t === 126) drop(l.x + dir * 60);
+  if (t >= 160 && t < 300 && t % 9 === 0) drop(f.camX + rand(10, 246));
+  for (const car of D.cars) {
+    // a busy finish can push old particles out of the list; keep the cars on stage
     if (!ps.list.includes(car)) ps.list.push(car);
-    // full throttle until past the loser, then hard on the brakes
-    D.v = D.hit ? Math.max(0.6, D.v * 0.93) : Math.min(7, D.v + 0.5);
-    car.x -= dir * D.v;
-    car.vx = 0;
-    car.y = (t >> 1) % 2 && !D.hit ? 1 : 0;
-    if (t % 3 === 0) ps.smoke(car.x + dir * 28, 3, 1, '#6a6070');
-    if (t % 12 === 0 && !D.hit) playCue('engine');
-    if (!D.hit && (car.x - l.x) * dir < 22) {
-      D.hit = t;
+    if (!car.landed && car.y <= 0.5) {
+      car.landed = true;
       sfx.crunch();
-      sfx.blood();
       sfx.thud();
-      f.shake(14);
-      for (const n of ['torso', 'head', 'armF', 'armB', 'legF', 'legB'] as const) l.hidden.add(n);
-      const s = l.skel, Pt = l.parts;
-      const parts: [Part, [number, number]][] = [
-        [Pt.torso, s.hip], [Pt.head, s.neck], [Pt.uarm, s.shF], [Pt.farm, s.elbowF], [Pt.uarmB, s.shB], [Pt.farmB, s.elbowB],
-        [Pt.thigh, s.hipF], [Pt.shin, s.kneeF], [Pt.foot, s.ankleF], [Pt.thighB, s.hipB], [Pt.shinB, s.kneeB], [Pt.footB, s.ankleB],
-      ];
-      for (const [part, at] of parts)
-        ps.chunk(part.img, part.px, part.py, l.wx(at[0]), l.wy(at[1]), -dir * rand(0.5, 2.5), rand(3, 7), rand(-0.4, 0.4));
-      ps.blood(l.x, 50, -dir, 70, 1.8);
-      ps.blood(l.x, 30, dir, 40, 1.4);
-      l.alpha = 0;
-      playCue('screech');
+      f.shake(car === D.first ? 14 : 6);
+      ps.smoke(car.x, 2, 6, '#8a8088');
+      ps.sparks(car.x, 4, 6);
+      if (rand(0, 1) < 0.35) playCue('horn');
     }
-    if (D.hit && (car.x - D.stop) * dir < 0) {
-      car.x = D.stop;
-      D.parked = t;
-    } else if (D.hit && t % 2 === 0) ps.smoke(car.x + dir * 20, 1, 2, '#c8c0c8');
+    if (car.landed && car.grav === 0) car.rot = 0;
   }
-  if (D.hit && t > D.hit && t < D.hit + 60) ps.blood(l.x, 2, rand(-1, 1), 2, 0.8);
-  if (D.parked) {
-    const k = t - D.parked;
-    if (k === 6 || k === 18) playCue('horn');
-    if (k === 30) {
-      playCue(['confettiPop', 'applause']);
-      confetti(ps, w.x - dir * 40, 150, 40, 2.4);
-      confetti(ps, w.x + dir * 60, 150, 40, 2.4);
-    }
-    if (k === 60) playCue('applause');
-    if (k > 30 && k % 20 === 0 && k < 140) confetti(ps, w.x + rand(-80, 80), 190, 10);
-    w.poseOverride = k < 30 ? POINT : (k >> 4) % 2 ? PRESENT : P(VICTORY, { ab: -150, eb: -20 });
-    return k >= 170;
+  // the first car lands right on top of the loser
+  if (D.first && !D.hit && D.first.y < 74) {
+    D.hit = t;
+    sfx.blood();
+    for (const n of ['torso', 'head', 'armF', 'armB', 'legF', 'legB'] as const) l.hidden.add(n);
+    const s = l.skel, Pt = l.parts;
+    const parts: [Part, [number, number]][] = [
+      [Pt.torso, s.hip], [Pt.head, s.neck], [Pt.uarm, s.shF], [Pt.farm, s.elbowF], [Pt.uarmB, s.shB], [Pt.farmB, s.elbowB],
+      [Pt.thigh, s.hipF], [Pt.shin, s.kneeF], [Pt.foot, s.ankleF], [Pt.thighB, s.hipB], [Pt.shinB, s.kneeB], [Pt.footB, s.ankleB],
+    ];
+    for (const [part, at] of parts)
+      ps.chunk(part.img, part.px, part.py, l.wx(at[0]), l.wy(at[1]), rand(-3, 3), rand(2, 5), rand(-0.4, 0.4));
+    ps.blood(l.x, 40, -1, 50, 1.8);
+    ps.blood(l.x, 40, 1, 50, 1.8);
+    l.alpha = 0;
   }
-  return false;
+  if (D.hit && t > D.hit && t < D.hit + 80) ps.blood(l.x + rand(-20, 20), 2, rand(-1, 1), 2, 1);
+  if (t >= 160) w.poseOverride = (t >> 4) % 2 ? PRESENT : P(VICTORY, { ab: -150, eb: -20 });
+  if (t === 330) {
+    playCue(['confettiPop', 'applause']);
+    confetti(ps, w.x - dir * 40, 150, 40, 2.4);
+    confetti(ps, w.x + dir * 60, 150, 40, 2.4);
+  }
+  if (t > 330 && t % 20 === 0 && t < 420) confetti(ps, w.x + rand(-80, 80), 190, 10);
+  return t >= 440;
 }
 
 export const OPRAH_PORTRAIT: PortraitStyle = {
