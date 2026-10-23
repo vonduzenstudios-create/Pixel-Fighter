@@ -14,6 +14,7 @@ import { sfx } from '../audio/sfx';
 import { playSong } from '../audio/music';
 import { audioReady } from '../audio/audio';
 import { drawFigure, Scene } from './common';
+import { BAR, CongaLine, drawParty } from './conga';
 import { PostMatchScene } from './postmatch';
 import { WhatsNewScene } from './whatsnew';
 
@@ -51,8 +52,11 @@ export class TitleScene implements Scene {
   e = new Edge();
   constructor(private app: App) {}
 
+  conga = new CongaLine();
+
   update() {
     this.t++;
+    this.conga.update();
     if (audioReady()) playSong('title');
     const p = this.e.update(readPlayer(0, true));
     const back = this.app.back;
@@ -87,35 +91,35 @@ export class TitleScene implements Scene {
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    const st = this.app.stage;
-    const cam = 128 + Math.sin(this.t * 0.004) * 100;
-    st.draw(ctx, cam, this.t);
-    const chars = roster();
-    const step = Math.min(50, (W - 60) / Math.max(1, chars.length - 1));
-    chars.forEach((c, i) => {
-      const x = W / 2 + (i - (chars.length - 1) / 2) * step;
-      drawFigure(ctx, partsFor(c), sample(IDLE, this.t + i * 9), x, FLOOR, i < chars.length / 2 ? 1 : -1, c.scale ?? 1, ['#0a0208', 0.82]);
-    });
-    st.drawFront(ctx, cam, this.t);
-    ctx.fillStyle = 'rgba(0,0,0,0.35)';
-    ctx.fillRect(0, 0, W, H);
-    drawText(ctx, 'PIXEL', W / 2, 22, '#fff', { scale: 4, align: 'center', grad: ['#fff4b0', '#b02010'], outline: '#100', shadow: '#000' });
-    drawText(ctx, 'FIGHTER', W / 2, 56, '#fff', { scale: 4, align: 'center', grad: ['#f0f0ff', '#8a0010'], outline: '#100', shadow: '#000' });
-    drawText(ctx, 'A 16-BIT STYLE TECH DEMO', W / 2, 92, '#c8a070', { align: 'center' });
+    // bright party backdrop, no darkening: the conga line is the show
+    drawParty(ctx, this.t);
+    this.conga.draw(ctx, this.t);
+    const bob = Math.round(Math.abs(Math.sin((this.t / BAR) * Math.PI * 4)) * 2);
+    drawText(ctx, 'PIXEL', W / 2, 14 - bob, '#fff', { scale: 4, align: 'center', grad: ['#fff4b0', '#e02a10'], outline: '#2a0030', shadow: '#2a0030' });
+    drawText(ctx, 'FIGHTER', W / 2, 46 - bob, '#fff', { scale: 4, align: 'center', grad: ['#ffffff', '#9a10c0'], outline: '#2a0030', shadow: '#2a0030' });
+    drawText(ctx, 'A 16-BIT STYLE TECH DEMO', W / 2, 80, '#fff', { align: 'center', outline: '#5a1070' });
     if (!this.menu) {
-      if (this.t % 50 < 34) drawText(ctx, 'PRESS START', W / 2, 140, '#fff', { scale: 2, align: 'center', outline: '#000' });
+      if (this.t % 50 < 34) drawText(ctx, 'PRESS START', W / 2, 98, '#fff', { scale: 2, align: 'center', grad: ['#ffffff', '#ffe060'], outline: '#2a0030' });
     } else {
       const s = this.app.settings;
       const items = ['1 PLAYER VS CPU', '2 PLAYERS', `CPU: < ${DIFF_NAMES[s.diff]} >`, 'MOVE LIST', "WHAT'S NEW"];
+      // a framed card for the menu so it reads over the dancers without dimming the scene
+      const bx = W / 2 - 74, by = 92, bw = 148, bh = items.length * 12 + 10;
+      ctx.fillStyle = '#2a0030';
+      ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+      ctx.fillStyle = '#ff5cc8';
+      ctx.fillRect(bx - 1, by - 1, bw + 2, bh + 2);
+      ctx.fillStyle = '#3a0a50';
+      ctx.fillRect(bx, by, bw, bh);
       items.forEach((it, i) => {
-        const y = 120 + i * 14;
+        const y = by + 6 + i * 12;
         const on = i === this.sel;
-        drawText(ctx, it, W / 2, y, on ? '#ffe060' : '#a09080', { align: 'center', outline: '#000' });
-        if (on) drawText(ctx, '>', W / 2 - 64, y, '#ff4020', { outline: '#000' });
+        drawText(ctx, it, W / 2, y, on ? '#ffe060' : '#d8b8e8', { align: 'center', outline: '#000' });
+        if (on) drawText(ctx, '>', bx + 6, y, '#5ce0ff', { outline: '#000' });
       });
     }
-    if (!audioReady()) drawText(ctx, 'CLICK OR PRESS ANY KEY FOR SOUND', W / 2, H - 12, '#806060', { align: 'center' });
-    else drawText(ctx, 'ALL ART AND AUDIO GENERATED IN CODE', W / 2, H - 12, '#806060', { align: 'center' });
+    const foot = audioReady() ? 'ALL ART AND AUDIO GENERATED IN CODE' : 'CLICK OR PRESS ANY KEY FOR SOUND';
+    drawText(ctx, foot, W / 2, H - 10, '#fff', { align: 'center', outline: '#5a1070' });
   }
 }
 
