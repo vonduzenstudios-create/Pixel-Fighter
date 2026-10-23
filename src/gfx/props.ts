@@ -62,6 +62,16 @@ export function stovepipeHat(): HTMLCanvasElement {
   return p.canvas();
 }
 
+export function fedora(): HTMLCanvasElement {
+  const p = new Painter(22, 12);
+  p.poly([[4, 9], [5, 3], [8, 1], [13, 1.5], [16, 3], [17, 9]], '#141218');
+  p.poly([[0, 9], [21, 9], [20, 11], [1, 11]], '#141218');
+  p.rect(5, 6, 12, 2, '#e8e4dc');
+  p.line(9, 2, 12, 2, '#000000');
+  p.outline(OUT);
+  return p.canvas();
+}
+
 export function keg(): HTMLCanvasElement {
   const p = new Painter(18, 18);
   p.ellipse(9, 9, 8, 8, '#6a4222');
@@ -137,6 +147,41 @@ export function musicNote(color = '#ffe8a0'): HTMLCanvasElement {
   p.ellipse(2, 7, 2, 1.5, color);
   p.line(4, 1, 4, 7, color);
   p.line(4, 1, 6, 3, color);
+  p.outline(OUT);
+  return p.canvas();
+}
+
+export function brush(): Part {
+  // long-handled fan brush with a green-loaded tip
+  const p = new Painter(10, 31);
+  p.rect(4, 0, 2, 18, '#c08a48');
+  p.line(4, 0, 4, 17, '#e0b070');
+  p.rect(3, 18, 4, 3, '#b8bcc8');
+  p.poly([[3, 21], [7, 21], [9.5, 29], [0.5, 29]], '#ece4d0');
+  p.poly([[1.5, 26], [8.5, 26], [9.5, 29], [0.5, 29]], '#2e6a34');
+  return done(p, 5, 2);
+}
+
+export function paletteKnife(): Part {
+  const p = new Painter(10, 32);
+  p.rect(4, 0, 2, 10, '#6a3a1a');
+  p.line(5, 10, 5, 14, '#8a8e98');
+  p.poly([[5, 14], [8, 20], [6.5, 31], [5, 31], [3.5, 20]], '#c8d0dc');
+  p.line(5, 15, 5, 30, '#f4f8ff');
+  return done(p, 5, 2);
+}
+
+/** A tidy little evergreen, 20x40, base at the bottom centre. */
+export function pineTree(): HTMLCanvasElement {
+  const p = new Painter(20, 40);
+  p.rect(8, 31, 4, 9, '#5a3a1e');
+  const greens = ['#1e4a24', '#2a6230', '#3a7a38'];
+  for (let i = 0; i < 4; i++) {
+    const top = 2 + i * 7, w = 3.5 + i * 2.2;
+    p.poly([[10, top], [10 + w, top + 11], [10 - w, top + 11]], greens[i % 3]);
+  }
+  p.shade(0.2);
+  for (const [x, y] of [[9, 8], [12, 15], [7, 22], [13, 28], [10, 34 - 10]]) p.set(x, y, '#e8f4e0');
   p.outline(OUT);
   return p.canvas();
 }

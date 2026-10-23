@@ -8,7 +8,7 @@ import type { ProjKind } from '../game/projectile';
 // Projectiles get launch, travel (looping), impact and clash cues.
 //
 // To give a new fighter's specials their own sounds, either set `sounds` on the Move itself, or add
-// an entry to MOVE_SOUNDS keyed by the move id (and PROJ_SOUNDS for a new projectile kind).
+// an entry to MOVE_SOUNDS under the character id and move id (and PROJ_SOUNDS for a new projectile kind).
 // A cue is the name of a sound in FX or sfx, a list of names to layer, or a function.
 
 const vary = (amt = 0.06) => 1 + (Math.random() * 2 - 1) * amt;
@@ -157,6 +157,37 @@ export const FX: Record<string, () => void> = {
     tone({ type: 'sine', freq: 160, to: 60, dur: 0.12, vol: 0.25 });
   },
   /** High note that rattles the target: glassy ringing partials. */
+  // ---------------------------------------------------------------- boxing
+  /** Leather glove snapping into a body. */
+  glovePop() {
+    noise({ dur: 0.05, vol: 0.35, type: 'bandpass', freq: 1600 * vary(), q: 1.5 });
+    tone({ type: 'sine', freq: 180 * vary(), to: 80, dur: 0.08, vol: 0.25 });
+  },
+  /** Quick footwork: sneaker squeaks on the canvas. */
+  shuffle() {
+    const t = now();
+    for (let i = 0; i < 3; i++) tone({ type: 'sine', freq: 2200 * vary(0.15), to: 2700, dur: 0.04, vol: 0.04, at: t + i * 0.07 });
+  },
+  ropeCreak() {
+    tone({ type: 'sawtooth', freq: 120 * vary(), to: 90, dur: 0.35, vol: 0.06, filter: { type: 'bandpass', freq: 700, q: 8 } });
+    noise({ dur: 0.3, vol: 0.05, type: 'bandpass', freq: 400, q: 4 });
+  },
+  // ---------------------------------------------------------------- painting
+  brushTap() {
+    noise({ dur: 0.05, vol: 0.12, type: 'bandpass', freq: 3000 * vary(), q: 2 });
+    tone({ type: 'sine', freq: 600, to: 400, dur: 0.04, vol: 0.05 });
+  },
+  /** Wet paint splatting on a body. */
+  splat() {
+    noise({ dur: 0.15, vol: 0.35, type: 'lowpass', freq: 1800 * vary(), to: 400 });
+    tone({ type: 'sine', freq: 300, to: 90, dur: 0.1, vol: 0.15 });
+  },
+  /** A tree bursting up through the deck. */
+  woodBurst() {
+    FX.chop();
+    FX.creak();
+    tone({ type: 'sine', freq: 80, to: 160, dur: 0.25, vol: 0.2 });
+  },
   shatter() {
     const t = now();
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
@@ -164,36 +195,59 @@ export const FX: Record<string, () => void> = {
   },
 };
 
-/** Per-special sound design, keyed by move id. */
-export const MOVE_SOUNDS: Record<string, MoveSounds> = {
-  // Lincoln
-  proj_hat: { frames: { 1: 'inhale' } },
-  railsplit: { frames: { 1: 'heave', 6: 'creak' }, impact: 'chop', blocked: 'clack' },
-  logroll: { frames: { 1: 'heave', 6: 'rumble', 14: 'rumble', 22: 'rumble' }, impact: ['clack', 'thud'] },
-  // Tesla
-  proj_bolt: { frames: { 1: 'charge' } },
-  teleport: { frames: { 15: 'popIn', 24: 'crackle' }, impact: 'elecHit' },
-  acfield: { frames: { 1: 'charge', 14: 'crackle', 22: 'crackle', 30: 'crackle' }, impact: 'elecHit' },
-  // Joan
-  proj_holy: { frames: { 1: 'choir' } },
-  charge: { frames: { 1: 'shing', 4: 'warCry', 8: 'stomp', 13: 'stomp', 18: 'stomp' }, impact: 'clang', blocked: 'clang' },
-  ascend: { frames: { 0: 'shing' }, impact: 'flameBurst', blocked: 'clang' },
-  // Blackbeard
-  proj_cannon: { frames: { 1: 'fuse' } },
-  proj_keg: { frames: { 1: 'fuse' } },
-  cyclone: { frames: { 1: 'shing' }, impact: 'chop', blocked: 'clang' },
-  // Bruce Lee
-  inchpunch: { frames: { 1: 'chi' }, impact: 'boneCrack' },
-  dragonkick: { frames: { 0: 'chi' }, impact: 'boneCrack' },
-  nunchaku: { frames: { 1: 'chainRattle', 13: 'chainRattle', 25: 'chainRattle' }, impact: 'clack', blocked: 'clack' },
-  // Chuck Norris
-  proj_gust: { frames: { 1: 'inhale' } },
-  tornado: { frames: { 0: 'heave' }, impact: 'boneCrack' },
-  flurry: { frames: { 1: 'heave' }, impact: 'bootThud' },
-  // Monty Lumpsum
-  proj_cash: { frames: { 1: 'coins' } },
-  proj_aria: { frames: { 1: 'inhale' } },
-  checkslam: { frames: { 1: 'paperFlap', 8: 'heave' }, impact: 'paperSlap' },
+/** Per-special sound design, keyed by character id then move id. */
+export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
+  lincoln: {
+    proj_hat: { frames: { 1: 'inhale' } },
+    railsplit: { frames: { 1: 'heave', 6: 'creak' }, impact: 'chop', blocked: 'clack' },
+    logroll: { frames: { 1: 'heave', 6: 'rumble', 14: 'rumble', 22: 'rumble' }, impact: ['clack', 'thud'] },
+  },
+  tesla: {
+    proj_bolt: { frames: { 1: 'charge' } },
+    teleport: { frames: { 15: 'popIn', 24: 'crackle' }, impact: 'elecHit' },
+    acfield: { frames: { 1: 'charge', 14: 'crackle', 22: 'crackle', 30: 'crackle' }, impact: 'elecHit' },
+  },
+  joan: {
+    proj_holy: { frames: { 1: 'choir' } },
+    charge: { frames: { 1: 'shing', 4: 'warCry', 8: 'stomp', 13: 'stomp', 18: 'stomp' }, impact: 'clang', blocked: 'clang' },
+    ascend: { frames: { 0: 'shing' }, impact: 'flameBurst', blocked: 'clang' },
+  },
+  blackbeard: {
+    proj_cannon: { frames: { 1: 'fuse' } },
+    proj_keg: { frames: { 1: 'fuse' } },
+    cyclone: { frames: { 1: 'shing' }, impact: 'chop', blocked: 'clang' },
+  },
+  brucelee: {
+    inchpunch: { frames: { 1: 'chi' }, impact: 'boneCrack' },
+    dragonkick: { frames: { 0: 'chi' }, impact: 'boneCrack' },
+    nunchaku: { frames: { 1: 'chainRattle', 13: 'chainRattle', 25: 'chainRattle' }, impact: 'clack', blocked: 'clack' },
+  },
+  chuck: {
+    proj_gust: { frames: { 1: 'inhale' } },
+    tornado: { frames: { 0: 'heave' }, impact: 'boneCrack' },
+    flurry: { frames: { 1: 'heave' }, impact: 'bootThud' },
+  },
+  lumpsum: {
+    proj_cash: { frames: { 1: 'coins' } },
+    proj_aria: { frames: { 1: 'inhale' } },
+    checkslam: { frames: { 1: 'paperFlap', 8: 'heave' }, impact: 'paperSlap' },
+  },
+  ali: {
+    flurry: { frames: { 1: 'shuffle', 14: 'shuffle' }, impact: 'glovePop' },
+    ropeadope: { frames: { 3: 'ropeCreak' } },
+    ropecounter: { frames: { 0: 'heave' }, impact: ['glovePop', 'boneCrack'] },
+    lightningcross: { frames: { 0: 'crackle' }, impact: ['glovePop', 'boneCrack'] },
+  },
+  bobross: {
+    proj_paint: { frames: { 1: 'brushTap' } },
+    proj_tree: { frames: { 1: 'brushTap', 6: 'brushTap' } },
+    flurry: { frames: { 1: 'brushTap' }, impact: 'splat' },
+  },
+  jackson: {
+    proj_fedora: { frames: { 2: 'shing' } },
+    moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
+    toespin: { impact: ['sparkle', 'boneCrack'] },
+  },
 };
 
 export interface ProjSounds {
@@ -216,6 +270,9 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   gust: { travel: { every: 9, cue: 'wind' }, impact: 'windHit' },
   cash: { travel: { every: 14, cue: 'coins' }, impact: ['kaching', 'paperSlap'], blocked: 'kaching' },
   aria: { impact: 'shatter' },
+  fedora: { impact: 'clack' },
+  paint: { impact: 'splat' },
+  tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */
@@ -226,6 +283,8 @@ export function playCue(cue: Cue | undefined) {
   (FX[cue] ?? (sfx as Record<string, unknown>)[cue] as (() => void) | undefined)?.();
 }
 
-export function moveSounds(m: Move | null | undefined): MoveSounds | undefined {
-  return m ? m.sounds ?? MOVE_SOUNDS[m.id] : undefined;
+/** Sound design for the move a fighter is doing: inline `sounds` first, then the registry. */
+export function moveSounds(f: { ch: { id: string }; move?: Move | null }): MoveSounds | undefined {
+  const m = f.move;
+  return m ? m.sounds ?? MOVE_SOUNDS[f.ch.id]?.[m.id] : undefined;
 }

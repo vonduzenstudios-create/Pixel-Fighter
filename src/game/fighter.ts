@@ -8,6 +8,8 @@ import * as MV from './moves';
 import type { Fight } from './fight';
 import type { Anim, Btn, Finisher, HitDef, Move, PropName, Special } from './types';
 import type { Look } from '../chars/build';
+import type { Intro } from './intro';
+import type { PortraitStyle } from '../gfx/portrait';
 import { chance } from '../core/rng';
 import { strengthOf } from '../audio/sfx';
 import { moveSounds, playCue } from '../audio/specials';
@@ -27,6 +29,14 @@ export interface CharDef {
   props: Partial<Record<PropName, Part>>;
   /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
   fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
+  /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
+  intro?: Intro;
+  /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
+  portrait?: PortraitStyle;
+  /** Win-screen taunts. {L} becomes the loser's short name. */
+  quotes?: string[];
+  /** Taunts for beating one particular opponent, keyed by their id. */
+  quotesVs?: Record<string, string>;
 }
 
 export interface Controller {
@@ -332,7 +342,7 @@ export class Fighter {
     const fr = this.mf++;
     if (m.active && fr === m.active[0] && (m.whoosh || (m.hit && !m.hit.special)))
       f.sfx('whoosh', m.hit ? strengthOf(m.hit.dmg) : 1, m.hit?.limb.startsWith('toe'));
-    playCue(moveSounds(m)?.frames?.[fr]);
+    playCue(moveSounds(this)?.frames?.[fr]);
     if (m.vx !== undefined) {
       const v = typeof m.vx === 'function' ? m.vx(fr) : m.vx;
       this.x += v * this.moveDir;
@@ -469,6 +479,12 @@ export class Fighter {
   /** Apply a hit that connected. Returns 'block' or 'hit'. */
   receive(hit: HitDef, from: Fighter, f: Fight, at: { x: number; y: number }, projectile = false): 'block' | 'hit' {
     const away = this.x >= from.x ? 1 : -1;
+    const ctr = this.state === 'attack' ? this.move?.counter : undefined;
+    if (ctr && this.mf >= ctr.from && this.mf < ctr.to) {
+      this.faceOpp();
+      this.startMove(ctr.move, f);
+      return 'block';
+    }
     if (this.canBlockNow(hit.level)) {
       const low = this.crouching;
       this.setState('blockstun', low ? AN.CBLOCK_ANIM : AN.BLOCK_ANIM);

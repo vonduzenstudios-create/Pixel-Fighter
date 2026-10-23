@@ -4,7 +4,7 @@ import { ac, midi, musicOut, noise, tone } from './audio';
 // progressions that drive generated bass, string pads and percussion.
 // All compositions here are original.
 
-type Inst = 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle';
+type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute';
 interface Note { step: number; inst: Inst; n: number; len: number; vol?: number }
 interface Song { bpm: number; steps: number; notes: Note[] }
 
@@ -167,13 +167,147 @@ function victorySong(): Song {
   return { bpm: 110, steps: 32, notes };
 }
 
-export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong() };
+/** The Sporewood: a bouncy, twinkly forest waltz-in-four in F major. */
+function mushroomSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['F', 'Dm', 'Bb', 'C', 'F', 'Am', 'Bb', 'C', 'Bb', 'C', 'Am', 'Dm', 'Gm', 'C', 'F', 'C'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch);
+    const root = tones[0];
+    // oom-pah bass: root and fifth, with a little walk-up into the next bar
+    [0, 4, 8, 12].forEach((st, i) => notes.push({ step: s + st, inst: 'bass', n: 36 + root + (i % 2 ? 7 : 0), len: 2 }));
+    if (b % 2 === 1) notes.push({ step: s + 14, inst: 'bass', n: 36 + root + 4, len: 1 });
+    // soft pad
+    tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 60 + ((t + 7) % 12) - 3, len: 16, vol: 0.022 }));
+    // off-beat chord plucks
+    [2, 6, 10, 14].forEach((st) => tones.forEach((t) => notes.push({ step: s + st, inst: 'pluck', n: 64 + ((t + 8) % 12) - 4, len: 1, vol: 0.45 })));
+    // twinkle arpeggio up high
+    [0, 3, 6, 9].forEach((st, i) => notes.push({ step: s + st + (b % 2 ? 1 : 0), inst: 'bell', n: 79 + ((tones[i % 3] + 7) % 12) - 7 + (i === 3 ? 12 : 0), len: 2 }));
+    // light kit
+    notes.push({ step: s, inst: 'kick', n: 0, len: 1 });
+    notes.push({ step: s + 8, inst: 'kick', n: 0, len: 1 });
+    notes.push({ step: s + 4, inst: 'snare', n: 0, len: 1, vol: 0.35 });
+    notes.push({ step: s + 12, inst: 'snare', n: 0, len: 1, vol: 0.35 });
+    for (let h = 2; h < 16; h += 4) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+  });
+  const lead = [
+    // A: hopping plucked tune (bars 1-8)
+    'F5 . A5 . C6 - A5 . G5 . F5 . A5 - - .',
+    'D5 . F5 . A5 - F5 . E5 . D5 . F5 - - .',
+    'D5 - C5 . Bb4 . D5 . F5 - - . D5 . F5 .',
+    'E5 - - . G5 . E5 . C5 - - - . . . .',
+    'F5 . A5 . C6 - D6 . C6 . A5 . F5 - - .',
+    'E5 . A5 . C6 - B5 . A5 . E5 . C5 - - .',
+    'D5 . F5 . Bb5 - A5 . G5 . F5 . D5 . F5 .',
+    'G5 - - - E5 - - - C5 - - - . . . .',
+    // B: a sung flute line over it (bars 9-16)
+    'F5 - - - D5 - - - Bb4 - - - D5 - F5 -',
+    'E5 - - - G5 - - - C6 - - - Bb5 - A5 -',
+    'A5 - - - E5 - - - C5 - - - E5 - A5 -',
+    'F5 - - - A5 - - - D6 - - - C6 - A5 -',
+    'Bb5 - A5 - G5 - F5 - D5 - F5 - G5 - Bb5 -',
+    'C6 - - - Bb5 - - - G5 - - - E5 - - -',
+    'F5 . A5 . C6 . F6 - - - C6 . A5 . F5 .',
+    'E5 - - - G5 - - - C5 - . . E5 . G5 .',
+  ];
+  lead.forEach((l, i) => notes.push(...line(l, i < 8 ? 'pluck' : 'flute', i * 16)));
+  // the plucked A tune doubles an octave down so it carries
+  lead.slice(0, 8).forEach((l, i) => line(l, 'pluck', i * 16, 0.5).forEach((n) => notes.push({ ...n, n: n.n - 12 })));
+  return { bpm: 128, steps: prog.length * 16, notes };
+}
+
+// "Data Spire": cold E-minor synth arpeggios over a driving bass, strings and brass join later.
+function spireSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['Em', 'C', 'Am', 'B', 'Em', 'C', 'D', 'B', 'C', 'D', 'Em', 'Em', 'Am', 'C', 'B', 'B'];
+  const arp = [0, 1, 2, 3, 2, 1, 0, 1, 0, 1, 2, 3, 4, 3, 2, 1];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch).map((t) => (t + 8) % 12); // semitones above E
+    const up = [...tones, tones[0] + 12, tones[1] + 12];
+    arp.forEach((a, st) => notes.push({ step: s + st, inst: 'arp', n: 64 + up[a], len: 1 }));
+    for (let st = 0; st < 16; st += 2) notes.push({ step: s + st, inst: 'bass', n: 40 + tones[0] + (st % 4 === 2 ? 12 : 0), len: 1 });
+    [0, 6, 8].forEach((st) => notes.push({ step: s + st, inst: 'kick', n: 0, len: 1 }));
+    [4, 12].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1 }));
+    if (b % 4 === 3) [14, 15].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1, vol: 0.6 }));
+    for (let h = 0; h < 16; h++) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+    if (b >= 8) tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 52 + t, len: 16, vol: 0.04 }));
+    if (b >= 12) [0, 3, 6, 10].forEach((st) => notes.push({ step: s + st, inst: 'brass', n: 52 + tones[0], len: 2 }));
+    if (b % 8 === 0) notes.push({ step: s, inst: 'timp', n: 40, len: 6 });
+  });
+  const lead = [
+    'E5 - - - B4 - - - E5 - F#5 - G5 - - -',
+    'E5 - - - G5 - - - C6 - B5 - G5 - - -',
+    'A5 - - - G5 - F#5 - E5 - D5 - E5 - - -',
+    'D#5 - - - - - - - F#5 - - - B4 - - -',
+    'G5 - - - E5 - G5 - C6 - - - B5 - G5 -',
+    'A5 - - - F#5 - - - D5 - E5 - F#5 - A5 -',
+    'B5 - - - - - G5 - E5 - - - B4 - - -',
+    'E5 - G5 - B5 - - - E6 - - - - - - -',
+    'C6 - - - B5 - A5 - E5 - - - A5 - C6 -',
+    'G5 - - - E5 - - - C5 - E5 - G5 - - -',
+    'F#5 - - - D#5 - - - B4 - - - F#5 - - -',
+    'D#5 - - - E5 - F#5 - A5 - - - B5 - - -',
+  ];
+  lead.forEach((l, i) => notes.push(...line(l, 'lead', (i + 4) * 16)));
+  return { bpm: 132, steps: prog.length * 16, notes };
+}
+
+function boatSong(): Song {
+  // "Brine and Bones": a minor-key shanty in 6/8. A bar is 12 steps, so an eighth note is 2 steps.
+  const notes: Note[] = [];
+  const BAR = 12;
+  const prog = ['Am', 'G', 'Am', 'E', 'Am', 'G', 'F', 'E', 'F', 'G', 'C', 'Am', 'F', 'G', 'E', 'E'];
+  const eighths = (s: string) => s.trim().split(/\s+/).flatMap((t) => (t === '-' ? ['-', '-'] : t === '.' ? ['.', '.'] : [t, '-'])).join(' ');
+  const tune = [
+    'E5 - A4 A4 B4 C5', 'D5 - B4 G4 - -', 'C5 - A4 E5 - D5', 'B4 - G#4 E4 - -',
+    'E5 - A4 A4 B4 C5', 'D5 - G5 F5 E5 D5', 'C5 - A4 F5 E5 D5', 'E5 - - - - -',
+    'A5 - - G5 F5 E5', 'D5 - B4 G4 - D5', 'E5 - D5 C5 - E5', 'A4 - - - C5 E5',
+    'F5 - - E5 D5 C5', 'D5 - - B4 C5 D5', 'E5 - D5 C5 B4 G#4', 'E4 - - - . .',
+  ];
+  // played twice: a lone fiddle first, then the full crew with brass and choir
+  for (let pass = 0; pass < 2; pass++)
+    prog.forEach((ch, i) => {
+      const b = pass * prog.length + i, s = b * BAR;
+      const tones = chordTones(ch);
+      const root = tones[0];
+      // oom-pah: bass on beats 1 and 4, squeezebox chords on the off-eighths
+      notes.push({ step: s, inst: 'bass', n: 36 + root, len: 3 });
+      notes.push({ step: s + 6, inst: 'bass', n: 36 + root + 7 - (root > 4 ? 12 : 0), len: 3 });
+      for (const st of [2, 4, 8, 10]) tones.forEach((t) => notes.push({ step: s + st, inst: 'reed', n: 57 + ((t + 3) % 12), len: 1 }));
+      notes.push({ step: s, inst: 'kick', n: 0, len: 1 });
+      notes.push({ step: s + 6, inst: 'snare', n: 0, len: 1, vol: 0.6 });
+      for (let h = 0; h < BAR; h += 2) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+      if (i % 4 === 0) notes.push({ step: s, inst: 'timp', n: 24 + root + (root < 4 ? 12 : 0), len: 6 });
+      if (i % 8 === 0) [0, 3].forEach((st) => notes.push({ step: s + st, inst: 'bell', n: 81, len: 4 }));
+      notes.push(...line(eighths(tune[i]), 'fiddle', s));
+      if (pass === 1) {
+        notes.push(...line(eighths(tune[i]), 'lead', s, 0.7));
+        tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 57 + ((t + 3) % 12), len: BAR, vol: 0.03 }));
+        if (i >= 8) notes.push({ step: s, inst: 'choir', n: 57 + ((root + 3) % 12), len: BAR });
+        if (i % 2 === 1) [0, 6].forEach((st) => tones.forEach((t) => notes.push({ step: s + st, inst: 'brass', n: 52 + ((t + 8) % 12), len: 2, vol: 0.8 })));
+        if (i === 15) [7, 8, 9, 10, 11].forEach((st) => notes.push({ step: s + st, inst: 'snare', n: 0, len: 1, vol: 0.5 }));
+      }
+    });
+  return { bpm: 120, steps: prog.length * 2 * BAR, notes };
+}
+
+export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), spire: spireSong(), mushroom: mushroomSong(), boat: boatSong() };
 export type SongName = keyof typeof SONGS;
 
 function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
   const out = musicOut();
   const f = midi(n);
   switch (inst) {
+    case 'fiddle':
+      tone({ type: 'sawtooth', freq: f, dur: dur + 0.06, vol: 0.05 * vol, at, out, attack: 0.03, filter: { type: 'lowpass', freq: 2800, to: 1600 } });
+      tone({ type: 'sawtooth', freq: f, dur: dur + 0.06, vol: 0.025 * vol, at, out, attack: 0.05, detune: 14, filter: { type: 'lowpass', freq: 2000 } });
+      break;
+    case 'reed':
+      for (const d of [-7, 7])
+        tone({ type: 'square', freq: f, dur: dur * 0.9 + 0.04, vol: 0.022 * vol, at, out, attack: 0.012, detune: d, filter: { type: 'bandpass', freq: 1300, q: 0.9 } });
+      break;
     case 'lead':
       tone({ type: 'square', freq: f, dur: dur * 0.95 + 0.05, vol: 0.06 * vol, at, out, filter: { type: 'lowpass', freq: 3200 } });
       tone({ type: 'sawtooth', freq: f, dur: dur * 0.95 + 0.05, vol: 0.03 * vol, at, out, detune: 8 });
@@ -197,6 +331,15 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
       tone({ type: 'sine', freq: f, dur: 1.6, vol: 0.08, at, out });
       tone({ type: 'sine', freq: f * 2.76, dur: 0.6, vol: 0.025, at, out });
       break;
+    case 'pluck':
+      tone({ type: 'triangle', freq: f, dur: 0.22, vol: 0.12 * vol, at, out });
+      tone({ type: 'square', freq: f * 2, dur: 0.06, vol: 0.02 * vol, at, out, filter: { type: 'lowpass', freq: 2500 } });
+      break;
+    case 'flute':
+      tone({ type: 'sine', freq: f, dur: dur + 0.08, vol: 0.09 * vol, at, out, attack: 0.05 });
+      tone({ type: 'triangle', freq: f, dur: dur + 0.08, vol: 0.03 * vol, at, out, attack: 0.07, detune: 6 });
+      noise({ dur: 0.08, vol: 0.02 * vol, type: 'bandpass', freq: f * 2, q: 3, at, out });
+      break;
     case 'timp':
       tone({ type: 'sine', freq: f * 1.4, to: f, dur: Math.max(0.5, dur), vol: 0.35, at, out });
       noise({ dur: 0.12, vol: 0.12, freq: 500, at, out });
@@ -207,6 +350,9 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
     case 'snare':
       noise({ dur: 0.14, vol: 0.18 * vol, type: 'bandpass', freq: 1800, q: 0.7, at, out });
       tone({ type: 'triangle', freq: 220, to: 120, dur: 0.08, vol: 0.08 * vol, at, out });
+      break;
+    case 'arp':
+      tone({ type: 'square', freq: f, dur: 0.11, vol: 0.035 * vol, at, out, filter: { type: 'lowpass', freq: 2600, to: 500 } });
       break;
     case 'hat':
       noise({ dur: 0.04, vol: 0.05, type: 'highpass', freq: 7000, at, out });

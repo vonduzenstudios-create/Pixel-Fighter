@@ -2,7 +2,7 @@ import type { Pose } from '../gfx/rig';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 
-export type PropName = 'axe' | 'sword' | 'cutlass' | 'nunchaku' | 'check';
+export type PropName = 'axe' | 'sword' | 'cutlass' | 'nunchaku' | 'check' | 'brush' | 'knife';
 export type Level = 'high' | 'mid' | 'low' | 'overhead';
 export type Effect = 'light' | 'heavy' | 'knockdown' | 'launch' | 'sweep';
 export type Limb = 'handF' | 'handB' | 'toeF' | 'toeB' | 'kneeF' | 'prop' | 'body';
@@ -60,6 +60,8 @@ export interface Move {
   invisible?: [number, number];
   /** Toggle facing every N frames (spinning attacks). */
   spin?: number;
+  /** Counter stance: a hit landing during frames [from, to) is absorbed and `move` fires instead. */
+  counter?: { from: number; to: number; move: Move };
 }
 
 export type Btn = 'lp' | 'hp' | 'lk' | 'hk';
