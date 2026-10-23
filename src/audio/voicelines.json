@@ -20,7 +20,8 @@
     "kingtut":    { "voice": "bm_lewis",   "speed": 0.92, "pitch": 1.12 },
     "fieri":      { "voice": "am_fenrir",  "speed": 1.12, "pitch": 1.03, "gain": 1.05 },
     "shaq":       { "voice": "am_echo",    "speed": 0.92, "pitch": 0.82 },
-    "irwin":      { "voice": "bm_george",  "speed": 1.12, "pitch": 1.12 }
+    "irwin":      { "voice": "bm_george",  "speed": 1.12, "pitch": 1.12 },
+    "glare":      { "voice": "am_eric",    "speed": 0.9, "pitch": 0.97 }
   },
   "lines": [
     { "file": "default-intro", "who": "default", "text": "Let's settle this." },
@@ -47,6 +48,8 @@
     { "file": "shaq-finisher", "who": "shaq", "text": "Too big. Too strong. Nothing but net." },
     { "file": "irwin-intro", "who": "irwin", "text": "Easy, mate. She only bites when I ask her to." },
     { "file": "irwin-finisher", "who": "irwin", "text": "Good girl! She was hungry, that one." },
+    { "file": "glare-intro", "who": "glare", "text": "Try not to stare. Actually, go ahead.", "spoken": "Try not to stare... Actually, go ahead." },
+    { "file": "glare-finisher", "who": "glare", "text": "Hold still. Perfect. You are done.", "spoken": "Hold still... Perfect. You're done." },
 
     { "file": "ann-round-1", "who": "announcer", "text": "Round 1", "spoken": "Round one!" },
     { "file": "ann-round-2", "who": "announcer", "text": "Round 2", "spoken": "Round two!" },
@@ -73,6 +76,7 @@
     { "file": "ann-wins-kingtut", "who": "announcer", "text": "King Tut wins" },
     { "file": "ann-wins-fieri", "who": "announcer", "text": "Guy Fieri wins" },
     { "file": "ann-wins-shaq", "who": "announcer", "text": "Shaquille O'Neal wins", "spoken": "Shaquille O'Neal wins!" },
-    { "file": "ann-wins-irwin", "who": "announcer", "text": "Steve Irwin wins" }
+    { "file": "ann-wins-irwin", "who": "announcer", "text": "Steve Irwin wins" },
+    { "file": "ann-wins-glare", "who": "announcer", "text": "Dorian Glare wins" }
   ]
 }

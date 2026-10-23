@@ -7,6 +7,7 @@ import { buster } from './buster';
 import { irwin } from './irwin';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
+import { glare } from './glare';
 import { colonelCrisp } from './colonel';
 import { kingTut } from './kingtut';
 import { guyFieri } from './fieri';
@@ -483,6 +484,7 @@ export function roster(): CharDef[] {
       ],
       quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
     },
+    glare(),
     oprah(),
     buster(),
     kingTut(),
