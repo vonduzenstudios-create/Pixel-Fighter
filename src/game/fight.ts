@@ -11,7 +11,7 @@ import * as AN from './anims';
 import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
-import { Stage } from './stage';
+import type { Arena } from './stages';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
@@ -48,7 +48,7 @@ export class Fight {
   hadFatality = false;
   startEdges = [new Edge(), new Edge()];
 
-  constructor(public f: [Fighter, Fighter], public stage: Stage, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
+  constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
     f[1].opp = f[0];
     this.particles.floorY = 0;
@@ -213,7 +213,7 @@ export class Fight {
           sfx.gong();
           this.banner(`ROUND ${this.round}`, 70, 3, ['#ffffff', '#c0a060']);
           announce(`Round ${this.round}`);
-          playSong('fight');
+          playSong(this.stage.song);
         }
         if (this.pt === 72) {
           this.banner('FIGHT!', 40, 4, ['#fff080', '#e01010']);
@@ -396,7 +396,7 @@ export class Fight {
 
   resolveHit(a: Fighter, d: Fighter, hit: HitDef, at: { x: number; y: number }, projectile = false) {
     if (this.phase === 'finish' && d === this.loser) {
-      if (a.move?.id === 'uppercut') {
+      if (a.move?.id === 'uppercut' && this.stage.pit) {
         this.startPitFatality(a);
         return;
       }
@@ -700,7 +700,7 @@ export class Fight {
 
   drawPit(ctx: CanvasRenderingContext2D) {
     const D = this.fatal?.data ?? { y: 150, rot: -90, impaled: true };
-    ctx.drawImage(this.stage.pit, 0, 0);
+    if (this.stage.pit) ctx.drawImage(this.stage.pit, 0, 0);
     const l = this.loser!;
     const pose = D.impaled ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
     l.hidden.clear();
