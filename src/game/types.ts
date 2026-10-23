@@ -22,6 +22,8 @@ export interface HitDef {
   /** Launch arc for effect 'launch': [upward speed, speed away]. */
   lift?: [number, number];
   sfx?: 'light' | 'heavy' | 'slash' | 'zap' | 'burn';
+  /** Also hit with the whole shin, not just the toe (very long legs at point-blank range). */
+  line?: boolean;
 }
 
 /** A sound to play: a name from the special FX or shared sfx, a list of names to layer, or a function. */

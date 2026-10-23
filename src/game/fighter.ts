@@ -38,6 +38,13 @@ export interface CharDef {
   scale?: number;
   /** Little diorama the fighter stands in on character select (see scenes/sets.ts). */
   selectSet?: SetPainter;
+  /**
+   * Replacement normal attacks, keyed by the shared move's id (jab, hp, lk, hk, roundhouse, sweep, cp,
+   * ck, chk, uppercut, jp, jk, throw). Keep id 'uppercut' on the replacement so the stage finish works.
+   */
+  normals?: Partial<Record<string, Move>>;
+  /** How far the CPU may stand and still poke with normals (default 45). */
+  reach?: number;
   /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
   intro?: Intro;
   /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
@@ -144,8 +151,12 @@ export class Fighter {
   sizeBy: Move | null = null;
 
   constructor(public ch: CharDef, public parts: PartSet, public bones: PartSet, public ctrl: Controller, public side: 0 | 1) {
-    this.skel = this.rawSkel = fk(AN.STANCE);
+    this.skel = this.rawSkel = fk(AN.STANCE, parts.limbs);
+    const lim = parts.limbs;
+    // longer legs ride higher in the air so the feet stay clear of the floor
+    this.airHip = lim ? AIR_HIP * ((lim.thigh ?? 18) + (lim.shin ?? 18)) / 36 : AIR_HIP;
   }
+  private airHip: number;
   get scale() {
     return (this.ch.scale ?? 1) * this.size;
   }
@@ -247,7 +258,7 @@ export class Fighter {
   /** Fire a mash special if one has been mashed; works from neutral or to cancel a normal attack. */
   tryMash(f: Fight): boolean {
     if (this.airborne || !this.pressedButton()) return false;
-    if (this.state === 'attack' && !NORMALS.has(this.move!)) return false;
+    if (this.state === 'attack' && !NORMALS.has(this.move!) && !this.ownNormal(this.move!)) return false;
     for (const sp of this.ch.specials) {
       if (!sp.mash || !this.btnPressed(sp.mash) || !this.mashed(sp.mash)) continue;
       for (const k in this.taps) this.taps[k as Btn].length = 0;
@@ -256,6 +267,16 @@ export class Fighter {
       return true;
     }
     return false;
+  }
+
+  /** One of this character's replacement normals (see CharDef.normals). */
+  ownNormal(m: Move) {
+    const n = this.ch.normals;
+    return !!n && Object.values(n).includes(m);
+  }
+  /** The shared normal, or this character's replacement for it. */
+  normal(m: Move): Move {
+    return this.ch.normals?.[m.id] ?? m;
   }
 
   btnPressed(b: Btn | 'p' | 'k') {
@@ -421,7 +442,7 @@ export class Fighter {
       if (f.tryThrow(this)) return true;
       m = MV.JAB;
     } else m = b === 'lp' ? MV.JAB : b === 'hp' ? MV.HIGH_PUNCH : b === 'lk' ? MV.LOW_KICK : MV.HIGH_KICK;
-    this.startMove(m, f);
+    this.startMove(this.normal(m), f);
     return true;
   }
 
@@ -429,7 +450,7 @@ export class Fighter {
     const b = this.pressedButton();
     if (!b || this.t < 3) return;
     this.airAttacked = true;
-    this.startMove(b === 'lp' || b === 'hp' ? MV.JUMP_PUNCH : MV.JUMP_KICK, f);
+    this.startMove(this.normal(b === 'lp' || b === 'hp' ? MV.JUMP_PUNCH : MV.JUMP_KICK), f);
   }
 
   startMove(m: Move, f: Fight) {
@@ -556,6 +577,20 @@ export class Fighter {
     }
     return { x: this.wx(v[0]), y: this.wy(v[1]), hit: m.hit };
   }
+  /**
+   * Extra hit points along the striking shin (knee to toe) for moves with `hit.line`, so a long leg
+   * still connects when the opponent stands inside its tip.
+   */
+  strikeLine(): { x: number; y: number }[] {
+    const m = this.move;
+    if (!m?.hit?.line) return [];
+    const s = this.skel, back = m.hit.limb === 'toeB';
+    const k = back ? s.kneeB : s.kneeF, t = back ? s.toeB : s.toeF, h = back ? s.hipB : s.hipF;
+    const out: { x: number; y: number }[] = [];
+    for (const u of [0.2, 0.4, 0.6, 0.8]) out.push({ x: this.wx(k[0] + (t[0] - k[0]) * u), y: this.wy(k[1] + (t[1] - k[1]) * u) });
+    out.push({ x: this.wx(k[0]), y: this.wy(k[1]) }, { x: this.wx((h[0] + k[0]) / 2), y: this.wy((h[1] + k[1]) / 2) });
+    return out;
+  }
   wx(lx: number) {
     return this.x + this.facing * lx;
   }
@@ -655,9 +690,9 @@ export class Fighter {
       else pose = AN.blendPose(this.blendFrom, pose, k);
     }
     this.pose = pose;
-    this.rawSkel = fk(pose);
+    this.rawSkel = fk(pose, this.parts.limbs);
     this.skel = scaleSkel(this.rawSkel, this.scale);
-    const airHip = AIR_HIP * this.scale;
+    const airHip = this.airHip * this.scale;
     if (this.state === 'thrown') this.G = airHip;
     else {
       // planted by the feet near the floor, fading to a fixed hip height as the jump rises,

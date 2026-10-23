@@ -95,7 +95,7 @@ export class Fight {
     // leave room behind the thrower so the judo flip always swaps sides, even in a corner
     const room = 40;
     a.x = a.facing === 1 ? Math.max(a.x, 14 + room) : Math.min(a.x, this.sw - 14 - room);
-    a.startMove(THROW, this);
+    a.startMove(a.normal(THROW), this);
     d.move = null;
     d.thrower = a;
     d.setState('thrown', AN.THROWN);
@@ -470,10 +470,12 @@ export class Fight {
       if (!hp) continue;
       const d = a.opp;
       if (d.invulnerable) continue;
-      if (circleRect(hp.x, hp.y, hp.hit.r, d.hurtbox())) {
+      const box = d.hurtbox();
+      const at = circleRect(hp.x, hp.y, hp.hit.r, box) ? hp : a.strikeLine().find((p) => circleRect(p.x, p.y, hp.hit.r, box));
+      if (at) {
         a.hits++;
         a.lastHit = a.mf - 1;
-        this.resolveHit(a, d, hp.hit, hp);
+        this.resolveHit(a, d, hp.hit, at);
       }
     }
     for (const p of this.projectiles) {

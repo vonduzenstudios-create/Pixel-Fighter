@@ -13,7 +13,7 @@ import { AICtrl, DIFF_NAMES, Difficulty, HumanCtrl } from '../game/ai';
 import { sfx } from '../audio/sfx';
 import { playSong } from '../audio/music';
 import { audioReady } from '../audio/audio';
-import { drawFigure, Scene } from './common';
+import { drawFigure, Scene, tallness } from './common';
 import { BAR, CongaLine, drawParty } from './conga';
 import { PostMatchScene } from './postmatch';
 import { paintSet } from './sets';
@@ -302,8 +302,9 @@ export class SelectScene implements Scene {
     ctx.clip();
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(x + PANEL_W / 2 - 18, feet - 1, 36, 3);
-    const sc = Math.min(1.05, (c.scale ?? 1) * 0.95);
-    drawFigure(ctx, partsFor(c, pl === 1 && this.cur[0] === this.cur[1]), sample(anim, this.t), x + PANEL_W / 2, feet, pl === 0 ? 1 : -1, sc);
+    const parts = partsFor(c, pl === 1 && this.cur[0] === this.cur[1]);
+    const sc = Math.min(1.05, (c.scale ?? 1) * 0.95) / tallness(parts);
+    drawFigure(ctx, parts, sample(anim, this.t), x + PANEL_W / 2, feet, pl === 0 ? 1 : -1, sc);
     ctx.restore();
     // name plate
     const py = y + PANEL_H + 2;

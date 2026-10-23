@@ -25,10 +25,13 @@ export interface PartSet {
   uarmB: Part; farmB: Part; thighB: Part; shinB: Part; footB: Part;
   /** Optional seat layers pinned to the hip (behind and in front of the torso). */
   chair?: Part; chairF?: Part;
+  /** Bone lengths for this body when they differ from the standard L (e.g. extra-long legs). */
+  limbs?: Partial<Limbs>;
 }
 export type PartName = 'torso' | 'head' | 'armF' | 'armB' | 'legF' | 'legB' | 'chair';
 
 export const L = { torso: 24, uarm: 13, farm: 13, thigh: 18, shin: 18 };
+export type Limbs = typeof L;
 
 type V = [number, number];
 const down = (a: number, len: number): V => [-Math.sin(a) * len, Math.cos(a) * len];
@@ -44,8 +47,11 @@ export interface Skeleton {
        thighB: number; shinB: number; thighF: number; shinF: number; footB: number; footF: number; prop: number; body: number };
 }
 
+const BASE = L;
+
 /** Forward kinematics in local space (hip at origin, y down, facing right). */
-export function fk(p: Pose): Skeleton {
+export function fk(p: Pose, lim?: Partial<Limbs>): Skeleton {
+  const L = lim ? { ...BASE, ...lim } : BASE;
   const g = (k: keyof Pose) => (p[k] ?? 0) * DEG;
   const t = g('t'), rot = g('rot');
   const hip: V = [p.rx ?? 0, p.ry ?? 0];
