@@ -7,8 +7,9 @@ import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
+import { drawGift } from '../chars/oprah';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -33,6 +34,7 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   fedora: { dmg: 75, level: 'high', effect: 'heavy', r: 7, speed: 5.2 },
   paint: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.2 },
   tree: { dmg: 95, level: 'low', effect: 'launch', r: 9, speed: 0 },
+  gift: { dmg: 80, level: 'high', effect: 'heavy', r: 7, speed: 4.2 },
 };
 
 /** Frames a sprouting tree rumbles underground before it bursts up. */
@@ -75,6 +77,10 @@ export class Projectile {
         break;
       case 'bolt':
         if (this.t % 2 === 0) p.zap(this.x, this.y, 2);
+        break;
+      case 'gift':
+        // a little trail of confetti behind the present
+        if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 6, y: this.y + rand(-4, 4), vx: -this.vx * 0.1, vy: 0.4, grav: 0.05, life: 24, max: 24, size: 2, color: ['#f04878', '#f0c020', '#40b8f0', '#60d070'][(this.t / 3) % 4] });
         break;
       case 'holy':
         p.fire(this.x - Math.sign(this.vx) * 4, this.y, 2, 3);
@@ -182,6 +188,9 @@ export class Projectile {
       }
       case 'hole':
         drawMiniHole(ctx, this.t);
+        break;
+      case 'gift':
+        drawGift(ctx, this.t, Math.sign(this.vx) || 1);
         break;
       case 'paint':
         ctx.drawImage(s.paint[this.hue], -7, -7);

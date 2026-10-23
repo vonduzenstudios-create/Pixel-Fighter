@@ -218,6 +218,58 @@ export const FX: Record<string, () => void> = {
     FX.creak();
     tone({ type: 'sine', freq: 80, to: 160, dur: 0.25, vol: 0.2 });
   },
+  // ---------------------------------------------------------------- talk show
+  /** Wrapping paper crinkling. */
+  giftRustle() {
+    const t = now();
+    for (let i = 0; i < 4; i++) noise({ dur: 0.04, vol: 0.08, type: 'bandpass', freq: 2500 + Math.random() * 2500, q: 2, at: t + i * 0.03 + Math.random() * 0.02 });
+  },
+  /** Party popper: a sharp pop and a glittery tail. */
+  confettiPop() {
+    noise({ dur: 0.05, vol: 0.35, type: 'bandpass', freq: 1800, q: 1.2 });
+    tone({ type: 'sine', freq: 500, to: 160, dur: 0.08, vol: 0.18 });
+    const t = now();
+    for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2600 + Math.random() * 2400, dur: 0.12, vol: 0.03, at: t + 0.05 + i * 0.04 });
+  },
+  /** A studio audience applauding: a wash of randomly timed hand claps. */
+  applause() {
+    const t = now();
+    for (let i = 0; i < 40; i++) noise({ dur: 0.02, vol: 0.05 + Math.random() * 0.04, type: 'bandpass', freq: 1000 + Math.random() * 2500, q: 1.5, at: t + Math.random() * 0.9 });
+    noise({ dur: 0.9, vol: 0.04, type: 'bandpass', freq: 1800, q: 0.8, attack: 0.15 });
+  },
+  /** One open-palm smack. */
+  clap() {
+    noise({ dur: 0.04, vol: 0.4, type: 'bandpass', freq: 1400 * vary(0.15), q: 1.4 });
+    tone({ type: 'sine', freq: 220 * vary(), to: 120, dur: 0.05, vol: 0.12 });
+  },
+  pageFlutter() {
+    const t = now();
+    for (let i = 0; i < 6; i++) noise({ dur: 0.03, vol: 0.07, type: 'bandpass', freq: 3200 * vary(0.25), q: 2, at: t + i * 0.025 });
+  },
+  /** A heavy hardcover landing flat on a skull. */
+  bookThump() {
+    tone({ type: 'sine', freq: 120 * vary(), to: 45, dur: 0.18, vol: 0.4 });
+    noise({ dur: 0.1, vol: 0.35, type: 'lowpass', freq: 1400, to: 300 });
+    noise({ dur: 0.04, vol: 0.2, type: 'bandpass', freq: 2600, q: 2 });
+  },
+  /** Big V8 revving past. */
+  engine() {
+    tone({ type: 'sawtooth', freq: 55 * vary(), to: 95, dur: 0.45, vol: 0.12, filter: { type: 'lowpass', freq: 700 } });
+    tone({ type: 'square', freq: 110 * vary(), to: 190, dur: 0.45, vol: 0.04, filter: { type: 'lowpass', freq: 900 } });
+  },
+  /** Tyres screeching to a stop. */
+  screech() {
+    tone({ type: 'sawtooth', freq: 1900, to: 1500, dur: 0.7, vol: 0.06, filter: { type: 'bandpass', freq: 2200, q: 6 } });
+    noise({ dur: 0.7, vol: 0.08, type: 'bandpass', freq: 3000, to: 2000, q: 4 });
+  },
+  /** Two-tone car horn: beep beep. */
+  horn() {
+    const t = now();
+    for (const at of [0, 0.18]) {
+      tone({ type: 'square', freq: 392, dur: 0.13, vol: 0.06, at: t + at, filter: { type: 'lowpass', freq: 2000 } });
+      tone({ type: 'square', freq: 494, dur: 0.13, vol: 0.05, at: t + at, filter: { type: 'lowpass', freq: 2000 } });
+    }
+  },
   shatter() {
     const t = now();
     for (let i = 0; i < 5; i++) tone({ type: 'sine', freq: 2000 + Math.random() * 3000, dur: 0.3, vol: 0.04, at: t + i * 0.03 });
@@ -283,6 +335,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
     toespin: { impact: ['sparkle', 'boneCrack'] },
   },
+  oprah: {
+    proj_gift: { frames: { 1: 'giftRustle', 9: 'giftRustle' } },
+    bookslam: { frames: { 1: 'pageFlutter', 7: 'heave' }, impact: ['bookThump', 'pageFlutter'], blocked: 'bookThump' },
+    ovation: { frames: { 1: 'applause', 13: 'clap', 21: 'clap', 30: ['applause', 'confettiPop'] }, impact: 'clap', blocked: 'clap' },
+  },
 };
 
 export interface ProjSounds {
@@ -309,6 +366,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   paint: { impact: 'splat' },
   hole: { travel: { every: 24, cue: 'drone' }, impact: 'gravityHit' },
   tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
+  gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */
