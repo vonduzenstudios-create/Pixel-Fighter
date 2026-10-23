@@ -85,6 +85,8 @@ export class Fighter {
   wins = 0;
   opp!: Fighter;
   shake = 0;
+  /** Horizontal draw scale (finishers that stretch the victim). */
+  stretch = 1;
 
   constructor(public ch: CharDef, public parts: PartSet, public bones: PartSet, public ctrl: Controller, public side: 0 | 1) {
     this.skel = fk(AN.STANCE);
@@ -103,6 +105,7 @@ export class Fighter {
     this.showBones = false;
     this.tint = null;
     this.alpha = 1;
+    this.stretch = 1;
     this.poseOverride = null;
     this.projOut = false;
     this.locked = false;
@@ -238,7 +241,7 @@ export class Fighter {
     this.x += this.vx;
     if (this.airborne) {
       this.y += this.vy;
-      this.vy -= GRAV;
+      this.vy -= f.stage.gravity ?? GRAV;
       if (this.y <= 0) {
         this.y = 0;
         this.vy = 0;
@@ -549,7 +552,8 @@ export class Fighter {
     b.scale(this.facing, 1);
     const m = this.move;
     const prop = m?.prop ? this.ch.props[m.prop] ?? null : this.propOverride;
-    drawRig(b, this.showBones ? this.bones : this.parts, this.skel, { hidden: this.hidden, prop, propBehind: m?.propBehind });
+    const parts = this.showBones ? { ...this.bones, chair: this.parts.chair, chairF: undefined } : this.parts;
+    drawRig(b, parts, this.skel, { hidden: this.hidden, prop, propBehind: m?.propBehind });
     if (this.tint) {
       b.setTransform(1, 0, 0, 1, 0, 0);
       b.globalCompositeOperation = 'source-atop';
@@ -558,7 +562,8 @@ export class Fighter {
       b.globalCompositeOperation = 'source-over';
     }
     ctx.globalAlpha = this.alpha;
-    ctx.drawImage(BUF, sx - BO, sy - BO);
+    if (this.stretch !== 1) ctx.drawImage(BUF, sx - BO * this.stretch, sy - BO, 200 * this.stretch, 200);
+    else ctx.drawImage(BUF, sx - BO, sy - BO);
     ctx.globalAlpha = 1;
   }
   propOverride: Part | null = null;

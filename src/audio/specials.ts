@@ -157,6 +157,36 @@ export const FX: Record<string, () => void> = {
     tone({ type: 'sine', freq: 160, to: 60, dur: 0.12, vol: 0.25 });
   },
   /** High note that rattles the target: glassy ringing partials. */
+  // ---------------------------------------------------------------- physics
+  /** Deep throbbing drone of a tiny black hole. */
+  drone() {
+    tone({ type: 'sine', freq: 48 * vary(), to: 40, dur: 0.4, vol: 0.14, attack: 0.1 });
+    tone({ type: 'triangle', freq: 97 * vary(), to: 80, dur: 0.4, vol: 0.05, attack: 0.1 });
+  },
+  /** Getting sucked in: reverse swell that snaps shut. */
+  gravityHit() {
+    noise({ dur: 0.25, vol: 0.3, type: 'bandpass', freq: 200, to: 2400, q: 2, attack: 0.2 });
+    tone({ type: 'sine', freq: 50, to: 25, dur: 0.4, vol: 0.4 });
+  },
+  /** Electric wheelchair motor spinning up. */
+  servo() {
+    tone({ type: 'square', freq: 200, to: 900, dur: 0.3, vol: 0.04, filter: { type: 'lowpass', freq: 1500 } });
+    tone({ type: 'sine', freq: 400, to: 1800, dur: 0.3, vol: 0.05 });
+  },
+  /** Metal frame crunching into a body. */
+  metalCrash() {
+    FX.clang();
+    sfx.thud();
+  },
+  /** Geiger counter ticking faster and faster. */
+  geiger() {
+    const t = now();
+    let at = 0;
+    for (let i = 0; i < 10; i++) {
+      noise({ dur: 0.008, vol: 0.2, type: 'highpass', freq: 3000, at: t + at });
+      at += 0.06 * (1 - i / 12) * vary(0.4);
+    }
+  },
   // ---------------------------------------------------------------- boxing
   /** Leather glove snapping into a body. */
   glovePop() {
@@ -243,6 +273,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     proj_tree: { frames: { 1: 'brushTap', 6: 'brushTap' } },
     flurry: { frames: { 1: 'brushTap' }, impact: 'splat' },
   },
+  hawking: {
+    proj_hole: { frames: { 1: 'servo' } },
+    rocketchair: { frames: { 1: 'servo' }, impact: 'metalCrash', blocked: 'clang' },
+    radiation: { frames: { 1: 'geiger' }, impact: 'crackle' },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
@@ -272,6 +307,7 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   aria: { impact: 'shatter' },
   fedora: { impact: 'clack' },
   paint: { impact: 'splat' },
+  hole: { travel: { every: 24, cue: 'drone' }, impact: 'gravityHit' },
   tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
 };
 

@@ -1,5 +1,6 @@
 import type { SongName } from '../audio/music';
 import type { PartSet } from '../gfx/rig';
+import { MoonStage } from './moon';
 import { Stage } from './stage';
 import { TrainStage } from './train';
 import { BoatStage } from './boat';
@@ -12,6 +13,12 @@ export interface Arena {
   song: SongName;
   /** Backdrop for the uppercut stage finish; null if the stage has none. */
   pit: HTMLCanvasElement | null;
+  /** Fighter gravity in px/frame^2; defaults to GRAV. */
+  gravity?: number;
+  /** Deep-space backdrop for the launch-them-off-the-moon uppercut finish (used when pit is null). */
+  space?: HTMLCanvasElement;
+  /** One line shown on stage select. */
+  blurb?: string;
   draw(ctx: CanvasRenderingContext2D, camX: number, t: number): void;
   drawFront(ctx: CanvasRenderingContext2D, camX: number, t: number): void;
   /** Optional vertical offset (screen px) for the floor, fighters and effects, e.g. a rocking deck. */
@@ -30,6 +37,7 @@ export const STAGES: StageEntry[] = [
   { id: 'boat', name: 'THE DROWNED GALLEON', make: (b) => new BoatStage(b) },
   { id: 'spire', name: 'THE DATA SPIRE', make: (b) => new SkyscraperStage(b) },
   { id: 'mushroom', name: 'THE SPOREWOOD', make: (b) => new MushroomStage(b) },
+  { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
 // Stages paint themselves at construction, so build each one only when first needed.

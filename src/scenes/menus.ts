@@ -277,6 +277,7 @@ export class StageSelectScene implements Scene {
     drawText(ctx, '>', W - 20, H - 30, pulse, { scale: 2, outline: '#000' });
     drawText(ctx, st.name, W / 2, H - 32, '#ffe060', { align: 'center', outline: '#000' });
     drawText(ctx, `${this.app.settings.stage + 1} / ${STAGES.length}`, W / 2, H - 20, '#a09080', { align: 'center' });
+    if (st.blurb) drawText(ctx, st.blurb, W / 2, H - 10, '#c8a070', { align: 'center' });
   }
 }
 

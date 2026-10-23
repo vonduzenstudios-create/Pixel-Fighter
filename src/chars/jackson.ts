@@ -107,8 +107,6 @@ export const JACKSON_SPECIALS: Special[] = [
 
 export const JACKSON_FINISHER = { name: 'Showstopper', cmd: [4, 6, 4], btn: 'hk' as const, text: 'B, F, B + HK (close)', range: [0, 60] as [number, number] };
 
-// TODO: post-match portrait once that shared hook lands on main.
-
 /** Entrance state per fighter: the facing he started with and where he glided in from. */
 const entry = new WeakMap<Fighter, { face: 1 | -1; x0: number }>();
 

@@ -11,7 +11,8 @@ import type { Pose } from '../gfx/rig';
 import { Projectile, ProjKind } from '../game/projectile';
 import type { Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
-import { BLACKBEARD_INTRO, JOAN_INTRO, LINCOLN_INTRO, TESLA_INTRO } from './intros';
+import { HAWKING_ALT, HAWKING_FINISHER, HAWKING_LOOK, hawkingSpecials } from './hawking';
+import { BLACKBEARD_INTRO, INTROS, JOAN_INTRO, LINCOLN_INTRO, TESLA_INTRO } from './intros';
 
 // Original takes on historical figures. Commands are relative to facing:
 // 6 = toward the opponent, 4 = away, 2 = down, 3 = down-toward, 1 = down-away.
@@ -431,8 +432,7 @@ export function roster(): CharDef[] {
       finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 70] },
     },
     {
-      // TODO: hook up a round-one entrance and voice line (planned line: "Your guard is a door. I brought the key.")
-      // and a detailed winner/loser portrait once the intro and portrait APIs land on main.
+      // TODO: a detailed winner/loser portrait once the portrait API lands on main. Entrance: chars/intros.ts.
       id: 'brucelee', name: 'Bruce Lee', short: 'BRUCE LEE', title: 'The Little Dragon', look: LEE_LOOK,
       alt: { ...LEE_LOOK, pants: '#e4e0d4', boots: '#d8d4c8', sash: '#b01818', wraps: '#2a2a30' },
       specials: leeSpecials, voice: 180, props: { nunchaku: props.nunchaku },
@@ -458,12 +458,24 @@ export function roster(): CharDef[] {
     },
     aliDef(),
     lumpsum(),
+    {
+      id: 'hawking', name: 'Stephen Hawking', short: 'HAWKING', title: 'Spacetime Bender', look: HAWKING_LOOK, alt: HAWKING_ALT,
+      specials: hawkingSpecials, voice: 120, props: {}, finisher: HAWKING_FINISHER,
+    },
     bobRoss(),
     {
       id: 'jackson', name: 'Michael Jackson', short: 'JACKSON', title: 'The Gloved One', look: JACKSON_LOOK, alt: JACKSON_ALT,
       specials: JACKSON_SPECIALS, voice: 230, props: {}, finisher: JACKSON_FINISHER, intro: JACKSON_INTRO,
+      quotes: [
+        'HEE HEE! YOU NEVER EVEN SAW MY FEET MOVE.',
+        'I WALKED BACKWARDS THE WHOLE TIME, {L}. STILL TOO FAST FOR YOU.',
+        'ONE GLOVE. THAT IS ALL IT TOOK.',
+        'DANCE LESSONS ARE CHEAPER THAN HOSPITAL BILLS.',
+      ],
+      quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
     },
   ];
+  for (const c of cache) c.intro ??= INTROS[c.id];
   return cache;
 }
 
