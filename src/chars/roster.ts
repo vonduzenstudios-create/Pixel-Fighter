@@ -1,4 +1,5 @@
 import { buildParts, Look } from './build';
+import { JACKSON_ALT, JACKSON_FINISHER, JACKSON_INTRO, JACKSON_LOOK, JACKSON_SPECIALS } from './jackson';
 import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
@@ -458,6 +459,10 @@ export function roster(): CharDef[] {
     aliDef(),
     lumpsum(),
     bobRoss(),
+    {
+      id: 'jackson', name: 'Michael Jackson', short: 'JACKSON', title: 'The Gloved One', look: JACKSON_LOOK, alt: JACKSON_ALT,
+      specials: JACKSON_SPECIALS, voice: 230, props: {}, finisher: JACKSON_FINISHER, intro: JACKSON_INTRO,
+    },
   ];
   return cache;
 }
