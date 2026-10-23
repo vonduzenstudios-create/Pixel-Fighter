@@ -6,6 +6,7 @@ import { oprah } from './oprah';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { colonelCrisp } from './colonel';
+import { kingTut } from './kingtut';
 import { guyFieri } from './fieri';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
@@ -480,6 +481,7 @@ export function roster(): CharDef[] {
       quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
     },
     oprah(),
+    kingTut(),
     guyFieri(),
   ];
   for (const c of cache) c.intro ??= INTROS[c.id];
