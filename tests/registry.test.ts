@@ -90,6 +90,13 @@ describe('fighter registry', () => {
   });
 });
 
+describe('home stages', () => {
+  it('only names stages that exist', () => {
+    const ids = new Set(STAGES.map((s) => s.id));
+    for (const c of roster()) if (c.homeStage) expect(ids.has(c.homeStage), `${c.id}: homeStage '${c.homeStage}'`).toBe(true);
+  });
+});
+
 describe('stage registry', () => {
   it('registers every folder in src/stages', () => {
     expect(STAGES.map((s) => s.id).sort()).toEqual(folders('../src/stages').sort());

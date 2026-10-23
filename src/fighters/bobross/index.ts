@@ -10,6 +10,7 @@ export default {
     const c = bobRoss();
     c.intro ??= BOB_ROSS_INTRO;
     c.selectSet ??= SETS.easel;
+    c.homeStage ??= 'hills';
     return c;
   },
   moveSounds: {

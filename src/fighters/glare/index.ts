@@ -8,6 +8,7 @@ export default {
   make() {
     const c = glare();
     c.selectSet ??= SETS.runway;
+    c.homeStage ??= 'runway';
     return c;
   },
   projectiles: PROJECTILES,

@@ -5,7 +5,11 @@ import { CLEO_FX } from './sounds';
 
 export default {
   order: 145,
-  make: cleo,
+  make() {
+    const c = cleo();
+    c.homeStage ??= 'graveyard';
+    return c;
+  },
   moveSounds: {
     proj_crystal: { frames: { 1: 'crystalHum', 10: 'crystalRoll' } },
     hotline: { frames: { 0: 'phoneRing', 5: 'cordWhir', 9: 'cordWhir', 13: 'cordWhir', 17: 'cordWhir' }, impact: ['receiverSmack', 'boneCrack'], blocked: 'receiverSmack' },
