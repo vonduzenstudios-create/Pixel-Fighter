@@ -89,11 +89,40 @@ export const sfx = {
     const c = ac();
     if (c) tone({ type: 'square', freq: 784, dur: 0.12, vol: 0.1, at: c.currentTime + 0.07 });
   },
+  /** A squeaky falsetto "TOAST-EE!!" for the uppercut easter egg. */
+  toasty() {
+    const c = ac();
+    if (!c) return;
+    const t = c.currentTime;
+    if (speakHigh('Toasty!')) return;
+    noise({ dur: 0.03, vol: 0.3, type: 'highpass', freq: 3000 });
+    voice(700, 820, 0.2, 0.3, [500, 900, 2600]);
+    noise({ dur: 0.1, vol: 0.25, type: 'highpass', freq: 5000, at: t + 0.2 });
+    noise({ dur: 0.03, vol: 0.3, type: 'highpass', freq: 3000, at: t + 0.3 });
+    voice(980, 1250, 0.35, 0.3, [350, 2300, 3000], 0.32);
+  },
   boom() {
     tone({ type: 'sine', freq: 60, to: 30, dur: 0.9, vol: 0.6 });
     noise({ dur: 0.7, vol: 0.25, freq: 500, to: 60 });
   },
 };
+
+// The little cook speaks for himself when the browser can: high and fast, without cutting the announcer off.
+function speakHigh(text: string) {
+  const ss = window.speechSynthesis;
+  if (!ss || !ss.getVoices().some((v) => /en/i.test(v.lang))) return false;
+  try {
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = ss.getVoices().find((v) => /en/i.test(v.lang)) ?? null;
+    u.pitch = 2;
+    u.rate = 1.4;
+    u.volume = 1;
+    ss.speak(u);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // Announcer: uses the browser's built-in speech synthesis (deep and slow) with a synth boom under it.
 let voicePick: SpeechSynthesisVoice | null = null;
