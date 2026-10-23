@@ -5,19 +5,20 @@ import { drawText } from '../gfx/font';
 import { pxLine } from '../gfx/painter';
 import { keg as kegSprite, skull } from '../gfx/props';
 import { PartSet, Part } from '../gfx/rig';
-import { announce, sfx, strengthOf } from '../audio/sfx';
+import { announce, bark, hush, say, sfx, speaking, strengthOf } from '../audio/sfx';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
 import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
+import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
 import { drawHawkingFatality, runHawkingFatality } from '../chars/hawking';
 
-type Phase = 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
+type Phase = 'entrance' | 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
 
 interface Banner { text: string; t: number; dur: number; scale: number; grad: [string, string] }
 
@@ -48,6 +49,8 @@ export class Fight {
   pitView = false;
   hadFatality = false;
   startEdges = [new Edge(), new Edge()];
+  /** Round 1 entrances: whose turn it is, its frame counter and the current subtitle. */
+  entrance = { who: 0, t: 0, homes: [0, 0], caption: '' };
 
   constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
@@ -108,9 +111,13 @@ export class Fight {
     this.timer = 99;
     this.timerT = 0;
     this.camX = (STAGE_W - W) / 2;
-    this.phase = 'intro';
+    this.phase = this.round === 1 ? 'entrance' : 'intro';
     this.pt = 0;
     this.winner = this.loser = null;
+    if (this.phase === 'entrance') {
+      this.entrance = { who: 0, t: 0, homes: [this.f[0].x, this.f[1].x], caption: '' };
+      for (const f of this.f) f.alpha = 0;
+    }
     this.shownHp = [MAX_HP, MAX_HP];
     this.pitView = false;
     this.fatal = null;
@@ -192,6 +199,7 @@ export class Fight {
       if (!this.humans[i]) continue;
       const e = this.startEdges[i].update(readPlayer(i as 0 | 1, !this.humans[1]));
       if (e.start && (this.phase === 'fight' || this.paused)) this.paused = !this.paused;
+      if (this.phase === 'entrance' && this.pt > 10 && (e.start || e.lp || e.hp || e.lk || e.hk)) this.endEntrances();
     }
     if (this.paused) return;
     this.pt++;
@@ -209,6 +217,9 @@ export class Fight {
     }
 
     switch (this.phase) {
+      case 'entrance':
+        this.runEntrance();
+        break;
       case 'intro':
         if (this.pt === 1) {
           sfx.gong();
@@ -307,6 +318,61 @@ export class Fight {
     if (this.phase !== 'fatal' || !this.pitView) for (const f of this.f) f.computePose();
   }
 
+  introOf(f: Fighter): Intro {
+    return f.ch.intro ?? DEFAULT_INTRO;
+  }
+
+  /** Round 1: each fighter makes their entrance in turn, then the ROUND 1 call. */
+  runEntrance() {
+    const E = this.entrance;
+    if (this.pt === 1) playSong(this.stage.song);
+    const f = this.f[E.who], intro = this.introOf(f);
+    const t = E.t++;
+    if (t === 0) {
+      f.alpha = 1;
+      f.setState('intro');
+    }
+    intro.update(f, this, t, E.homes[E.who]);
+    if (t === intro.speakAt) {
+      E.caption = intro.line;
+      // the chiptune bark carries the line when the browser has no speech synth
+      if (!say(intro.line, intro.speech)) bark(intro.line, f.ch.voice * 1.6, 0.22);
+    }
+    for (const g of this.f) {
+      g.animT++;
+      g.t++;
+    }
+    if (t >= intro.dur && (!speaking() || t >= intro.dur + 90)) {
+      this.settle(E.who);
+      E.caption = '';
+      if (E.who === 0) {
+        E.who = 1;
+        E.t = 0;
+      } else this.endEntrances();
+    }
+  }
+
+  /** Put a fighter at their round start spot in a neutral stance. */
+  settle(i: number) {
+    const f = this.f[i];
+    f.x = this.entrance.homes[i];
+    f.y = f.vx = f.vy = 0;
+    f.alpha = 1;
+    f.poseOverride = null;
+    f.propOverride = null;
+    f.setState('idle', AN.IDLE);
+  }
+
+  endEntrances() {
+    if (this.phase !== 'entrance') return;
+    hush();
+    this.settle(0);
+    this.settle(1);
+    this.entrance.caption = '';
+    this.phase = 'intro';
+    this.pt = 0;
+  }
+
   endFinish() {
     this.phase = 'roundEnd';
     this.pt = 0;
@@ -381,9 +447,11 @@ export class Fight {
           this.particles.sparks((p.x + q.x) / 2, p.y, 16, '#ffffff');
           sfx.block();
         }
-      if (p.dead || d.invulnerable) continue;
+      if (p.dead || p.spent || d.invulnerable) continue;
       if (circleRect(p.x, p.y, p.r, d.hurtbox())) {
-        p.dead = true;
+        // a sprouted tree stays standing after it hits; everything else breaks
+        if (p.kind === 'tree') p.spent = true;
+        else p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
         if (p.kind === 'cash') sfx.kaching();
@@ -552,6 +620,64 @@ export class Fight {
         if (tt >= 300) done();
         break;
       }
+      case 'chuck': {
+        // a blur of boots, then three heel drops that hammer them down through the bridge deck like a nail
+        const kick = (k: number) =>
+          k % 2
+            ? AN.P(AN.STANCE, { lb: -128, kb: -4, fb: -40, t: -36, h: 10, af: -10, ef: -40, ab: 10, lf: 6, kf: 4 })
+            : AN.P(AN.STANCE, { lf: -120, kf: -4, ff: -30, t: -26, h: 10, af: -30, ef: -70, ab: 30 });
+        const RAISE = AN.P(AN.STANCE, { lf: -172, kf: -2, ff: -20, t: -14, h: 6, af: -40, ef: -60, ab: 30, eb: -40, lb: 6, kb: 4 });
+        const DROP = AN.P(AN.STANCE, { lf: -52, kf: 4, ff: 20, t: 22, h: 8, af: -20, ef: -60, ab: 20, eb: -40, lb: 20, kb: 20 });
+        D.sink ??= 0;
+        D.target ??= 0;
+        if (tt < 16) {
+          w.x += (l.x - w.facing * 38 - w.x) * 0.2;
+          w.poseOverride = AN.P(AN.STANCE, { af: -80, ef: -120, ab: -70, eb: -125, t: -4, h: -6 });
+        } else if (tt < 64) {
+          const k = Math.floor((tt - 16) / 4);
+          w.poseOverride = kick(k);
+          if ((tt - 16) % 4 === 1) {
+            const hy = rand(30, 70);
+            l.poseOverride = k % 2 ? AN.HIT_HIGH : AN.HIT_MID;
+            l.shake = 3;
+            this.particles.blood(l.x - w.facing * 4, hy, w.facing, 6, 1.1);
+            this.particles.sparks(l.x - w.facing * 6, hy, 2, '#ffffff');
+            sfx.hit(k % 3 === 0);
+            if (k % 4 === 0) sfx.whoosh();
+          }
+          if (tt === 40) sfx.scream();
+        } else if (tt < 190) {
+          // drops land at 84, 124 and 164; each one drives them further into the planks
+          const ph = (tt - 64) % 40;
+          l.poseOverride = AN.P(AN.DIZZY, { af: -20, ab: -10 });
+          w.poseOverride = ph < 14 ? RAISE : ph < 20 ? AN.P(RAISE, { lf: -120 }) : DROP;
+          if (ph === 20) {
+            const n = (tt - 84) / 40;
+            D.target = [26, 52, 92][n];
+            sfx.crunch();
+            sfx.hit(true);
+            this.shake(n === 2 ? 14 : 8);
+            this.particles.blood(l.x, Math.max(6, 70 - D.target), w.facing, n === 2 ? 40 : 14, n === 2 ? 1.6 : 1);
+            this.particles.sparks(l.x, 2, 8, '#a8743a');
+            this.particles.smoke(l.x, 2, 6, '#6a5040');
+            if (n === 1) sfx.scream();
+          }
+        }
+        D.sink += (D.target - D.sink) * 0.35;
+        l.y = 0;
+        l.vy = 0;
+        if (tt >= 166 && tt < 260 && tt % 5 === 0) {
+          // what is left gushes out of the hole
+          this.particles.blood(l.x + rand(-4, 4), 2, rand(-1, 1), 4, 1.3);
+          if (tt % 20 === 0) sfx.blood();
+        }
+        if (tt === 200) w.poseOverride = AN.P(AN.STANCE, { af: -70, ef: -125, ab: -60, eb: -125, t: 0, h: -10 });
+        w.update(this);
+        w.computePose();
+        l.computePose();
+        if (tt >= 300) done();
+        break;
+      }
       case 'brucelee': {
         // a blur of fists and nunchaku, a beat of stillness, then one short punch that sends them into orbit
         if (tt < 14) {
@@ -712,7 +838,21 @@ export class Fight {
       const pop = b.t < 6 ? 1 + (6 - b.t) * 0.0 : 1;
       if (b.t % 30 < 26 || b.t < 30) drawText(ctx, b.text, W / 2, y, '#fff', { scale: Math.round(b.scale * pop), align: 'center', grad: b.grad, outline: '#000', shadow: '#300' });
     }
+    if (this.phase === 'entrance') this.drawCaption(ctx);
     if (this.paused) this.drawPause(ctx);
+  }
+
+  /** Name tag and subtitle for the current entrance line. */
+  drawCaption(ctx: CanvasRenderingContext2D) {
+    const E = this.entrance;
+    if (!E.caption) return;
+    const f = this.f[E.who];
+    const lines = wrap(E.caption.toUpperCase().replace(/[^A-Z0-9.,!?:\-+/()<> ]/g, ''), 38);
+    const y = 34;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(8, y - 4, W - 16, 14 + lines.length * 10);
+    drawText(ctx, f.ch.short, E.who === 0 ? 14 : W - 14, y, '#fff', { align: E.who === 0 ? 'left' : 'right', grad: ['#ffe890', '#d08020'], outline: '#000' });
+    lines.forEach((l, i) => drawText(ctx, l, W / 2, y + 11 + i * 10, '#fff', { align: 'center', outline: '#000' }));
   }
 
   /** Little stars circling a dazed fighter's head. */
@@ -747,10 +887,31 @@ export class Fight {
   drawArena(ctx: CanvasRenderingContext2D) {
     const cam = Math.round(this.camX);
     this.stage.draw(ctx, cam, this.t);
-    for (const f of this.f) f.drawShadow(ctx, cam);
+    if (this.phase === 'entrance') {
+      const f = this.f[this.entrance.who];
+      this.introOf(f).draw?.(ctx, f, this, this.entrance.t, cam);
+    }
+    for (const f of this.f) if (f.alpha > 0) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
-    for (const f of order) f.draw(ctx, cam);
+    for (const f of order) {
+      if (this.fatal?.kind === 'chuck' && f === this.loser && this.fatal.data.sink > 0.5) {
+        // hammered into the deck: only what is above the planks shows, over a splintered hole
+        const sink = Math.round(this.fatal.data.sink), hx = Math.round(f.x - cam);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, W, FLOOR + 1);
+        ctx.clip();
+        f.draw(ctx, cam, FLOOR + sink);
+        ctx.restore();
+        ctx.fillStyle = '#100808';
+        ctx.fillRect(hx - 9, FLOOR, 18, 2);
+        ctx.fillStyle = '#a8743a';
+        for (const [dx, h] of [[-10, 3], [-6, 2], [5, 3], [9, 2]]) ctx.fillRect(hx + dx, FLOOR - h + 1, 1, h);
+        continue;
+      }
+      f.draw(ctx, cam);
+    }
     for (const f of this.f) if (f.state === 'dizzy' || (this.fatal && f === this.loser && f.poseOverride === AN.DIZZY)) this.drawStars(ctx, f, cam);
     for (const p of this.projectiles) p.draw(ctx, cam);
     if (this.fatal?.kind === 'blackbeard' && this.fatal.data.kx != null) {
@@ -870,6 +1031,19 @@ export class Fight {
   }
 }
 
+
+function wrap(s: string, max: number) {
+  const out: string[] = [];
+  let cur = '';
+  for (const w of s.split(' ')) {
+    if (cur && cur.length + 1 + w.length > max) {
+      out.push(cur);
+      cur = w;
+    } else cur = cur ? cur + ' ' + w : w;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
 
 function circleRect(cx: number, cy: number, r: number, b: [number, number, number, number]) {
   const nx = Math.max(b[0], Math.min(cx, b[2])), ny = Math.max(b[1], Math.min(cy, b[3]));

@@ -1,5 +1,5 @@
 import { Painter } from '../gfx/painter';
-import { Color, darken, lighten, mix } from '../gfx/palette';
+import { Color, darken, lighten, mix, rgb } from '../gfx/palette';
 import { Part, PartSet } from '../gfx/rig';
 
 // Describes a fighter's outfit. The builder paints every jointed body part from this.
@@ -21,8 +21,8 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn' | 'horned';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop';
-  beard?: 'chinstrap' | 'braided';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm';
+  beard?: 'chinstrap' | 'braided' | 'full';
   beardRibbon?: string;
   mustache?: boolean;
   bowtie?: string;
@@ -31,7 +31,13 @@ export interface Look {
   /** Copper coil gauntlet on the front forearm. */
   coil?: boolean;
   sash?: string;
+  /** Unbuttoned collar showing a V of skin, with breast pockets (work shirt). */
+  openCollar?: boolean;
   bandolier?: string;
+  /** Chest hair showing through an open collar. */
+  chestHair?: string;
+  /** Sleeves rolled to the elbow: bare forearms with a cuff of the sleeve colour. */
+  rolledSleeves?: boolean;
   /** No shirt: bare skin torso and arms with muscle definition. */
   bareChest?: boolean;
   /** Cloth wraps on the wrists and hands. */
@@ -40,6 +46,10 @@ export interface Look {
   glasses?: string;
   /** Rides a jointed mech-chair: the legs become hydraulic struts and the seated legs are part of the chair. */
   chair?: { frame: string; accent: string; glow: string };
+  /** Boxing trunks over bare legs (pants should be the skin colour). */
+  trunks?: { color: string; stripe: string };
+  /** Padded boxing gloves in this colour. */
+  boxingGloves?: string;
 }
 
 const OUT = '#100810';
@@ -92,8 +102,25 @@ function torso(L: Look): Painter {
     p.rect(7, 23, 13, 2, L.belt);
     if (L.buckle) p.rect(16, 23, 2, 2, L.buckle);
   }
+  if (L.chestHair) {
+    for (const [x, y] of [[17, 8], [18, 10], [17, 12], [19, 9], [18, 14], [19, 12], [17, 16]]) p.set(x, y, L.chestHair);
+  }
+  if (L.openCollar && !L.coat && !L.armor) {
+    p.poly([[15.5, 5], [21, 5.5], [18, 11.5]], L.skin);
+    p.line(15, 5, 18, 12, darken(L.shirt, 0.35));
+    p.line(21, 5.5, 18.5, 12, darken(L.shirt, 0.35));
+    p.rect(10, 13, 4, 3, darken(L.shirt, 0.12));
+    p.rect(17, 13, 3, 3, darken(L.shirt, 0.12));
+    for (const y of [14, 18, 22]) p.set(18, y, lighten(L.shirt, 0.5));
+  }
   if (L.sash) p.poly([[7, 21], [20, 21], [20, 23], [7, 23]], L.sash);
   if (L.bandolier) p.line(9, 6, 20, 21, L.bandolier), p.line(10, 6, 20, 20, L.bandolier);
+  if (L.trunks) {
+    p.ellipse(13, 30, 7.5, 4.5, L.trunks.color);
+    p.poly([[7, 31], [19, 31], [19.5, 22], [6.5, 22]], L.trunks.color);
+    p.rect(7, 22, 13, 2, L.trunks.stripe);
+    p.line(18, 24, 18, 33, L.trunks.stripe);
+  }
   p.shade(0.2);
   if (L.bowtie) {
     p.rect(18, 5, 4, 2, L.bowtie);
@@ -115,6 +142,7 @@ function head(L: Look): Painter {
   p.rect(8, 35, 5, 7, skinD);
   if (L.hairStyle === 'long') p.poly([[3, 26], [8, 24], [8, 40], [4, 41]], L.hair);
   if (L.hairStyle === 'bob') p.ellipse(9, 29, 7.5, 7.5, L.hair);
+  if (L.hairStyle === 'perm') p.ellipse(8.5, 25, 9.5, 9.5, L.hair);
   p.ellipse(10.5, 29, 6, 7, L.skin);
   p.ellipse(13, 33, 4, 3.5, L.skin);
   p.poly([[15, 28], [17.5, 30.5], [15, 31]], L.skin); // nose
@@ -129,17 +157,40 @@ function head(L: Look): Painter {
   } else if (L.hairStyle === 'bob') {
     p.ellipse(10.5, 24.5, 7, 4, L.hair);
     p.rect(13, 23, 4, 3, L.hair);
+  } else if (L.hairStyle === 'feathered') {
+    // big swept-back feathered cut that covers the ears
+    p.ellipse(9.5, 24, 7.5, 4.5, L.hair);
+    p.poly([[3, 23], [8, 22], [9, 33], [5, 35], [2.5, 30]], L.hair);
+    p.poly([[11, 20], [16, 21.5], [16.5, 24], [12, 23.5]], L.hair);
+    p.line(5, 22, 12, 20.5, lighten(L.hair, 0.3));
+    p.line(4, 26, 6, 31, lighten(L.hair, 0.2));
   } else if (L.hairStyle === 'mop') {
     // thick, full cut with a heavy fringe swept over the brow
     p.ellipse(9.5, 24, 7, 4.5, L.hair);
     p.rect(3, 23, 5, 9, L.hair);
     p.poly([[9, 21], [17, 22.5], [16.5, 26], [12, 25], [10, 24]], L.hair);
     p.line(7, 21, 14, 22, lighten(L.hair, 0.3));
+  } else if (L.hairStyle === 'perm') {
+    p.ellipse(10, 20.5, 9, 6, L.hair);
+    p.rect(3, 22, 5, 9, L.hair);
   } else {
     p.ellipse(10, 24.5, 6.5, 3.5, L.hair);
     p.rect(4, 24, 4, 6, L.hair);
   }
   p.shade(0.18);
+  if (L.hairStyle === 'perm') {
+    // tight curls
+    const hi = lighten(L.hair, 0.3), lo = darken(L.hair, 0.3);
+    for (let y = 15; y < 33; y += 2)
+      for (let x = (y >> 1) % 2; x < 20; x += 3) {
+        const c = p.get(x, y);
+        const h = rgb(L.hair);
+        if (p.alpha(x, y) && Math.abs(c[0] - h[0]) + Math.abs(c[1] - h[1]) + Math.abs(c[2] - h[2]) < 90) {
+          p.set(x, y, hi);
+          if (p.alpha(x + 1, y + 1)) p.set(x + 1, y + 1, lo);
+        }
+      }
+  }
   // face details (after shading so they stay crisp)
   p.set(14, 28, L.eye ?? '#1a1010');
   p.set(13, 28, '#e8e0d8');
@@ -149,6 +200,12 @@ function head(L: Look): Painter {
   if (L.mustache) p.poly([[13, 32], [17, 32], [17, 33.5], [12.5, 34]], L.hair);
   if (L.beard === 'chinstrap') {
     p.poly([[6.5, 30], [8.5, 35], [11, 38], [15.5, 37.5], [16, 35.5], [12.5, 35.5], [9.5, 31], [8.5, 28.5]], L.hair);
+  } else if (L.beard === 'full') {
+    p.poly([[6.5, 29], [8, 34.5], [10.5, 38.5], [15, 39], [17.5, 36.5], [17.8, 33], [13.5, 33.5], [10, 31.5], [8.5, 28.5]], L.hair);
+    p.poly([[12.5, 32], [17.5, 31.5], [17.8, 33.2], [12.5, 33.8]], L.hair);
+    p.line(14, 35, 16, 35, '#7a3434');
+    const br = lighten(L.hair, 0.25);
+    for (const [x, y] of [[9, 33], [11, 36], [14, 37], [16, 36], [12, 34]]) p.set(x, y, br);
   } else if (L.beard === 'braided') {
     p.poly([[6.5, 28], [9, 31], [13, 33], [17.5, 31.5], [17.5, 35], [16, 43], [9, 43], [6, 35]], L.hair);
     p.poly([[12, 31.5], [17.5, 31], [17.5, 32.5], [12, 33]], L.hair);
@@ -157,6 +214,12 @@ function head(L: Look): Painter {
     p.line(14, 36, 14, 42, br, true);
     if (L.beardRibbon) for (const [x, y] of [[11, 39], [14, 40], [12, 37]]) p.set(x, y, L.beardRibbon);
     p.set(15, 33, '#5a2a2a');
+  } else if (L.beard === 'full') {
+    // short, dense beard from sideburn to sideburn with a heavy mustache
+    p.poly([[7.5, 29], [9.5, 32], [12.5, 32.5], [17.5, 31.5], [17.5, 35.5], [15.5, 38.5], [11, 39], [7.5, 35.5]], L.hair);
+    p.poly([[12, 31.5], [17.5, 31], [17.5, 33], [12, 33]], darken(L.hair, 0.15));
+    p.line(9, 35, 14, 37, lighten(L.hair, 0.2));
+    p.line(14, 34, 16, 34, '#5a2a2a');
   }
   if (L.glasses) {
     p.rect(11, 26, 6, 4, L.glasses);
@@ -217,15 +280,28 @@ function foreArm(L: Look, front: boolean): Painter {
   const c = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
   p.capsule(6, 3, 3.9, 6, 12, 3.2, c);
   const cuff = L.wraps ?? L.coatTrim ?? (L.coat ? L.shirt : darken(c, 0.2));
-  if (!L.bareChest || L.wraps) p.rect(2, 11, 8, 2, cuff);
+  if (L.rolledSleeves) {
+    p.capsule(6, 3, 3.9, 6, 12, 3.2, L.skin);
+    p.rect(1.5, 1, 9, 4, c);
+    p.line(2, 4, 9, 4, darken(c, 0.25));
+  } else if (!L.bareChest || L.wraps) p.rect(2, 11, 8, 2, cuff);
   if (L.coil && front) {
     p.rect(2, 4, 8, 7, '#b5652a');
     for (let y = 4; y < 11; y += 2) p.line(2, y, 9, y, '#e8a050');
   }
-  p.ellipse(6, 16, 3.6, 3.6, L.glove ?? L.skin);
-  if (L.wraps) p.rect(3, 14, 6, 2, L.wraps);
-  p.shade(0.22);
-  p.line(4, 18, 8, 18, darken(L.glove ?? L.skin, 0.3));
+  if (L.boxingGloves) {
+    const g = L.boxingGloves;
+    p.rect(2, 10, 8, 3, '#e8e4dc'); // taped cuff
+    p.ellipse(6, 16, 5.2, 5.4, g);
+    p.ellipse(8.5, 14, 2, 2.4, lighten(g, 0.25));
+    p.shade(0.22);
+    p.line(2, 19, 7, 20, darken(g, 0.35));
+  } else {
+    p.ellipse(6, 16, 3.6, 3.6, L.glove ?? L.skin);
+    if (L.wraps) p.rect(3, 14, 6, 2, L.wraps);
+    p.shade(0.22);
+    p.line(4, 18, 8, 18, darken(L.glove ?? L.skin, 0.3));
+  }
   p.outline(OUT);
   return p;
 }
@@ -246,6 +322,10 @@ function thigh(L: Look): Painter {
   }
   const c = L.armor ? L.armor.metal : L.pants;
   p.capsule(7, 3, 5.6, 7, 19, 4.4, c);
+  if (L.trunks) {
+    p.capsule(7, 3, 6, 7, 10, 5.4, L.trunks.color);
+    p.line(10, 1, 10, 13, L.trunks.stripe);
+  }
   if (L.armor) {
     p.ellipse(7, 20, 4.5, 3.5, lighten(L.armor.metal, 0.15));
     p.line(2, 9, 12, 9, L.armor.trim);

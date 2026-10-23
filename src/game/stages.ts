@@ -2,6 +2,8 @@ import type { SongName } from '../audio/music';
 import type { PartSet } from '../gfx/rig';
 import { Stage } from './stage';
 import { TrainStage } from './train';
+import { SkyscraperStage } from './skyscraper';
+import { MushroomStage } from './mushroom';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -22,6 +24,8 @@ interface StageEntry {
 export const STAGES: StageEntry[] = [
   { id: 'gorge', name: 'THE THORN GORGE', make: (b) => new Stage(b) },
   { id: 'train', name: 'THE MIDNIGHT EXPRESS', make: (b) => new TrainStage(b) },
+  { id: 'spire', name: 'THE DATA SPIRE', make: (b) => new SkyscraperStage(b) },
+  { id: 'mushroom', name: 'THE SPOREWOOD', make: (b) => new MushroomStage(b) },
 ];
 
 // Stages paint themselves at construction, so build each one only when first needed.
