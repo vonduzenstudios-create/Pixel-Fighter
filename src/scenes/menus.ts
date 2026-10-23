@@ -127,6 +127,8 @@ export class SelectScene implements Scene {
   cur = [0, 3];
   picked: [number | null, number | null] = [null, null];
   roulette = 0;
+  /** Both fighters are chosen and the screen waits for P1 to confirm. */
+  ready = false;
   e = [new Edge(), new Edge()];
   constructor(private app: App) {}
 
@@ -137,10 +139,29 @@ export class SelectScene implements Scene {
     const n = roster().length;
     const back = this.app.back;
     this.app.back = false;
+    if (this.ready) {
+      // both fighters chosen: P1 confirms the matchup or backs out to change it
+      const p = this.e[0].update(readPlayer(0, !two));
+      if (two) this.e[1].update(readPlayer(1, false));
+      if (confirm(p)) {
+        sfx.menuPick();
+        const ch = roster();
+        this.app.go(new StageSelectScene(this.app, ch[this.picked[0]!], ch[this.picked[1]!]));
+      } else if (p.back || back) {
+        this.ready = false;
+        this.picked[0] = null;
+        if (!two) this.picked[1] = null;
+        sfx.menuMove();
+      }
+      return;
+    }
     for (let i = 0; i < (two ? 2 : 1); i++) {
       const p = this.e[i].update(readPlayer(i as 0 | 1, !two));
       if (this.picked[i] !== null) {
-        if (cancel(p, this.app) && this.roulette === 0) this.picked[i] = null;
+        if ((p.back || (i === 0 && back)) && this.roulette === 0) {
+          this.picked[i] = null;
+          if (!two) this.picked[1] = null;
+        }
         continue;
       }
       if (p.l) (this.cur[i] = (this.cur[i] + n - 1) % n), sfx.menuMove();
@@ -154,8 +175,9 @@ export class SelectScene implements Scene {
         this.picked[i] = this.cur[i];
         sfx.menuPick();
         if (!two) this.roulette = 50;
+        continue;
       }
-      if (i === 0 && (p.back || back) && this.picked[0] === null) {
+      if (i === 0 && (p.back || back)) {
         this.app.go(new TitleScene(this.app));
         return;
       }
@@ -172,10 +194,7 @@ export class SelectScene implements Scene {
         sfx.menuPick();
       }
     }
-    if (this.picked[0] !== null && this.picked[1] !== null && this.roulette === 0) {
-      const ch = roster();
-      this.app.go(new StageSelectScene(this.app, ch[this.picked[0]], ch[this.picked[1]]));
-    }
+    if (this.picked[0] !== null && this.picked[1] !== null && this.roulette === 0) this.ready = true;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -233,6 +252,12 @@ export class SelectScene implements Scene {
       drawText(ctx, c.title, x, 114, '#c8a070', { align: 'center' });
     }
     drawText(ctx, 'VS', W / 2, 150, '#fff', { scale: 3, align: 'center', grad: ['#ffe0a0', '#c02010'], outline: '#000' });
+    if (this.ready) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(W / 2 - 50, 172, 100, 26);
+      if (this.t % 40 < 28) drawText(ctx, 'START: FIGHT!', W / 2, 176, '#ffe060', { align: 'center', outline: '#000' });
+      drawText(ctx, 'BACK: CHANGE', W / 2, 188, '#a09080', { align: 'center' });
+    }
   }
 }
 
@@ -240,9 +265,7 @@ export class SelectScene implements Scene {
 export class StageSelectScene implements Scene {
   t = 0;
   e = new Edge();
-  constructor(private app: App, private a: CharDef, private b: CharDef) {
-    this.e.update(readPlayer(0, app.settings.players === 1)); // a button still held from character select shouldn't pick
-  }
+  constructor(private app: App, private a: CharDef, private b: CharDef) {}
 
   get cur() {
     return arena(this.app.settings.stage, bonesParts());
