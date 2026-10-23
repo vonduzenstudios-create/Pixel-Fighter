@@ -2,6 +2,7 @@ import type { Pose } from '../gfx/rig';
 import type { Fighter } from './fighter';
 import type { Fight } from './fight';
 
+export type PropName = 'axe' | 'sword' | 'cutlass' | 'nunchaku' | 'check';
 export type Level = 'high' | 'mid' | 'low' | 'overhead';
 export type Effect = 'light' | 'heavy' | 'knockdown' | 'launch' | 'sweep';
 export type Limb = 'handF' | 'handB' | 'toeF' | 'toeB' | 'kneeF' | 'prop' | 'body';
@@ -36,7 +37,7 @@ export interface Move {
   crouch?: boolean;
   /** Forward speed per frame (or a function of the move frame). */
   vx?: number | ((frame: number) => number);
-  prop?: 'axe' | 'sword' | 'cutlass' | 'nunchaku' | null;
+  prop?: PropName | null;
   propBehind?: boolean;
   onFrame?: (self: Fighter, fight: Fight, frame: number) => void;
   whoosh?: boolean;

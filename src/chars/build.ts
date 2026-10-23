@@ -18,7 +18,7 @@ export interface Look {
   glove?: string;
   belt?: string;
   buckle?: string;
-  hat?: 'stovepipe' | 'tricorn';
+  hat?: 'stovepipe' | 'tricorn' | 'horned';
   hatColor?: string;
   hatTrim?: string;
   hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop';
@@ -171,6 +171,18 @@ function head(L: Look): Painter {
     // skull and crossbones badge
     p.rect(9, 18, 3, 2, '#e8e0d0');
     p.set(10, 20, '#e8e0d0');
+  } else if (L.hat === 'horned') {
+    // opera-house warrior helmet
+    const c = L.hatColor ?? '#a8b0bc';
+    const horn = '#ece2c4';
+    p.poly([[4, 23], [1, 19], [0, 11], [2.5, 15], [6, 20]], horn);
+    p.poly([[17, 23], [20, 19], [21, 11], [18.5, 15], [15, 20]], horn);
+    p.line(1, 18, 2, 15, darken(horn, 0.25));
+    p.line(20, 18, 19, 15, darken(horn, 0.25));
+    p.ellipse(10.5, 21.5, 7.5, 5.5, c);
+    p.rect(3, 23, 15, 2, L.hatTrim ?? '#d8b040');
+    p.line(10, 16, 10, 22, L.hatTrim ?? '#d8b040');
+    p.line(7, 18, 8, 17, lighten(c, 0.4));
   }
   p.outline(OUT);
   return p;
