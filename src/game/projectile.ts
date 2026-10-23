@@ -9,8 +9,9 @@ import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
 import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
+import { drawCard } from '../chars/blaine';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'card';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -39,6 +40,8 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   drumstick: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.4 },
   // lobbed in an arc (vy set by the thrower), then burns on the floor where it lands
   grease: { dmg: 75, level: 'mid', effect: 'heavy', r: 7, speed: 2.6 },
+  // a playing card flicked edge-first: quick and flat
+  card: { dmg: 70, level: 'high', effect: 'heavy', r: 6, speed: 6.6 },
 };
 
 /** Frames a grease puddle keeps burning after it lands. */
@@ -90,6 +93,10 @@ export class Projectile {
       case 'gift':
         // a little trail of confetti behind the present
         if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 6, y: this.y + rand(-4, 4), vx: -this.vx * 0.1, vy: 0.4, grav: 0.05, life: 24, max: 24, size: 2, color: ['#f04878', '#f0c020', '#40b8f0', '#60d070'][(this.t / 3) % 4] });
+        break;
+      case 'card':
+        this.y += Math.sin(this.t * 0.4) * 0.4;
+        if (this.t % 4 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 5, y: this.y, life: 8, max: 8, color: '#ffffff', floor: false });
         break;
       case 'holy':
         p.fire(this.x - Math.sign(this.vx) * 4, this.y, 2, 3);
@@ -229,6 +236,9 @@ export class Projectile {
         break;
       case 'grease':
         drawGrease(ctx, this.t, this.landed > 0);
+        break;
+      case 'card':
+        drawCard(ctx, this.t);
         break;
       case 'paint':
         ctx.drawImage(s.paint[this.hue], -7, -7);
