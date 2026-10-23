@@ -46,6 +46,23 @@ export interface Controller {
 const NEUTRAL = new Set(['idle', 'walkF', 'walkB', 'crouch', 'block', 'cblock', 'land']);
 const BLOCKABLE = new Set(['idle', 'walkF', 'walkB', 'crouch', 'block', 'cblock', 'blockstun', 'land', 'prejump']);
 const AIR_HIP = 40;
+/** Taps of one button within MASH_WINDOW frames that fire a mash special. */
+const MASH_COUNT = 4;
+const MASH_WINDOW = 30;
+/** Normal attacks a mash special may cancel out of (the first taps start one of these). */
+const NORMALS = new Set<Move>([
+  MV.JAB, MV.HIGH_PUNCH, MV.LOW_KICK, MV.HIGH_KICK, MV.ROUNDHOUSE, MV.SWEEP,
+  MV.CROUCH_PUNCH, MV.CROUCH_KICK, MV.CROUCH_HIGH_KICK, MV.UPPERCUT,
+]);
+
+/** Command step matching: a diagonal also counts for the cardinal directions beside it. */
+function dirMatches(got: number, want: number) {
+  if (got === want) return true;
+  if (want === 4) return got === 1;
+  if (want === 6) return got === 3;
+  if (want === 2) return got === 1 || got === 3;
+  return false;
+}
 
 const [BUF, BCTX] = makeCanvas(200, 200);
 const BO = 100; // buffer origin
@@ -71,6 +88,8 @@ export class Fighter {
   prev: RawInput = { ...EMPTY };
   pressed: RawInput = { ...EMPTY };
   hist: { d: number; f: number }[] = [{ d: 5, f: 0 }];
+  /** Recent press frames per button, for mash specials. */
+  taps: Record<Btn, number[]> = { lp: [], hp: [], lk: [], hk: [] };
   skel: Skeleton;
   G = 0;
   pose: Pose = AN.STANCE;
@@ -145,18 +164,44 @@ export class Fighter {
     return d === 1 || d === 2 || d === 3;
   }
 
-  /** Did the player input this direction sequence recently (button pressed now)? */
-  matchCmd(cmd: number[], window = 20) {
+  /**
+   * Did the player input this direction sequence recently (button pressed now)?
+   * Lenient on purpose: a diagonal counts for its neighbouring direction (DB is fine for B or D),
+   * steps can be spread over `window` frames, and the last one can be let go of a moment early.
+   */
+  matchCmd(cmd: number[], window = 28) {
     let j = cmd.length - 1;
     for (let i = this.hist.length - 1; i >= 0; i--) {
       const h = this.hist[i];
       const end = i === this.hist.length - 1 ? this.frame : this.hist[i + 1].f;
       if (end < this.frame - window) break;
-      if (h.d === cmd[j]) {
-        if (j === cmd.length - 1 && end < this.frame - 8) return false;
+      if (dirMatches(h.d, cmd[j])) {
+        if (j === cmd.length - 1 && end < this.frame - 14) return false;
         j--;
         if (j < 0) return true;
       }
+    }
+    return false;
+  }
+
+  /** Has this button been tapped `count` times in the last `window` frames? */
+  mashed(b: Btn | 'p' | 'k', count = MASH_COUNT, window = MASH_WINDOW) {
+    const since = this.frame - window;
+    const n = (k: Btn) => this.taps[k].filter((f) => f > since).length;
+    const total = b === 'p' ? n('lp') + n('hp') : b === 'k' ? n('lk') + n('hk') : n(b);
+    return total >= count;
+  }
+
+  /** Fire a mash special if one has been mashed; works from neutral or to cancel a normal attack. */
+  tryMash(f: Fight): boolean {
+    if (this.airborne || !this.pressedButton()) return false;
+    if (this.state === 'attack' && !NORMALS.has(this.move!)) return false;
+    for (const sp of this.ch.specials) {
+      if (!sp.mash || !this.btnPressed(sp.mash) || !this.mashed(sp.mash)) continue;
+      for (const k in this.taps) this.taps[k as Btn].length = 0;
+      this.startMove(sp.move, f);
+      f.onSpecial(this, sp);
+      return true;
     }
     return false;
   }
@@ -177,6 +222,11 @@ export class Fighter {
     const p: any = {};
     for (const k in raw) p[k] = (raw as any)[k] && !(this.prev as any)[k];
     this.pressed = p;
+    for (const k in this.taps) {
+      const list = this.taps[k as Btn];
+      if (p[k]) list.push(this.frame);
+      while (list.length && list[0] < this.frame - MASH_WINDOW) list.shift();
+    }
     const d = this.dir;
     if (this.hist[this.hist.length - 1].d !== d) {
       this.hist.push({ d, f: this.frame });
@@ -197,7 +247,7 @@ export class Fighter {
     if (NEUTRAL.has(s) && !this.airborne) {
       if (s !== 'land' || this.t >= 5) {
         this.faceOpp();
-        if (!this.tryAttack(f)) this.neutral(f);
+        if (!this.tryMash(f) && !this.tryAttack(f)) this.neutral(f);
       }
     } else if (s === 'prejump') {
       if (this.t >= 4) {
@@ -211,7 +261,7 @@ export class Fighter {
     } else if (s === 'jump') {
       if (!this.airAttacked) this.tryAirAttack(f);
     } else if (s === 'attack') {
-      this.updateMove(f);
+      if (!this.tryMash(f)) this.updateMove(f);
     } else if (s === 'hitstun' || s === 'blockstun') {
       this.vx *= 0.8;
       if (--this.stun <= 0) {
@@ -293,7 +343,7 @@ export class Fighter {
     if (f.canFinish(this)) {
       const fin = this.ch.finisher;
       const dist = Math.abs(this.opp.x - this.x);
-      if (b === fin.btn && this.matchCmd(fin.cmd, 40) && dist >= fin.range[0] && dist <= fin.range[1]) {
+      if (b === fin.btn && this.matchCmd(fin.cmd, 60) && dist >= fin.range[0] && dist <= fin.range[1]) {
         f.startFatality(this);
         return true;
       }

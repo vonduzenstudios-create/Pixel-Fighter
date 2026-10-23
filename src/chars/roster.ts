@@ -112,7 +112,7 @@ const teslaSpecials: Special[] = [
     },
   },
   {
-    name: 'Alternating Field', cmd: [4, 5, 4], btn: 'lp', text: 'B, B + LP',
+    name: 'Alternating Field', cmd: [4, 5, 4], btn: 'lp', mash: 'lp', text: 'MASH LP',
     move: {
       id: 'acfield',
       anim: A([
@@ -198,7 +198,7 @@ const beardSpecials: Special[] = [
     },
   },
   {
-    name: 'Cutlass Cyclone', cmd: [2, 5, 2], btn: 'hk', text: 'D, D + HK',
+    name: 'Cutlass Cyclone', cmd: [2, 5, 2], btn: 'hk', mash: 'hk', text: 'MASH HK',
     move: {
       id: 'cyclone', prop: 'cutlass',
       anim: A([
@@ -265,7 +265,7 @@ const leeSpecials: Special[] = [
     },
   },
   {
-    name: 'Nunchaku Storm', cmd: [4, 6], btn: 'hp', text: 'B, F + HP',
+    name: 'Nunchaku Storm', cmd: [4, 6], btn: 'hp', mash: 'hp', text: 'MASH HP',
     move: {
       id: 'nunchaku', prop: 'nunchaku',
       anim: A([
@@ -332,7 +332,7 @@ const chuckSpecials: Special[] = [
     },
   },
   {
-    name: 'Hundred Boot Flurry', cmd: [4, 5, 4], btn: 'lk', text: 'B, B + LK',
+    name: 'Hundred Boot Flurry', cmd: [4, 5, 4], btn: 'lk', mash: 'lk', text: 'MASH LK',
     move: {
       id: 'flurry',
       anim: A([
@@ -374,7 +374,7 @@ export function roster(): CharDef[] {
       ],
       quotesVs: { blackbeard: 'I HAVE FREED YOU OF YOUR FINAL TOOTH, PIRATE.' },
       portrait: { front: (p, c) => { if (!c.beaten) p.set(c.geom.mouth[0] - 6, c.geom.mouth[1] - 6, '#7a4a30'); } },
-      finisher: { name: 'Emancipation Cleave', cmd: [6, 4, 6], btn: 'hp', text: 'F, B, F + HP (close)', range: [0, 60] },
+      finisher: { name: 'Emancipation Cleave', cmd: [6, 4, 6], btn: 'hp', text: 'F, B, F + HP (close)', range: [0, 90] },
     },
     {
       id: 'tesla', name: 'Nikola Tesla', short: 'TESLA', title: 'Wizard of Current', look: TESLA_LOOK,
@@ -393,7 +393,7 @@ export function roster(): CharDef[] {
           if (c.beaten) for (const [x, y] of [[30, 18], [44, 12], [62, 13]]) p.line(x, y, x + 3, y - 4, '#a0e0ff'), p.line(x + 3, y - 4, x + 1, y - 7, '#e0f8ff');
         },
       },
-      finisher: { name: 'Grand Discharge', cmd: [2, 6, 2, 6], btn: 'lp', text: 'D, F, D, F + LP (any range)', range: [0, 400] },
+      finisher: { name: 'Grand Discharge', cmd: [2, 6, 2], btn: 'lp', text: 'D, F, D + LP (any range)', range: [0, 400] },
     },
     {
       id: 'joan', name: 'Joan of Arc', short: 'JOAN', title: 'Maid of the Flame', look: JOAN_LOOK,
@@ -406,7 +406,7 @@ export function roster(): CharDef[] {
         'GO WITH GOD. GO QUICKLY.',
       ],
       quotesVs: { tesla: 'I AM NOT AFRAID OF FIRE, AND I AM NOT AFRAID OF SPARKS.' },
-      finisher: { name: 'Purifying Pyre', cmd: [6, 2, 6], btn: 'hk', text: 'F, D, F + HK (mid range)', range: [30, 160] },
+      finisher: { name: 'Purifying Pyre', cmd: [6, 2, 6], btn: 'hk', text: 'F, D, F + HK (mid range)', range: [20, 180] },
     },
     {
       id: 'blackbeard', name: 'Blackbeard', short: 'BLACKBEARD', title: 'Terror of the Seas', look: BEARD_LOOK,
@@ -429,7 +429,7 @@ export function roster(): CharDef[] {
           }
         },
       },
-      finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 70] },
+      finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 90] },
     },
     {
       // TODO: a detailed winner/loser portrait once the portrait API lands on main. Entrance: chars/intros.ts.
@@ -441,7 +441,7 @@ export function roster(): CharDef[] {
         'BOARDS DO NOT HIT BACK. NEITHER, IT TURNS OUT, DO YOU.',
         'I FEAR THE MAN WHO PRACTISED ONE KICK TEN THOUSAND TIMES. NOT YOU, {L}.',
       ],
-      finisher: { name: 'Hundred-Fist Finale', cmd: [4, 6, 4, 6], btn: 'lp', text: 'B, F, B, F + LP (close)', range: [0, 70] },
+      finisher: { name: 'Hundred-Fist Finale', cmd: [4, 6, 4], btn: 'lp', text: 'B, F, B + LP (close)', range: [0, 90] },
     },
     {
       id: 'chuck', name: 'Chuck Norris', short: 'NORRIS', title: 'The Unblinking Beard', look: CHUCK_LOOK,
@@ -454,7 +454,7 @@ export function roster(): CharDef[] {
         'WHEN I KICK, THE GROUND FLINCHES.',
       ],
       quotesVs: { brucelee: 'GOOD FIGHT, OLD FRIEND. SAME RESULT AS LAST TIME.' },
-      finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 60] },
+      finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 90] },
     },
     aliDef(),
     lumpsum(),

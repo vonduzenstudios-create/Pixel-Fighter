@@ -41,7 +41,7 @@ const ROPE_COUNTER: Move = {
 
 const aliSpecials: Special[] = [
   {
-    name: 'Shuffle Flurry', cmd: [2, 3, 6], btn: 'p', text: 'D, DF, F + P',
+    name: 'Shuffle Flurry', cmd: [2, 3, 6], btn: 'p', mash: 'lp', text: 'MASH LP',
     move: {
       id: 'flurry',
       anim: A([
@@ -154,7 +154,7 @@ export function aliDef(): CharDef {
   return {
     id: 'ali', name: 'Muhammad Ali', short: 'ALI', title: 'The Dancing Champ', look: ALI_LOOK, alt: ALI_ALT,
     specials: aliSpecials, voice: 120, props: {},
-    finisher: { name: 'Final Bell', cmd: [2, 4, 6], btn: 'hp', text: 'D, B, F + HP (close)', range: [0, 70] },
+    finisher: { name: 'Final Bell', cmd: [2, 4, 6], btn: 'hp', text: 'D, B, F + HP (close)', range: [0, 90] },
     fatality: finalBell,
     quotes: [...ALI_TAUNTS.map((t) => t.toUpperCase()), 'FLOAT LIKE A FEATHER, HIT LIKE A FREIGHT TRAIN. STAY DOWN, {L}.', 'I AM THE GREATEST. YOU ARE THE FLOOR.'],
     quotesVs: { chuck: 'NO BEARD IS FASTER THAN THESE HANDS.' },
