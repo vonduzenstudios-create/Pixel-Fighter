@@ -5,18 +5,19 @@ import { drawText } from '../gfx/font';
 import { pxLine } from '../gfx/painter';
 import { keg as kegSprite, skull } from '../gfx/props';
 import { PartSet, Part } from '../gfx/rig';
-import { announce, sfx, strengthOf } from '../audio/sfx';
+import { announce, bark, hush, say, sfx, speaking, strengthOf } from '../audio/sfx';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
 import { Fighter } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
+import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
 
-type Phase = 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
+type Phase = 'entrance' | 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
 
 interface Banner { text: string; t: number; dur: number; scale: number; grad: [string, string] }
 
@@ -47,6 +48,8 @@ export class Fight {
   pitView = false;
   hadFatality = false;
   startEdges = [new Edge(), new Edge()];
+  /** Round 1 entrances: whose turn it is, its frame counter and the current subtitle. */
+  entrance = { who: 0, t: 0, homes: [0, 0], caption: '' };
 
   constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
@@ -107,9 +110,13 @@ export class Fight {
     this.timer = 99;
     this.timerT = 0;
     this.camX = (STAGE_W - W) / 2;
-    this.phase = 'intro';
+    this.phase = this.round === 1 ? 'entrance' : 'intro';
     this.pt = 0;
     this.winner = this.loser = null;
+    if (this.phase === 'entrance') {
+      this.entrance = { who: 0, t: 0, homes: [this.f[0].x, this.f[1].x], caption: '' };
+      for (const f of this.f) f.alpha = 0;
+    }
     this.shownHp = [MAX_HP, MAX_HP];
     this.pitView = false;
     this.fatal = null;
@@ -191,6 +198,7 @@ export class Fight {
       if (!this.humans[i]) continue;
       const e = this.startEdges[i].update(readPlayer(i as 0 | 1, !this.humans[1]));
       if (e.start && (this.phase === 'fight' || this.paused)) this.paused = !this.paused;
+      if (this.phase === 'entrance' && this.pt > 10 && (e.start || e.lp || e.hp || e.lk || e.hk)) this.endEntrances();
     }
     if (this.paused) return;
     this.pt++;
@@ -208,6 +216,9 @@ export class Fight {
     }
 
     switch (this.phase) {
+      case 'entrance':
+        this.runEntrance();
+        break;
       case 'intro':
         if (this.pt === 1) {
           sfx.gong();
@@ -304,6 +315,61 @@ export class Fight {
         break;
     }
     if (this.phase !== 'fatal' || !this.pitView) for (const f of this.f) f.computePose();
+  }
+
+  introOf(f: Fighter): Intro {
+    return f.ch.intro ?? DEFAULT_INTRO;
+  }
+
+  /** Round 1: each fighter makes their entrance in turn, then the ROUND 1 call. */
+  runEntrance() {
+    const E = this.entrance;
+    if (this.pt === 1) playSong(this.stage.song);
+    const f = this.f[E.who], intro = this.introOf(f);
+    const t = E.t++;
+    if (t === 0) {
+      f.alpha = 1;
+      f.setState('intro');
+    }
+    intro.update(f, this, t, E.homes[E.who]);
+    if (t === intro.speakAt) {
+      E.caption = intro.line;
+      // the chiptune bark carries the line when the browser has no speech synth
+      if (!say(intro.line, intro.speech)) bark(intro.line, f.ch.voice * 1.6, 0.22);
+    }
+    for (const g of this.f) {
+      g.animT++;
+      g.t++;
+    }
+    if (t >= intro.dur && (!speaking() || t >= intro.dur + 90)) {
+      this.settle(E.who);
+      E.caption = '';
+      if (E.who === 0) {
+        E.who = 1;
+        E.t = 0;
+      } else this.endEntrances();
+    }
+  }
+
+  /** Put a fighter at their round start spot in a neutral stance. */
+  settle(i: number) {
+    const f = this.f[i];
+    f.x = this.entrance.homes[i];
+    f.y = f.vx = f.vy = 0;
+    f.alpha = 1;
+    f.poseOverride = null;
+    f.propOverride = null;
+    f.setState('idle', AN.IDLE);
+  }
+
+  endEntrances() {
+    if (this.phase !== 'entrance') return;
+    hush();
+    this.settle(0);
+    this.settle(1);
+    this.entrance.caption = '';
+    this.phase = 'intro';
+    this.pt = 0;
   }
 
   endFinish() {
@@ -766,7 +832,21 @@ export class Fight {
       const pop = b.t < 6 ? 1 + (6 - b.t) * 0.0 : 1;
       if (b.t % 30 < 26 || b.t < 30) drawText(ctx, b.text, W / 2, y, '#fff', { scale: Math.round(b.scale * pop), align: 'center', grad: b.grad, outline: '#000', shadow: '#300' });
     }
+    if (this.phase === 'entrance') this.drawCaption(ctx);
     if (this.paused) this.drawPause(ctx);
+  }
+
+  /** Name tag and subtitle for the current entrance line. */
+  drawCaption(ctx: CanvasRenderingContext2D) {
+    const E = this.entrance;
+    if (!E.caption) return;
+    const f = this.f[E.who];
+    const lines = wrap(E.caption.toUpperCase().replace(/[^A-Z0-9.,!?:\-+/()<> ]/g, ''), 38);
+    const y = 34;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(8, y - 4, W - 16, 14 + lines.length * 10);
+    drawText(ctx, f.ch.short, E.who === 0 ? 14 : W - 14, y, '#fff', { align: E.who === 0 ? 'left' : 'right', grad: ['#ffe890', '#d08020'], outline: '#000' });
+    lines.forEach((l, i) => drawText(ctx, l, W / 2, y + 11 + i * 10, '#fff', { align: 'center', outline: '#000' }));
   }
 
   /** Little stars circling a dazed fighter's head. */
@@ -804,7 +884,11 @@ export class Fight {
     // a rocking stage moves its floor, and everything standing on it moves too
     ctx.save();
     ctx.translate(0, this.stage.bob?.(this.t) ?? 0);
-    for (const f of this.f) f.drawShadow(ctx, cam);
+    if (this.phase === 'entrance') {
+      const f = this.f[this.entrance.who];
+      this.introOf(f).draw?.(ctx, f, this, this.entrance.t, cam);
+    }
+    for (const f of this.f) if (f.alpha > 0) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
     for (const f of order) {
@@ -944,6 +1028,19 @@ export class Fight {
   }
 }
 
+
+function wrap(s: string, max: number) {
+  const out: string[] = [];
+  let cur = '';
+  for (const w of s.split(' ')) {
+    if (cur && cur.length + 1 + w.length > max) {
+      out.push(cur);
+      cur = w;
+    } else cur = cur ? cur + ' ' + w : w;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
 
 function circleRect(cx: number, cy: number, r: number, b: [number, number, number, number]) {
   const nx = Math.max(b[0], Math.min(cx, b[2])), ny = Math.max(b[1], Math.min(cy, b[3]));

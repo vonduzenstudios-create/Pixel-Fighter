@@ -45,6 +45,8 @@ export interface Move {
   invisible?: [number, number];
   /** Toggle facing every N frames (spinning attacks). */
   spin?: number;
+  /** Counter stance: a hit landing during frames [from, to) is absorbed and `move` fires instead. */
+  counter?: { from: number; to: number; move: Move };
 }
 
 export type Btn = 'lp' | 'hp' | 'lk' | 'hk';

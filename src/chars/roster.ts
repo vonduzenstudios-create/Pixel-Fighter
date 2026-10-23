@@ -1,4 +1,5 @@
 import { buildParts, Look } from './build';
+import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
@@ -9,6 +10,7 @@ import type { Pose } from '../gfx/rig';
 import { Projectile, ProjKind } from '../game/projectile';
 import type { Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
+import { BLACKBEARD_INTRO, JOAN_INTRO, LINCOLN_INTRO, TESLA_INTRO } from './intros';
 
 // Original takes on historical figures. Commands are relative to facing:
 // 6 = toward the opponent, 4 = away, 2 = down, 3 = down-toward, 1 = down-away.
@@ -361,25 +363,25 @@ export function roster(): CharDef[] {
     {
       id: 'lincoln', name: 'Abe Lincoln', short: 'LINCOLN', title: 'The Rail Splitter', look: LINCOLN_LOOK,
       alt: { ...LINCOLN_LOOK, coat: '#4a2c1a', pants: '#3a2a1e', hatColor: '#4a2c1a', bowtie: '#7a1010' },
-      specials: lincolnSpecials, voice: 110, props: { axe: props.axe },
+      specials: lincolnSpecials, voice: 110, props: { axe: props.axe }, intro: LINCOLN_INTRO,
       finisher: { name: 'Emancipation Cleave', cmd: [6, 4, 6], btn: 'hp', text: 'F, B, F + HP (close)', range: [0, 60] },
     },
     {
       id: 'tesla', name: 'Nikola Tesla', short: 'TESLA', title: 'Wizard of Current', look: TESLA_LOOK,
       alt: { ...TESLA_LOOK, coat: '#3e2a46', pants: '#2c2232', necktie: '#d0a020', glove: '#2a2a2a' },
-      specials: teslaSpecials, voice: 140, props: {},
+      specials: teslaSpecials, voice: 140, props: {}, intro: TESLA_INTRO,
       finisher: { name: 'Grand Discharge', cmd: [2, 6, 2, 6], btn: 'lp', text: 'D, F, D, F + LP (any range)', range: [0, 400] },
     },
     {
       id: 'joan', name: 'Joan of Arc', short: 'JOAN', title: 'Maid of the Flame', look: JOAN_LOOK,
       alt: { ...JOAN_LOOK, hair: '#c8a040', armor: { metal: '#8a8a96', tabard: '#8a1a1a', trim: '#e8e8e8' }, pants: '#8a8a96' },
-      specials: joanSpecials, voice: 260, props: { sword: props.sword },
+      specials: joanSpecials, voice: 260, props: { sword: props.sword }, intro: JOAN_INTRO,
       finisher: { name: 'Purifying Pyre', cmd: [6, 2, 6], btn: 'hk', text: 'F, D, F + HK (mid range)', range: [30, 160] },
     },
     {
       id: 'blackbeard', name: 'Blackbeard', short: 'BLACKBEARD', title: 'Terror of the Seas', look: BEARD_LOOK,
       alt: { ...BEARD_LOOK, coat: '#1c3c2a', coatTrim: '#c0c0c8', pants: '#2a2a30', beardRibbon: '#20a0e0' },
-      specials: beardSpecials, voice: 95, props: { cutlass: props.cutlass },
+      specials: beardSpecials, voice: 95, props: { cutlass: props.cutlass }, intro: BLACKBEARD_INTRO,
       finisher: { name: 'Powder Keg Surprise', cmd: [4, 4, 6], btn: 'lp', text: 'B, B, F + LP (close)', range: [0, 70] },
     },
     {
@@ -396,6 +398,7 @@ export function roster(): CharDef[] {
       specials: chuckSpecials, voice: 100, props: {},
       finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 60] },
     },
+    aliDef(),
     lumpsum(),
     bobRoss(),
   ];

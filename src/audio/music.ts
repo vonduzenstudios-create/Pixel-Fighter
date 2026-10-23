@@ -4,7 +4,7 @@ import { ac, midi, musicOut, noise, tone } from './audio';
 // progressions that drive generated bass, string pads and percussion.
 // All compositions here are original.
 
-type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp';
+type Inst = 'fiddle' | 'reed' | 'lead' | 'strings' | 'choir' | 'bass' | 'brass' | 'bell' | 'timp' | 'kick' | 'snare' | 'hat' | 'clack' | 'whistle' | 'arp' | 'pluck' | 'flute';
 interface Note { step: number; inst: Inst; n: number; len: number; vol?: number }
 interface Song { bpm: number; steps: number; notes: Note[] }
 
@@ -167,6 +167,56 @@ function victorySong(): Song {
   return { bpm: 110, steps: 32, notes };
 }
 
+/** The Sporewood: a bouncy, twinkly forest waltz-in-four in F major. */
+function mushroomSong(): Song {
+  const notes: Note[] = [];
+  const prog = ['F', 'Dm', 'Bb', 'C', 'F', 'Am', 'Bb', 'C', 'Bb', 'C', 'Am', 'Dm', 'Gm', 'C', 'F', 'C'];
+  prog.forEach((ch, b) => {
+    const s = b * 16;
+    const tones = chordTones(ch);
+    const root = tones[0];
+    // oom-pah bass: root and fifth, with a little walk-up into the next bar
+    [0, 4, 8, 12].forEach((st, i) => notes.push({ step: s + st, inst: 'bass', n: 36 + root + (i % 2 ? 7 : 0), len: 2 }));
+    if (b % 2 === 1) notes.push({ step: s + 14, inst: 'bass', n: 36 + root + 4, len: 1 });
+    // soft pad
+    tones.forEach((t) => notes.push({ step: s, inst: 'strings', n: 60 + ((t + 7) % 12) - 3, len: 16, vol: 0.022 }));
+    // off-beat chord plucks
+    [2, 6, 10, 14].forEach((st) => tones.forEach((t) => notes.push({ step: s + st, inst: 'pluck', n: 64 + ((t + 8) % 12) - 4, len: 1, vol: 0.45 })));
+    // twinkle arpeggio up high
+    [0, 3, 6, 9].forEach((st, i) => notes.push({ step: s + st + (b % 2 ? 1 : 0), inst: 'bell', n: 79 + ((tones[i % 3] + 7) % 12) - 7 + (i === 3 ? 12 : 0), len: 2 }));
+    // light kit
+    notes.push({ step: s, inst: 'kick', n: 0, len: 1 });
+    notes.push({ step: s + 8, inst: 'kick', n: 0, len: 1 });
+    notes.push({ step: s + 4, inst: 'snare', n: 0, len: 1, vol: 0.35 });
+    notes.push({ step: s + 12, inst: 'snare', n: 0, len: 1, vol: 0.35 });
+    for (let h = 2; h < 16; h += 4) notes.push({ step: s + h, inst: 'hat', n: 0, len: 1 });
+  });
+  const lead = [
+    // A: hopping plucked tune (bars 1-8)
+    'F5 . A5 . C6 - A5 . G5 . F5 . A5 - - .',
+    'D5 . F5 . A5 - F5 . E5 . D5 . F5 - - .',
+    'D5 - C5 . Bb4 . D5 . F5 - - . D5 . F5 .',
+    'E5 - - . G5 . E5 . C5 - - - . . . .',
+    'F5 . A5 . C6 - D6 . C6 . A5 . F5 - - .',
+    'E5 . A5 . C6 - B5 . A5 . E5 . C5 - - .',
+    'D5 . F5 . Bb5 - A5 . G5 . F5 . D5 . F5 .',
+    'G5 - - - E5 - - - C5 - - - . . . .',
+    // B: a sung flute line over it (bars 9-16)
+    'F5 - - - D5 - - - Bb4 - - - D5 - F5 -',
+    'E5 - - - G5 - - - C6 - - - Bb5 - A5 -',
+    'A5 - - - E5 - - - C5 - - - E5 - A5 -',
+    'F5 - - - A5 - - - D6 - - - C6 - A5 -',
+    'Bb5 - A5 - G5 - F5 - D5 - F5 - G5 - Bb5 -',
+    'C6 - - - Bb5 - - - G5 - - - E5 - - -',
+    'F5 . A5 . C6 . F6 - - - C6 . A5 . F5 .',
+    'E5 - - - G5 - - - C5 - . . E5 . G5 .',
+  ];
+  lead.forEach((l, i) => notes.push(...line(l, i < 8 ? 'pluck' : 'flute', i * 16)));
+  // the plucked A tune doubles an octave down so it carries
+  lead.slice(0, 8).forEach((l, i) => line(l, 'pluck', i * 16, 0.5).forEach((n) => notes.push({ ...n, n: n.n - 12 })));
+  return { bpm: 128, steps: prog.length * 16, notes };
+}
+
 // "Data Spire": cold E-minor synth arpeggios over a driving bass, strings and brass join later.
 function spireSong(): Song {
   const notes: Note[] = [];
@@ -243,7 +293,7 @@ function boatSong(): Song {
   return { bpm: 120, steps: prog.length * 2 * BAR, notes };
 }
 
-export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), spire: spireSong(), boat: boatSong() };
+export const SONGS = { fight: fightSong(), train: trainSong(), title: titleSong(), victory: victorySong(), spire: spireSong(), mushroom: mushroomSong(), boat: boatSong() };
 export type SongName = keyof typeof SONGS;
 
 function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
@@ -280,6 +330,15 @@ function play(inst: Inst, n: number, at: number, dur: number, vol = 1) {
     case 'bell':
       tone({ type: 'sine', freq: f, dur: 1.6, vol: 0.08, at, out });
       tone({ type: 'sine', freq: f * 2.76, dur: 0.6, vol: 0.025, at, out });
+      break;
+    case 'pluck':
+      tone({ type: 'triangle', freq: f, dur: 0.22, vol: 0.12 * vol, at, out });
+      tone({ type: 'square', freq: f * 2, dur: 0.06, vol: 0.02 * vol, at, out, filter: { type: 'lowpass', freq: 2500 } });
+      break;
+    case 'flute':
+      tone({ type: 'sine', freq: f, dur: dur + 0.08, vol: 0.09 * vol, at, out, attack: 0.05 });
+      tone({ type: 'triangle', freq: f, dur: dur + 0.08, vol: 0.03 * vol, at, out, attack: 0.07, detune: 6 });
+      noise({ dur: 0.08, vol: 0.02 * vol, type: 'bandpass', freq: f * 2, q: 3, at, out });
       break;
     case 'timp':
       tone({ type: 'sine', freq: f * 1.4, to: f, dur: Math.max(0.5, dur), vol: 0.35, at, out });
