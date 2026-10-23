@@ -5,6 +5,7 @@ import { bobRoss } from './bobross';
 import { oprah } from './oprah';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
+import { colonelCrisp } from './colonel';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
 import type { Move, Special } from '../game/types';
@@ -459,6 +460,7 @@ export function roster(): CharDef[] {
     },
     aliDef(),
     lumpsum(),
+    colonelCrisp(),
     {
       id: 'hawking', name: 'Stephen Hawking', short: 'HAWKING', title: 'Spacetime Bender', look: HAWKING_LOOK, alt: HAWKING_ALT,
       specials: hawkingSpecials, voice: 120, props: {}, finisher: HAWKING_FINISHER, intro: HAWKING_INTRO, portrait: HAWKING_PORTRAIT,

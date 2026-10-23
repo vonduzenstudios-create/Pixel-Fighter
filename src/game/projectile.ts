@@ -8,8 +8,9 @@ import { rand } from '../core/rng';
 import { playCue, PROJ_SOUNDS } from '../audio/specials';
 import { drawMiniHole } from '../chars/hawking';
 import { drawGift } from '../chars/oprah';
+import { drawDrumstick, drawGrease } from '../chars/colonel';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -35,7 +36,13 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   paint: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.2 },
   tree: { dmg: 95, level: 'low', effect: 'launch', r: 9, speed: 0 },
   gift: { dmg: 80, level: 'high', effect: 'heavy', r: 7, speed: 4.2 },
+  drumstick: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.4 },
+  // lobbed in an arc (vy set by the thrower), then burns on the floor where it lands
+  grease: { dmg: 75, level: 'mid', effect: 'heavy', r: 7, speed: 2.6 },
 };
+
+/** Frames a grease puddle keeps burning after it lands. */
+const GREASE_BURN = 70;
 
 /** Frames a sprouting tree rumbles underground before it bursts up. */
 const TREE_WARN = 16;
@@ -48,6 +55,8 @@ export class Projectile {
   /** Already hit; still drawn but harmless. */
   spent = false;
   dmg: number; level: Level; effect: Effect; r: number;
+  /** Frame a lobbed grease blob hit the floor. */
+  landed = 0;
   /** Paint colour index for paint blobs. */
   hue = Math.floor(Math.random() * PAINTS.length);
   constructor(public owner: Fighter, public kind: ProjKind, public x: number, public y: number) {
@@ -115,6 +124,29 @@ export class Projectile {
       }
       case 'paint':
         if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x, y: this.y - 2, vx: -this.vx * 0.1, vy: 0.3, life: 18, max: 18, color: PAINTS[this.hue], grav: 0.15, floor: false });
+        break;
+      case 'drumstick':
+        if (this.t % 4 === 0)
+          p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 6, y: this.y, vx: -this.vx * 0.1, vy: 0.4, grav: 0.1, life: 20, max: 20, color: this.t % 8 ? '#c47422' : '#eaa848' });
+        break;
+      case 'grease':
+        if (!this.landed) {
+          this.vy -= 0.2;
+          if (this.t % 2 === 0) p.add({ kind: 'spark', x: this.x, y: this.y, vx: 0, vy: 0, grav: 0.1, life: 12, max: 12, color: '#e8a830' });
+          if (this.y + this.vy <= 3) {
+            // splat: a burning puddle that has to be blocked low
+            this.landed = this.t;
+            this.y = 3;
+            this.vx = this.vy = 0;
+            this.level = 'low';
+            this.r = 12;
+            p.sparks(this.x, 4, 10, '#ffd040');
+            playCue(PROJ_SOUNDS.grease?.blocked);
+          }
+        } else {
+          if (this.t % 3 === 0) p.fire(this.x + rand(-10, 10), 4, 1, 3);
+          if (this.t - this.landed > GREASE_BURN) this.dead = true;
+        }
         break;
       case 'tree': {
         // rumbles underground (out of reach), then shoots up from the deck
@@ -191,6 +223,12 @@ export class Projectile {
         break;
       case 'gift':
         drawGift(ctx, this.t, Math.sign(this.vx) || 1);
+        break;
+      case 'drumstick':
+        drawDrumstick(ctx, this.t, this.vx);
+        break;
+      case 'grease':
+        drawGrease(ctx, this.t, this.landed > 0);
         break;
       case 'paint':
         ctx.drawImage(s.paint[this.hue], -7, -7);
