@@ -3,6 +3,7 @@ import type { PartSet } from '../gfx/rig';
 import { Stage } from './stage';
 import { TrainStage } from './train';
 import { BoatStage } from './boat';
+import { SkyscraperStage } from './skyscraper';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -26,6 +27,7 @@ export const STAGES: StageEntry[] = [
   { id: 'gorge', name: 'THE THORN GORGE', make: (b) => new Stage(b) },
   { id: 'train', name: 'THE MIDNIGHT EXPRESS', make: (b) => new TrainStage(b) },
   { id: 'boat', name: 'THE DROWNED GALLEON', make: (b) => new BoatStage(b) },
+  { id: 'spire', name: 'THE DATA SPIRE', make: (b) => new SkyscraperStage(b) },
 ];
 
 // Stages paint themselves at construction, so build each one only when first needed.
