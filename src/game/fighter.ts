@@ -8,6 +8,7 @@ import * as MV from './moves';
 import type { Fight } from './fight';
 import type { Anim, Btn, Finisher, HitDef, Move, PropName, Special } from './types';
 import type { Look } from '../chars/build';
+import type { Intro } from './intro';
 import { chance } from '../core/rng';
 import { strengthOf } from '../audio/sfx';
 
@@ -26,6 +27,8 @@ export interface CharDef {
   props: Partial<Record<PropName, Part>>;
   /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
   fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
+  /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
+  intro?: Intro;
 }
 
 export interface Controller {
@@ -467,6 +470,12 @@ export class Fighter {
   /** Apply a hit that connected. Returns 'block' or 'hit'. */
   receive(hit: HitDef, from: Fighter, f: Fight, at: { x: number; y: number }, projectile = false): 'block' | 'hit' {
     const away = this.x >= from.x ? 1 : -1;
+    const ctr = this.state === 'attack' ? this.move?.counter : undefined;
+    if (ctr && this.mf >= ctr.from && this.mf < ctr.to) {
+      this.faceOpp();
+      this.startMove(ctr.move, f);
+      return 'block';
+    }
     if (this.canBlockNow(hit.level)) {
       const low = this.crouching;
       this.setState('blockstun', low ? AN.CBLOCK_ANIM : AN.BLOCK_ANIM);
