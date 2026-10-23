@@ -8,6 +8,7 @@ export default {
   make() {
     const c = tesla();
     c.selectSet ??= SETS.lab;
+    c.homeStage ??= 'lab';
     return c;
   },
   moveSounds: {

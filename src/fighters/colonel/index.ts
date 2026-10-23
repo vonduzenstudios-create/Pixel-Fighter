@@ -8,6 +8,7 @@ export default {
   make() {
     const c = colonelCrisp();
     c.selectSet ??= SETS.diner;
+    c.homeStage ??= 'chicken';
     return c;
   },
   moveSounds: {

@@ -491,10 +491,21 @@ export class SelectScene implements Scene {
 let matchCount = 0;
 
 // ------------------------------------------------------------------ Stage select
+/** Index in STAGES of a fighter's home stage, or -1 if it has none (or it isn't in the game yet). */
+export function homeStageIndex(c: CharDef): number {
+  return c.homeStage ? STAGES.findIndex((s) => s.id === c.homeStage) : -1;
+}
+
 export class StageSelectScene implements Scene {
   t = 0;
   e = new Edge();
-  constructor(private app: App, private a: CharDef, private b: CharDef) {}
+  constructor(private app: App, private a: CharDef, private b: CharDef) {
+    // 1P: start on the CPU opponent's home stage; you can still scroll to any other
+    if (app.settings.players === 1) {
+      const i = homeStageIndex(b);
+      if (i >= 0) app.settings.stage = i;
+    }
+  }
 
   get cur() {
     return arena(this.app.settings.stage, bonesParts());

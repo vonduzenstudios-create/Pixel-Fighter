@@ -8,6 +8,7 @@ export default {
   make() {
     const c = kingTut();
     c.selectSet ??= SETS.tomb;
+    c.homeStage ??= 'pyramid';
     return c;
   },
   moveSounds: {
