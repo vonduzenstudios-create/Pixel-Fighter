@@ -12,8 +12,9 @@ import { drawGift } from '../chars/oprah';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
 import { drawBasketball } from '../chars/shaq';
 import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
+import { ANIMALS, drawAnimal, updateAnimal } from '../chars/irwin';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball' | 'croc' | 'roo' | 'snake';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -54,6 +55,10 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   ragtop: { dmg: 100, level: 'mid', effect: 'knockdown', r: 12, speed: 5.6, sturdy: true },
   // bounce pass: hops along the floor, so jumping it is a matter of timing
   bball: { dmg: 80, level: 'mid', effect: 'heavy', r: 7, speed: 3.9 },
+  // summoned wildlife (chars/irwin.ts): they hit once, then head home instead of breaking (sturdy)
+  croc: { dmg: 85, level: 'low', effect: 'sweep', r: 10, speed: 2.9, sturdy: true },
+  roo: { dmg: 90, level: 'mid', effect: 'knockdown', r: 12, speed: 3.3, sturdy: true },
+  snake: { dmg: 90, level: 'low', effect: 'launch', r: 10, speed: 0, sturdy: true },
 };
 
 /** Frames a grease puddle keeps burning after it lands. */
@@ -89,6 +94,7 @@ export class Projectile {
 
   update(f: Fight) {
     this.t++;
+    if (ANIMALS.has(this.kind)) return updateAnimal(this, f);
     const p = f.particles;
     const travel = PROJ_SOUNDS[this.kind]?.travel;
     if (travel && this.t % travel.every === 0) playCue(travel.cue);
@@ -263,6 +269,7 @@ export class Projectile {
     const s = spr();
     ctx.save();
     ctx.translate(sx, sy);
+    if (ANIMALS.has(this.kind)) drawAnimal(ctx, this);
     switch (this.kind) {
       case 'hat':
         ctx.rotate(this.t * 0.5);
