@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "jesus": { "voice": "hm_psi", "speed": 0.9, "pitch": 0.97 }
+  },
+  "lines": [
+    { "file": "jesus-intro", "who": "jesus", "text": "Blessed are the peacemakers. I am about to make some peace.", "spoken": "Blessed are the peacemakers... I am about to make some peace." },
+    { "file": "jesus-finisher", "who": "jesus", "text": "There is plenty for everyone. Have seconds.", "spoken": "There is plenty for everyone... Have seconds." },
+    { "file": "ann-wins-jesus", "who": "announcer", "text": "Jesus wins" }
+  ]
+}
