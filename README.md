@@ -122,6 +122,7 @@ packs such as `ff_siwis` (French) read the English lines with that accent.
 | jackson | `am_puck` | 1.05 | 1.15 |
 | hawking | `am_eric` | 0.88 | 1 + robot filter |
 | oprah | `af_heart` | 0.95 | 0.94 |
+| cleo | `af_kore` | 0.92 | 0.92 |
 | colonel | `am_santa` | 0.82 | 0.94 |
 | buster | `am_santa` | 1.12 | 1.28 |
 | kingtut | `bm_lewis` | 0.92 | 1.12 |
@@ -130,7 +131,7 @@ packs such as `ff_siwis` (French) read the English lines with that accent.
 | irwin | `bm_george` | 1.12 | 1.12 |
 | ramsay | `bm_fable` | 1.12 | 0.88 |
 
-Still unused English voices: `af_alloy`, `af_aoede`, `af_bella`, `af_jessica`, `af_kore`, `af_nicole`, `af_nova`, `af_river`, `af_sarah`, `af_sky`, `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`.
+Still unused English voices: `af_alloy`, `af_aoede`, `af_bella`, `af_jessica`, `af_nicole`, `af_nova`, `af_river`, `af_sarah`, `af_sky`, `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`.
 Every American and British male voice is taken, so a new male fighter should use another
 language pack that suits him (`em_alex` Spanish, `im_nicola` Italian, `pm_alex` Portuguese,
 `hm_omega` / `hm_psi` Hindi, `jm_kumo` Japanese, `zm_yunjian` etc. Mandarin) or reuse a voice

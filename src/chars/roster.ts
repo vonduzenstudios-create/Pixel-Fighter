@@ -3,6 +3,7 @@ import { JACKSON_ALT, JACKSON_FINISHER, JACKSON_INTRO, JACKSON_LOOK, JACKSON_SPE
 import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { oprah } from './oprah';
+import { cleo } from './cleo';
 import { buster } from './buster';
 import { irwin } from './irwin';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
@@ -488,6 +489,7 @@ export function roster(): CharDef[] {
     },
     glare(),
     oprah(),
+    cleo(),
     ramsay(),
     blaine(),
     buster(),

@@ -22,7 +22,7 @@ export interface Look {
   socks?: string;
   belt?: string;
   buckle?: string;
-  hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora' | 'nemes' | 'beanie';
+  hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora' | 'nemes' | 'beanie' | 'headwrap';
   hatColor?: string;
   hatTrim?: string;
   hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky' | 'bald' | 'swoop' | 'gelled';
@@ -479,6 +479,19 @@ function head(L: Look): Painter {
     p.rect(15, 19, 2, 5, '#e8c040');
     p.set(17, 19, '#e8c040');
     p.set(16, 20, '#c01818');
+  } else if (L.hat === 'headwrap') {
+    // tall wrapped head scarf: folds banded in the trim colour, knotted at the back with a short tail
+    const c = L.hatColor ?? '#e8a020', tr = L.hatTrim ?? '#c8283c';
+    p.poly([[0.5, 23], [3.5, 23.5], [3, 31], [0, 30]], darken(c, 0.2));
+    p.poly([[2.5, 26.5], [2.5, 19], [6, 13], [11, 10.5], [16, 12], [18.5, 16.5], [18, 24], [16.5, 25.5]], c);
+    p.ellipse(10, 18, 8, 6.5, c);
+    p.line(3, 24, 15, 13, tr);
+    p.line(5, 25.5, 18, 18, tr);
+    p.line(8, 13, 16, 11.5, tr);
+    for (const [x, y] of [[6, 17], [10, 16], [13, 21], [9, 22], [15, 16]]) p.set(x, y, lighten(c, 0.35));
+    p.line(4, 26, 17, 24.5, darken(c, 0.3));
+    p.ellipse(3, 22.5, 2.4, 2.4, darken(c, 0.12));
+    p.set(2, 22, lighten(c, 0.3));
   } else if (L.hat === 'horned') {
     // opera-house warrior helmet
     const c = L.hatColor ?? '#a8b0bc';
