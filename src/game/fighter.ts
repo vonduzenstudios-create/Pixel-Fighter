@@ -1,4 +1,4 @@
-import { FLOOR, GRAV, MAX_HP, STAGE_W } from '../core/consts';
+import { FLOOR, GRAV, H, MAX_HP, STAGE_W, W } from '../core/consts';
 import { EMPTY, RawInput } from '../core/input';
 import { makeCanvas } from '../gfx/painter';
 import { css } from '../gfx/palette';
@@ -64,7 +64,20 @@ function dirMatches(got: number, want: number) {
   return false;
 }
 
+/** Frames to cross-fade into an anim that doesn't set its own blend; attacks start snappier. */
+const BLEND = 4;
+const MOVE_BLEND = 2;
+/** Frames of a striking limb's path kept for its smear. */
+const TRAIL = 4;
+
+/** Pose clock: advances once per unfrozen fight frame (stops during hitstop), drives cross-fades. */
+let clock = 0;
+export function tickPoseClock() {
+  clock++;
+}
+
 const [BUF, BCTX] = makeCanvas(200, 200);
+const [SMEAR, SCTX] = makeCanvas(W, H);
 const BO = 100; // buffer origin
 
 export class Fighter {
@@ -131,11 +144,22 @@ export class Fighter {
     this.thrower = null;
   }
 
-  setAnim(a: Anim, restart = true) {
+  setAnim(a: Anim, restart = true, blend = a.blend ?? BLEND) {
     if (this.anim === a && !restart) return;
     this.anim = a;
     this.animT = 0;
+    this.blendFrom = blend > 0 && !this.poseOverride ? this.pose : null;
+    this.blendLen = blend;
+    this.blendAt = clock;
   }
+  blendFrom: Pose | null = null;
+  blendLen = 0;
+  blendAt = 0;
+  /** Recent world positions of the striking limb (tip x, y, then a point partway up it), oldest first. */
+  trail: number[][] = [];
+  trailAt = -1;
+  /** Ground offset actually drawn; eases between the planted and airborne heights. */
+  shownG = 0;
   setState(s: string, a?: Anim) {
     this.state = s;
     this.t = 0;
@@ -325,7 +349,7 @@ export class Fighter {
       if (this.state !== 'walkF') this.setState('walkF', AN.WALK);
       this.x += 1.7 * this.facing;
     } else if (d === 4) {
-      if (this.state !== 'walkB') this.setState('walkB', AN.WALK);
+      if (this.state !== 'walkB') this.setState('walkB', AN.WALK_B);
       this.x -= 1.35 * this.facing;
       this.animT -= 2; // play the walk cycle backwards
     } else if (this.state !== 'idle') this.setState('idle', AN.IDLE);
@@ -386,7 +410,7 @@ export class Fighter {
     this.state = 'attack';
     this.t = 0;
     this.moveDir = this.facing;
-    this.setAnim(m.anim);
+    this.setAnim(m.anim, true, m.anim.blend ?? MOVE_BLEND);
     if (!m.air && !this.airborne) this.vx = 0;
   }
 
@@ -432,10 +456,12 @@ export class Fighter {
       this.faceOpp();
       this.setState('land', AN.LAND);
       f.sfx('land');
+      f.particles.dust(this.x, 4);
     } else if (s === 'launched' || s === 'fall') {
       this.vx *= 0.4;
       f.sfx('thud');
       f.shake(3);
+      f.particles.dust(this.x, 8);
       this.setState('lying', AN.BOUNCE);
       if (this.hp <= 0) this.state = 'dead';
     } else if (s === 'attack') {
@@ -548,7 +574,7 @@ export class Fighter {
     }
     if (this.canBlockNow(hit.level)) {
       const low = this.crouching;
-      this.setState('blockstun', low ? AN.CBLOCK_ANIM : AN.BLOCK_ANIM);
+      this.setState('blockstun', low ? AN.CBLOCKSTUN : AN.BLOCKSTUN);
       this.stun = Math.round((hit.stun ?? 14) * 0.6);
       this.vx = away * (hit.push ?? 3) * 0.8;
       if (hit.special || projectile) f.applyDamage(this, Math.round(hit.dmg * 0.18), from);
@@ -592,11 +618,70 @@ export class Fighter {
 
   // ---------------------------------------------------------------- pose + render
   computePose() {
-    const pose = this.poseOverride ?? AN.sample(this.anim, this.animT);
+    let pose = this.poseOverride ?? AN.sample(this.anim, this.animT);
+    if (!this.poseOverride && this.blendFrom) {
+      const k = (clock - this.blendAt + 1) / (this.blendLen + 1);
+      if (k >= 1) this.blendFrom = null;
+      else pose = AN.blendPose(this.blendFrom, pose, k);
+    }
     this.pose = pose;
     this.skel = fk(pose);
-    const grounded = !this.airborne && this.state !== 'thrown';
-    this.G = grounded ? groundOffset(this.skel) : AIR_HIP;
+    if (this.state === 'thrown') this.G = AIR_HIP;
+    else {
+      // planted by the feet near the floor, fading to a fixed hip height as the jump rises,
+      // so take-offs and landings don't pop
+      const planted = groundOffset(this.skel);
+      this.G = this.airborne ? planted + (AIR_HIP - planted) * Math.min(1, this.y / 14) : planted;
+    }
+    this.updateTrail();
+  }
+
+  updateTrail() {
+    if (this.trailAt === clock) return;
+    this.trailAt = clock;
+    const m = this.move;
+    // the pose being drawn is anim frame mf, one ahead of the frame hit checks use
+    const fr = this.mf;
+    if (this.state !== 'attack' || !m?.hit || !m.active || m.hit.limb === 'body' || fr < m.active[0] - 2 || fr >= m.active[1]) {
+      this.trail.length = 0;
+      return;
+    }
+    // the streak spans the outer part of the limb, from partway down it to the tip
+    const s = this.skel;
+    const l = m.hit.limb;
+    const tip = l === 'prop' ? propTip(s, 26) : s[l];
+    const joint = l === 'prop' ? s.handF : l === 'handF' ? s.elbowF : l === 'handB' ? s.elbowB : l === 'toeF' ? s.kneeF : l === 'toeB' ? s.kneeB : s.hipF;
+    const base = [joint[0] + (tip[0] - joint[0]) * 0.4, joint[1] + (tip[1] - joint[1]) * 0.4];
+    this.trail.push([this.wx(tip[0]), this.wy(tip[1]), this.wx(base[0]), this.wy(base[1])]);
+    if (this.trail.length > TRAIL) this.trail.shift();
+  }
+
+  /** Motion smear behind a fast strike: the band the limb swept through over the last few frames. */
+  drawSmear(ctx: CanvasRenderingContext2D, camX: number, groundY = FLOOR) {
+    const tr = this.trail;
+    if (tr.length < 2 || this.alpha <= 0) return;
+    const c = SCTX;
+    c.clearRect(0, 0, W, H);
+    const X = (x: number) => Math.round(x - camX), Y = (y: number) => Math.round(groundY - y);
+    let any = false;
+    for (let i = 1; i < tr.length; i++) {
+      const a = tr[i - 1], b = tr[i];
+      if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 4) continue;
+      any = true;
+      const fresh = i / (tr.length - 1);
+      c.fillStyle = fresh > 0.7 ? '#fffbe8' : fresh > 0.4 ? '#e8d8b0' : '#b8a488';
+      c.beginPath();
+      c.moveTo(X(a[2]), Y(a[3]));
+      c.lineTo(X(a[0]), Y(a[1]));
+      c.lineTo(X(b[0]), Y(b[1]));
+      c.lineTo(X(b[2]), Y(b[3]));
+      c.closePath();
+      c.fill();
+    }
+    if (!any) return;
+    ctx.globalAlpha = 0.5;
+    ctx.drawImage(SMEAR, 0, 0);
+    ctx.globalAlpha = 1;
   }
 
   draw(ctx: CanvasRenderingContext2D, camX: number, groundY = FLOOR) {
