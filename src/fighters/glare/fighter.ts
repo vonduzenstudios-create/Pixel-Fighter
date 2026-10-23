@@ -11,7 +11,7 @@ import { say, sfx } from '../../audio/sfx';
 import { rand } from '../../core/rng';
 import { lerp, offscreenX, type Intro } from '../../game/intro';
 
-// Dorian Glare: an original parody of the vain male supermodel. Frosted swoop of hair, cheekbones
+// Hugh Steel: an original parody of the vain male supermodel. Frosted swoop of hair, cheekbones
 // you could slice bread on, a lilac velvet blazer. He fights with poses, the runway and the cameras
 // that follow him everywhere. Name, look, moves and lines are all original.
 
@@ -323,7 +323,7 @@ export const GLARE_PORTRAIT: PortraitStyle = {
 
 export function glare(): CharDef {
   return {
-    id: 'glare', name: 'Dorian Glare', short: 'GLARE', title: 'The Face', look: GLARE_LOOK, alt: GLARE_ALT,
+    id: 'glare', name: 'Hugh Steel', short: 'STEEL', title: 'The Face', look: GLARE_LOOK, alt: GLARE_ALT,
     specials, voice: 150, props: {},
     finisher: { name: 'Overexposed', cmd: [6, 4, 6], btn: 'hk', text: 'F, B, F + HK (close)', range: [0, 90] },
     fatality: overexposed, intro: GLARE_INTRO, portrait: GLARE_PORTRAIT,
