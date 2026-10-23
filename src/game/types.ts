@@ -71,6 +71,8 @@ export interface Special {
   /** Directions relative to facing, numpad notation (6 = toward the opponent). */
   cmd: number[];
   btn: Btn | 'p' | 'k';
+  /** Button-mash alternative: tapping this button rapidly fires the move too, even out of a normal attack. */
+  mash?: Btn | 'p' | 'k';
   text: string;
   move: Move;
 }

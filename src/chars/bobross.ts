@@ -60,7 +60,7 @@ const rossSpecials: Special[] = [
     },
   },
   {
-    name: 'Fan Brush Flurry', cmd: [4, 6], btn: 'hp', text: 'B, F + HP',
+    name: 'Fan Brush Flurry', cmd: [4, 6], btn: 'hp', mash: 'hp', text: 'MASH HP',
     move: {
       id: 'flurry', prop: 'brush',
       anim: A([
@@ -164,7 +164,7 @@ export function bobRoss(): CharDef {
     id: 'bobross', name: 'Bob Ross', short: 'ROSS', title: 'The Gentle Brush', look: ROSS_LOOK,
     alt: { ...ROSS_LOOK, shirt: '#e8e0d0', pants: '#5a4a38', hair: '#8a6a44' },
     specials: rossSpecials, voice: 105, props: { brush: brush(), knife: paletteKnife() },
-    finisher: { name: 'Palette Knife Landscape', cmd: [4, 6, 4, 6], btn: 'hp', text: 'B, F, B, F + HP (close)', range: [0, 70] },
+    finisher: { name: 'Palette Knife Landscape', cmd: [4, 6, 4], btn: 'hp', text: 'B, F, B + HP (close)', range: [0, 90] },
     fatality: rossFatality,
     quotes: [
       'WE DO NOT MAKE MISTAKES. YOU JUST HAD A HAPPY LITTLE ACCIDENT.',

@@ -63,18 +63,23 @@ Holding back also blocks. In menus, A or Start confirms and B (or Esc) goes back
 |             | *Emancipation Cleave*  | F, B, F + HP (close)     |
 | Tesla       | Coil Bolt              | D, DF, F + P             |
 |             | Wireless Step          | D, DB, B + K             |
-|             | Alternating Field      | B, B + LP                |
-|             | *Grand Discharge*      | D, F, D, F + LP          |
+|             | Alternating Field      | Mash LP (or B, B + LP)   |
+|             | *Grand Discharge*      | D, F, D + LP             |
 | Joan of Arc | Holy Flame             | D, DF, F + P             |
 |             | Banner Charge          | B, F + HK                |
 |             | Ascension Blade        | F, D, DF + HP            |
 |             | *Purifying Pyre*       | F, D, F + HK (mid range) |
 | Blackbeard  | Cannon Volley          | D, DF, F + P             |
 |             | Powder Keg             | D, DB, B + LK            |
-|             | Cutlass Cyclone        | D, D + HK                |
+|             | Cutlass Cyclone        | Mash HK (or D, D + HK)   |
 |             | *Powder Keg Surprise*  | B, B, F + LP (close)     |
 
 Finishers (in italics) work in the deciding round when "END THEM!" appears.
+
+"Mash" moves fire when you tap the button four times within half a second; the first taps
+come out as normal attacks and the flurry cancels them. Chuck Norris, Bruce Lee, Ali, Bob Ross,
+Tesla and Blackbeard each have one. Motion commands are forgiving: a diagonal counts for the
+direction beside it, and the steps can be spread over about half a second.
 
 ## How it's built
 

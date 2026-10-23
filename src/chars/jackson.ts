@@ -105,7 +105,7 @@ export const JACKSON_SPECIALS: Special[] = [
   { name: 'Toe Spin Rise', cmd: [6, 2, 3], btn: 'hk', text: 'F, D, DF + HK', move: toeSpin },
 ];
 
-export const JACKSON_FINISHER = { name: 'Showstopper', cmd: [4, 6, 4], btn: 'hk' as const, text: 'B, F, B + HK (close)', range: [0, 60] as [number, number] };
+export const JACKSON_FINISHER = { name: 'Showstopper', cmd: [2, 6], btn: 'hk' as const, text: 'D, F + HK (close)', range: [0, 90] as [number, number] };
 
 /** Entrance state per fighter: the facing he started with and where he glided in from. */
 const entry = new WeakMap<Fighter, { face: 1 | -1; x0: number }>();
