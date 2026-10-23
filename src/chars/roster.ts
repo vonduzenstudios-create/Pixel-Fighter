@@ -10,6 +10,7 @@ import type { Pose } from '../gfx/rig';
 import { Projectile, ProjKind } from '../game/projectile';
 import type { Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
+import { BLACKBEARD_INTRO, JOAN_INTRO, LINCOLN_INTRO, TESLA_INTRO } from './intros';
 
 // Original takes on historical figures. Commands are relative to facing:
 // 6 = toward the opponent, 4 = away, 2 = down, 3 = down-toward, 1 = down-away.
@@ -362,7 +363,7 @@ export function roster(): CharDef[] {
     {
       id: 'lincoln', name: 'Abe Lincoln', short: 'LINCOLN', title: 'The Rail Splitter', look: LINCOLN_LOOK,
       alt: { ...LINCOLN_LOOK, coat: '#4a2c1a', pants: '#3a2a1e', hatColor: '#4a2c1a', bowtie: '#7a1010' },
-      specials: lincolnSpecials, voice: 110, props: { axe: props.axe },
+      specials: lincolnSpecials, voice: 110, props: { axe: props.axe }, intro: LINCOLN_INTRO,
       quotes: [
         'FOUR SCORE AND SEVEN SECONDS AGO, YOU STILL HAD TEETH.',
         'A HOUSE DIVIDED CANNOT STAND. NEITHER, IT SEEMS, CAN YOU.',
@@ -376,7 +377,7 @@ export function roster(): CharDef[] {
     {
       id: 'tesla', name: 'Nikola Tesla', short: 'TESLA', title: 'Wizard of Current', look: TESLA_LOOK,
       alt: { ...TESLA_LOOK, coat: '#3e2a46', pants: '#2c2232', necktie: '#d0a020', glove: '#2a2a2a' },
-      specials: teslaSpecials, voice: 140, props: {},
+      specials: teslaSpecials, voice: 140, props: {}, intro: TESLA_INTRO,
       quotes: [
         'YOUR RESISTANCE WAS LOW. MY CURRENT WAS NOT.',
         'I SAW THIS DEFEAT IN A VISION. IT WAS FUNNIER IN PERSON.',
@@ -395,7 +396,7 @@ export function roster(): CharDef[] {
     {
       id: 'joan', name: 'Joan of Arc', short: 'JOAN', title: 'Maid of the Flame', look: JOAN_LOOK,
       alt: { ...JOAN_LOOK, hair: '#c8a040', armor: { metal: '#8a8a96', tabard: '#8a1a1a', trim: '#e8e8e8' }, pants: '#8a8a96' },
-      specials: joanSpecials, voice: 260, props: { sword: props.sword },
+      specials: joanSpecials, voice: 260, props: { sword: props.sword }, intro: JOAN_INTRO,
       quotes: [
         'THE VOICES TOLD ME YOU WOULD FALL. THEY WERE RIGHT.',
         'KNEEL, {L}. IT SUITS YOU.',
@@ -408,7 +409,7 @@ export function roster(): CharDef[] {
     {
       id: 'blackbeard', name: 'Blackbeard', short: 'BLACKBEARD', title: 'Terror of the Seas', look: BEARD_LOOK,
       alt: { ...BEARD_LOOK, coat: '#1c3c2a', coatTrim: '#c0c0c8', pants: '#2a2a30', beardRibbon: '#20a0e0' },
-      specials: beardSpecials, voice: 95, props: { cutlass: props.cutlass },
+      specials: beardSpecials, voice: 95, props: { cutlass: props.cutlass }, intro: BLACKBEARD_INTRO,
       quotes: [
         'DEAD MEN TELL NO TALES, AND YOU WILL NOT BE TELLING THIS ONE.',
         'I HAVE SCRAPED TOUGHER THINGS OFF MY HULL.',

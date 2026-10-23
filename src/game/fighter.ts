@@ -8,6 +8,7 @@ import * as MV from './moves';
 import type { Fight } from './fight';
 import type { Anim, Btn, Finisher, HitDef, Move, PropName, Special } from './types';
 import type { Look } from '../chars/build';
+import type { Intro } from './intro';
 import type { PortraitStyle } from '../gfx/portrait';
 import { chance } from '../core/rng';
 import { strengthOf } from '../audio/sfx';
@@ -27,6 +28,8 @@ export interface CharDef {
   props: Partial<Record<PropName, Part>>;
   /** Finishing move driven by the character itself, run once per frame. Returns true when it is over. */
   fatality?: (fight: Fight, winner: Fighter, loser: Fighter, t: number, data: any) => boolean;
+  /** Round 1 entrance animation and voice line (falls back to DEFAULT_INTRO). */
+  intro?: Intro;
   /** Extra details or a custom face for the post-match portrait (see gfx/portrait.ts). */
   portrait?: PortraitStyle;
   /** Win-screen taunts. {L} becomes the loser's short name. */
