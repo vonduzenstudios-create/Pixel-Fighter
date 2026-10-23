@@ -32,28 +32,36 @@ export const HIGH_KICK: Move = {
   hit: { limb: 'toeF', r: 6, dmg: 60, level: 'high', effect: 'heavy', push: 4, stun: 18 },
   whoosh: true,
 };
+// Spinning heel kick: chamber the back leg, whip it up through head height, follow through.
 export const ROUNDHOUSE: Move = {
   id: 'roundhouse',
   anim: A([
-    [P(STANCE, { t: 25, lb: -30, kb: 90, af: -20, ab: -60 }), 6],
-    [P(STANCE, { lb: -128, kb: -4, fb: -40, t: -36, h: 10, af: -10, ef: -40, ab: 10, lf: 6, kf: 4 }), 8],
-    [STANCE, 12],
+    [P(STANCE, { t: 30, h: 6, lb: -95, kb: 125, fb: 20, af: -20, ef: -60, ab: -90, eb: -40, lf: -10, kf: 14 }), 5],
+    [P(STANCE, { t: -40, h: 18, lb: -112, kb: -4, fb: -35, af: 25, ef: -25, ab: -150, eb: -15, lf: 12, kf: 2, ff: 15 }), 4],
+    [P(STANCE, { t: -52, h: 22, lb: -138, kb: -8, fb: -40, af: 40, ef: -20, ab: -165, eb: -10, lf: 16, kf: 0, ff: 20 }), 4],
+    [P(STANCE, { t: 22, h: -6, lb: -40, kb: 70, af: -40, ef: -80, ab: -60, eb: -60 }), 7],
+    [STANCE, 6],
   ]),
-  active: [6, 13],
+  active: [5, 12],
+  vx: (fr) => (fr < 10 ? 1.1 : 0),
   hit: { limb: 'toeB', r: 7, dmg: 85, level: 'high', effect: 'launch', lift: [5.6, 3.4], push: 3, stun: 20, sfx: 'heavy' },
   whoosh: true,
 };
 const CR = (o = {}) => P(CROUCH, o);
+// Hand-planted leg sweep: drop low, then scythe the back leg along the floor from behind to the front.
 export const SWEEP: Move = {
   id: 'sweep',
   crouch: true,
   anim: A([
-    [CR({ t: 40, ab: 10, eb: -10, af: -10, ef: -20 }), 5],
-    [CR({ t: 45, ab: 15, eb: -5, af: -5, ef: -10, lf: -76, kf: 4, ff: 20, lb: -60, kb: 140 }), 9],
-    [CROUCH, 10],
+    [CR({ t: 55, h: -28, af: -20, ef: -8, ab: -100, eb: -60, lb: -110, kb: 150, lf: 20, kf: 120, ff: 30 }), 4],
+    [CR({ t: 40, h: -20, af: -30, ef: -20, ab: 10, eb: -20, lb: -110, kb: 150, lf: 84, kf: 2, ff: 80 }), 2],
+    [CR({ t: 30, h: -14, af: -45, ef: -30, ab: 20, eb: -15, lb: -108, kb: 150, lf: -10, kf: 140, ff: 30 }), 2],
+    [CR({ t: 18, h: -6, af: -60, ef: -40, ab: 35, eb: -10, lb: -105, kb: 150, fb: 20, lf: -88, kf: 0, ff: -10 }), 7],
+    [CR({ t: 40 }), 6],
+    [CROUCH, 6],
   ]),
-  active: [5, 13],
-  hit: { limb: 'toeF', r: 6, dmg: 65, level: 'low', effect: 'sweep', push: 2, stun: 20 },
+  active: [7, 15],
+  hit: { limb: 'toeF', r: 7, dmg: 65, level: 'low', effect: 'sweep', push: 2, stun: 20 },
   whoosh: true,
 };
 export const CROUCH_PUNCH: Move = {
@@ -82,17 +90,20 @@ export const CROUCH_HIGH_KICK: Move = {
   hit: { limb: 'toeF', r: 6, dmg: 55, level: 'mid', effect: 'heavy', push: 3.5, stun: 17 },
   whoosh: true,
 };
+// Rising uppercut: coil low with the fist at the hip, then drive it up through the opponent's chin.
 export const UPPERCUT: Move = {
   id: 'uppercut',
   crouch: true,
   anim: A([
-    [CR({ af: 40, ef: -110, t: 30 }), 6],
-    [P(STANCE, { t: -10, h: -16, af: -176, ef: -16, ab: 10, eb: -60, lf: -14, kf: 14, lb: 18, kb: 8 }), 8],
-    [P(STANCE, { t: -6, af: -170, ef: -30 }), 8],
-    [STANCE, 8],
+    [CR({ t: 36, h: -8, af: 30, ef: -110, ab: -70, eb: -80 }), 4],
+    [P(STANCE, { t: 26, h: -6, af: -70, ef: -75, ab: -20, eb: -70, lf: -45, kf: 70, lb: 10, kb: 20 }), 3],
+    [P(STANCE, { t: 4, h: -14, af: -125, ef: -40, ab: 10, eb: -60, lf: -55, kf: 80, lb: 14, kb: 4, fb: 35 }), 4],
+    [P(STANCE, { t: -14, h: -22, af: -165, ef: -12, ab: 20, eb: -50, lf: -60, kf: 90, lb: 16, kb: 2, fb: 45 }), 8],
+    [P(STANCE, { t: 10, af: -100, ef: -60 }), 6],
+    [STANCE, 5],
   ]),
-  active: [6, 14],
-  hit: { limb: 'handF', r: 7, dmg: 120, level: 'mid', effect: 'launch', lift: [8.4, 1.1], push: 2, stun: 30, sfx: 'heavy' },
+  active: [4, 13],
+  hit: { limb: 'handF', r: 8, dmg: 120, level: 'mid', effect: 'launch', lift: [8.4, 1.1], push: 2, stun: 30, sfx: 'heavy' },
   whoosh: true,
 };
 export const JUMP_KICK: Move = {
