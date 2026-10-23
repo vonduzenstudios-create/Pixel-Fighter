@@ -212,7 +212,11 @@ export class Fighter {
     } else if (s === 'thrown') {
       this.updateThrown(f);
       return;
-    } else if (s === 'victory' || s === 'dizzy' || s === 'fatal' || s === 'dead') {
+    } else if (s === 'dizzy') {
+      this.vx *= 0.8;
+      // reel from a hit, then go back to swaying
+      if (this.stun > 0 && --this.stun === 0) this.setAnim(AN.DIZZY_ANIM);
+    } else if (s === 'victory' || s === 'fatal' || s === 'dead') {
       this.vx *= 0.8;
     }
 
@@ -445,6 +449,15 @@ export class Fighter {
     if (!(this.input.bl || this.holdingBack)) return false;
     const low = this.crouching || this.state === 'cblock' || this.state === 'crouch';
     return low ? level !== 'overhead' : level !== 'low';
+  }
+
+  /** Take a hit while dazed during the finisher window: reel, but stay on your feet. */
+  reel(from: Fighter, at: { x: number; y: number }) {
+    const away = this.x >= from.x ? 1 : -1;
+    this.setAnim(at.y > this.y + 52 ? AN.HITSTUN_HIGH : AN.HITSTUN_MID);
+    this.stun = 16;
+    this.shake = 6;
+    this.vx = away * 2.2;
   }
 
   /** Apply a hit that connected. Returns 'block' or 'hit'. */
