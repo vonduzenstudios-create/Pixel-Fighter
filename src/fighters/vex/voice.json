@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "vex": { "voice": "am_puck", "speed": 1.05, "pitch": 0.9 }
+  },
+  "lines": [
+    { "file": "vex-intro", "who": "vex", "text": "Your firewall is adorable. I am already inside it." },
+    { "file": "vex-finisher", "who": "vex", "text": "Deleting you now. There is no backup." },
+    { "file": "ann-wins-vex", "who": "announcer", "text": "Vex Vector wins" }
+  ]
+}

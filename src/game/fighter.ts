@@ -59,6 +59,8 @@ export interface CharDef {
   quotes?: string[];
   /** Taunts for beating one particular opponent, keyed by their id. */
   quotesVs?: Record<string, string>;
+  /** The fighter's own stage (a src/stages folder id), offered first when you face them. */
+  homeStage?: string;
 }
 
 export interface Controller {
