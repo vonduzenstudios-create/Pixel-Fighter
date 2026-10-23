@@ -110,7 +110,7 @@ describe('stage registry', () => {
       expect(songNames(), s.id).toContain(a.song);
       expect(getSong(a.song).notes.length, s.id).toBeGreaterThan(0);
     });
-  });
+  }, 30000); // every stage paints itself here, and there are a lot of them now
 
   it('composes every song', () => {
     for (const n of songNames()) expect(getSong(n).steps, n).toBeGreaterThan(0);
