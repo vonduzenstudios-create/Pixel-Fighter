@@ -3,9 +3,14 @@ import { JACKSON_ALT, JACKSON_FINISHER, JACKSON_INTRO, JACKSON_LOOK, JACKSON_SPE
 import { aliDef } from './ali';
 import { bobRoss } from './bobross';
 import { oprah } from './oprah';
+import { buster } from './buster';
+import { irwin } from './irwin';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { colonelCrisp } from './colonel';
+import { kingTut } from './kingtut';
+import { guyFieri } from './fieri';
+import { shaqDef } from './shaq';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
 import type { CharDef } from '../game/fighter';
 import type { Move, Special } from '../game/types';
@@ -479,6 +484,11 @@ export function roster(): CharDef[] {
       quotesVs: { lincoln: 'NICE HAT, MR PRESIDENT. MINE SPINS BETTER.' },
     },
     oprah(),
+    buster(),
+    kingTut(),
+    guyFieri(),
+    shaqDef(),
+    irwin(),
   ];
   for (const c of cache) c.intro ??= INTROS[c.id];
   return cache;

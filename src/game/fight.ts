@@ -9,7 +9,7 @@ import { announce, bark, hush, say, sfx, speaking, strengthOf } from '../audio/s
 import { moveSounds, playCue, PROJ_SOUNDS } from '../audio/specials';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
-import { Fighter } from './fighter';
+import { Fighter, tickPoseClock } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
@@ -234,7 +234,6 @@ export class Fight {
       if (this.phase === 'entrance' && this.pt > 10 && (e.start || e.lp || e.hp || e.lk || e.hk)) this.endEntrances();
     }
     if (this.paused) return;
-    this.pt++;
     for (const b of this.banners) b.t++;
     this.banners = this.banners.filter((b) => b.t < b.dur);
     this.particles.update();
@@ -247,7 +246,11 @@ export class Fight {
       this.hitstop--;
       return;
     }
+    tickPoseClock();
     this.stage.update?.(this);
+    // the phase clock only runs outside hitstop, so the exact-frame cues below (KO -> round end,
+    // banners) can't be skipped when a hit lands on that frame, e.g. the winner still kicking the body
+    this.pt++;
 
     switch (this.phase) {
       case 'entrance':
@@ -479,7 +482,9 @@ export class Fight {
       const d = p.owner.opp;
       for (const q of this.projectiles)
         if (q !== p && !q.dead && q.owner !== p.owner && Math.abs(q.x - p.x) < 12 && Math.abs(q.y - p.y) < 14) {
-          p.dead = q.dead = true;
+          // sturdy projectiles (a car) plough straight through whatever they meet
+          if (!p.sturdy) p.dead = true;
+          if (!q.sturdy) q.dead = true;
           this.particles.sparks((p.x + q.x) / 2, p.y, 16, '#ffffff');
           sfx.block(true);
           playCue(PROJ_SOUNDS[p.kind]?.clash);
@@ -487,8 +492,8 @@ export class Fight {
         }
       if (p.dead || p.spent || d.invulnerable) continue;
       if (circleRect(p.x, p.y, p.r, d.hurtbox())) {
-        // a sprouted tree stays standing after it hits; everything else breaks
-        if (p.kind === 'tree') p.spent = true;
+        // a sprouted tree stays standing after it hits, a car keeps driving; everything else breaks
+        if (p.kind === 'tree' || p.sturdy) p.spent = true;
         else p.dead = true;
         const hit: HitDef = { limb: 'body', r: p.r, dmg: p.dmg, level: p.level, effect: p.effect, push: 3, stun: 20, special: true };
         const res = this.resolveHit(p.owner, d, hit, { x: p.x, y: p.y }, true);
@@ -817,12 +822,15 @@ export class Fight {
             D.vy += 0.22;
             D.y += D.vy;
             D.rot = (D.rot ?? 0) - 6;
-            if (D.y >= 150) {
+            const rest = this.stage.pitLanding?.rest ?? 150;
+            this.stage.pitLanding?.fall?.(this, Math.min(D.y, rest));
+            if (D.y >= rest) {
               D.impaled = true;
-              D.y = 150;
+              D.y = rest;
               sfx.scream();
               this.shake(10);
-              if (this.stage.pitFront) {
+              if (this.stage.pitLanding) this.stage.pitLanding.land(this);
+              else if (this.stage.pitFront) {
                 // a vat landing instead of spikes: a big splash of hot oil
                 sfx.explode();
                 sfx.fire();
@@ -835,12 +843,14 @@ export class Fight {
             }
           } else {
             D.it++;
-            if (this.stage.pitFront) {
+            this.stage.pitTick?.(this.pitParticles, D.it);
+            if (this.stage.pitLanding) this.stage.pitLanding.tick(this, D.it);
+            else if (this.stage.pitFront) {
               if (D.it % 4 === 0) this.pitParticles.smoke(128 + rand(-24, 24), H - 150 + rand(-4, 4), 1, '#d8d0c0');
               if (D.it % 10 === 0) this.pitParticles.sparks(128 + rand(-20, 20), H - 152, 2, '#ffe070');
               if (D.it % 30 === 0) sfx.fire();
             } else if (D.it % 6 === 0) this.pitParticles.blood(128 + rand(-8, 8), H - 152, rand(-1, 1), 2, 0.6);
-            if (D.it > 150) done();
+            if (D.it > (this.stage.pitLanding?.length ?? 150)) done();
           }
         }
         break;
@@ -987,6 +997,8 @@ export class Fight {
     for (const f of this.f) if (f.alpha > 0) f.drawShadow(ctx, cam);
     // draw the fighter being attacked behind the attacker
     const order = [...this.f].sort((x, y) => (x.state === 'attack' ? 1 : 0) - (y.state === 'attack' ? 1 : 0));
+    const ownFatal = this.fatal && this.winner?.ch.id === this.fatal.kind ? this.winner.ch.fatalityDraw : undefined;
+    ownFatal?.(ctx, this, cam, false);
     for (const f of order) {
       if (this.fatal?.kind === 'chuck' && f === this.loser && this.fatal.data.sink > 0.5) {
         // hammered into the deck: only what is above the planks shows, over a splintered hole
@@ -1003,6 +1015,7 @@ export class Fight {
         for (const [dx, h] of [[-10, 3], [-6, 2], [5, 3], [9, 2]]) ctx.fillRect(hx + dx, FLOOR - h + 1, 1, h);
         continue;
       }
+      f.drawSmear(ctx, cam);
       f.draw(ctx, cam);
     }
     for (const f of this.f) if (f.state === 'dizzy' || (this.fatal && f === this.loser && f.poseOverride === AN.DIZZY)) this.drawStars(ctx, f, cam);
@@ -1030,6 +1043,7 @@ export class Fight {
       ctx.fillRect(0, 0, W, H);
     }
     if (this.fatal?.kind === 'hawking') drawHawkingFatality(ctx, this, cam);
+    ownFatal?.(ctx, this, cam, true);
     this.particles.draw(ctx, cam);
     ctx.restore();
     this.stage.drawFront(ctx, cam, this.t);
@@ -1040,7 +1054,8 @@ export class Fight {
     ctx.drawImage(this.stage.pit!, 0, 0);
     const l = this.loser!;
     const vat = this.stage.pitFront;
-    const pose = D.impaled && !vat ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
+    const landing = this.stage.pitLanding;
+    const pose = D.impaled && landing ? landing.pose : D.impaled && !vat ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
     l.hidden.clear();
     l.alpha = 1;
     l.tint = null;
@@ -1057,10 +1072,16 @@ export class Fight {
     const sink = vat && D.impaled ? Math.min(60, (D.it ?? 0) * 0.5) : 0;
     if (vat && D.impaled) l.poseOverride = AN.P(AN.LAUNCHED, { rot: 180 + Math.sin((D.it ?? 0) * 0.4) * 10 });
     if (vat) l.computePose();
-    l.draw(ctx, 0, Math.round(D.y + sink));
+    const lift = D.impaled && landing?.victim ? landing.victim(l, D.it ?? 0) : 0;
+    l.draw(ctx, 0, Math.round(D.y + sink + lift));
+    l.showBones = false;
+    l.tint = null;
     l.x = savedX;
     if (vat) ctx.drawImage(vat, 0, 0);
-    else if (D.impaled) {
+    if (landing) {
+      if (D.impaled) landing.draw(ctx, D.it ?? 0);
+      else landing.drawFall?.(ctx);
+    } else if (!vat && D.impaled) {
       ctx.fillStyle = this.stage.stakeColor ?? '#8a8290';
       ctx.fillRect(127, D.y - 22, 2, 14);
       ctx.fillRect(128, D.y - 26, 1, 4);

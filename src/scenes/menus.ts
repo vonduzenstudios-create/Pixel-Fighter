@@ -94,7 +94,7 @@ export class TitleScene implements Scene {
     const step = Math.min(50, (W - 60) / Math.max(1, chars.length - 1));
     chars.forEach((c, i) => {
       const x = W / 2 + (i - (chars.length - 1) / 2) * step;
-      drawFigure(ctx, partsFor(c), sample(IDLE, this.t + i * 9), x, FLOOR, i < chars.length / 2 ? 1 : -1, 1, ['#0a0208', 0.82]);
+      drawFigure(ctx, partsFor(c), sample(IDLE, this.t + i * 9), x, FLOOR, i < chars.length / 2 ? 1 : -1, c.scale ?? 1, ['#0a0208', 0.82]);
     });
     st.drawFront(ctx, cam, this.t);
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
