@@ -91,6 +91,14 @@ export class Particles {
       this.add({ kind: 'spark', x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 10, max: 10, color, grav: 0, floor: false });
     }
   }
+  /** Puffs of dust kicked along the floor by a landing or a body hitting the ground. */
+  dust(x: number, n = 4, color = '#b8a890') {
+    for (let i = 0; i < n; i++) {
+      const dir = i % 2 ? 1 : -1;
+      const life = rand(14, 26);
+      this.add({ kind: 'smoke', x: x + dir * rand(2, 8), y: this.floorY + rand(0, 2), vx: dir * rand(0.4, 1.1), vy: rand(0.05, 0.3), life, max: life, color, size: rand(1, 3), grav: 0, floor: false });
+    }
+  }
   smoke(x: number, y: number, n = 1, color = '#3a3438') {
     for (let i = 0; i < n; i++) {
       const life = rand(30, 60);

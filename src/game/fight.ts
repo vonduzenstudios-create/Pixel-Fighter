@@ -9,7 +9,7 @@ import { announce, bark, hush, say, sfx, speaking, strengthOf } from '../audio/s
 import { moveSounds, playCue, PROJ_SOUNDS } from '../audio/specials';
 import { playSong, stopSong } from '../audio/music';
 import * as AN from './anims';
-import { Fighter } from './fighter';
+import { Fighter, tickPoseClock } from './fighter';
 import { Particles } from './particles';
 import { Projectile } from './projectile';
 import type { Arena } from './stages';
@@ -247,6 +247,7 @@ export class Fight {
       this.hitstop--;
       return;
     }
+    tickPoseClock();
     this.stage.update?.(this);
 
     switch (this.phase) {
@@ -1005,6 +1006,7 @@ export class Fight {
         for (const [dx, h] of [[-10, 3], [-6, 2], [5, 3], [9, 2]]) ctx.fillRect(hx + dx, FLOOR - h + 1, 1, h);
         continue;
       }
+      f.drawSmear(ctx, cam);
       f.draw(ctx, cam);
     }
     for (const f of this.f) if (f.state === 'dizzy' || (this.fatal && f === this.loser && f.poseOverride === AN.DIZZY)) this.drawStars(ctx, f, cam);
