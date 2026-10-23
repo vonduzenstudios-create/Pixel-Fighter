@@ -25,7 +25,7 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora' | 'nemes' | 'beanie';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky' | 'bald' | 'gelled';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky' | 'bald' | 'swoop' | 'gelled';
   beard?: 'chinstrap' | 'braided' | 'full' | 'goatee' | 'vandyke' | 'pharaoh';
   /** Facial hair colour when it differs from the hair (bleached spikes over a darker beard). */
   beardColor?: string;
@@ -299,6 +299,13 @@ function head(L: Look): Painter {
     p.rect(3, 23, 5, 9, L.hair);
     p.poly([[9, 21], [17, 22.5], [16.5, 26], [12, 25], [10, 24]], L.hair);
     p.line(7, 21, 14, 22, lighten(L.hair, 0.3));
+  } else if (L.hairStyle === 'swoop') {
+    // tall frosted swoop swept up and forward off the brow, short at the sides
+    p.ellipse(9.5, 24, 6.5, 3.5, L.hair);
+    p.rect(4, 23, 4, 7, L.hair);
+    p.poly([[4, 23], [6, 17], [11, 14], [17, 14.5], [19.5, 17.5], [16, 20], [13, 23]], L.hair);
+    p.line(7, 18, 15, 15, lighten(L.hair, 0.4));
+    p.line(12, 21, 17, 18, darken(L.hair, 0.2));
   } else if (L.hairStyle === 'blowout') {
     p.ellipse(10.5, 21.5, 8.5, 5.5, L.hair);
     p.rect(3, 22, 6, 10, L.hair);
