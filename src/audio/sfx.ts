@@ -1,4 +1,5 @@
 import { ac, noise, tone, voice } from './audio';
+import { unseeded } from '../core/rng';
 import { linePlaying, playLine, stopLine } from './voicelines';
 
 /** Small random pitch drift so repeated hits never sound identical. */
@@ -218,6 +219,8 @@ export const sfx = {
     noise({ dur: 0.7, vol: 0.25, freq: 500, to: 60 });
   },
 };
+// sounds roll their own pitch drift, outside the fight's shared random (see core/rng.ts)
+for (const k of Object.keys(sfx) as (keyof typeof sfx)[]) (sfx as any)[k] = unseeded(sfx[k]);
 
 // The little cook speaks for himself when the browser can: high and fast, without cutting the announcer off.
 function speakHigh(text: string) {

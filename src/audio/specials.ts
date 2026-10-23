@@ -1,5 +1,6 @@
 import { ac, noise, tone, voice } from './audio';
 import { sfx } from './sfx';
+import { unseeded } from '../core/rng';
 import type { Cue, Move, MoveSounds } from '../game/types';
 
 // Layered sound design for special moves. Every special gets a cast/windup cue on its move frames,
@@ -20,8 +21,8 @@ function snort(delay: number) {
   tone({ type: 'sawtooth', freq: 85, to: 70, dur: 0.12, vol: 0.08, at: t, filter: { type: 'lowpass', freq: 600 } });
 }
 
-/** Sound building blocks used only by specials. */
-export const FX: Record<string, () => void> = {
+/** The sounds behind FX (below). */
+const FX_RAW: Record<string, () => void> = {
   // ---------------------------------------------------------------- generic windups
   /** Sharp intake of breath before a big move. */
   inhale() {
@@ -655,6 +656,11 @@ export const FX: Record<string, () => void> = {
   },
 };
 
+/** Sound building blocks used only by specials. Each runs outside the fight's shared random (see core/rng.ts). */
+export const FX: Record<string, () => void> = new Proxy(FX_RAW, {
+  get: (t, k: string) => (typeof t[k] === 'function' ? unseeded(t[k]) : t[k]),
+});
+
 /** Per-special sound design, keyed by character id then move id. */
 /** Move sound design by character id and move id; each fighter folder brings its own (FighterModule.moveSounds). */
 export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {};
@@ -671,12 +677,12 @@ export interface ProjSounds {
 }
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */
-export function playCue(cue: Cue | undefined) {
+export const playCue: (cue: Cue | undefined) => void = unseeded(function play(cue: Cue | undefined) {
   if (!cue) return;
   if (typeof cue === 'function') return cue();
   if (Array.isArray(cue)) return cue.forEach(playCue);
   (FX[cue] ?? (sfx as Record<string, unknown>)[cue] as (() => void) | undefined)?.();
-}
+});
 
 /** Sound design for the move a fighter is doing: inline `sounds` first, then the registry. */
 export function moveSounds(f: { ch: { id: string }; move?: Move | null }): MoveSounds | undefined {

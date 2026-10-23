@@ -15,7 +15,7 @@ are the spoken voice lines in `public/voices/`, rendered from text by a script (
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # static build in dist/
-npm test         # checks CHANGELOG.md
+npm test         # checks CHANGELOG.md, every fighter/stage, online determinism
 ```
 
 Pushing to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`
@@ -105,6 +105,31 @@ TypeScript + Vite + plain Canvas 2D at a native 256×224 resolution, scaled up w
   are in `src/audio/voicelines.json`; each fighter's speaker and lines are in its own
   `voice.json`. After changing a line's text, re-run the script and commit the new MP3s. A
   line with no clip falls back to the browser's speech synthesis.
+
+## Online versus
+
+**Play → Versus → Online** finds an opponent over the internet: it joins a player who is already
+waiting, or hosts a game and shows "Searching for game" until someone joins.
+**Versus → Local** is two players on one computer, as before.
+
+- `server/` is a tiny Node matchmaking server (put on Render with `render.yaml`; the click-by-click
+  steps are in [server/README.md](server/README.md)). It pairs players and passes messages along.
+  The game finds it through `src/net/config.ts` (or `?server=ws://localhost:8080` in the URL).
+- `src/net/` is the netcode: **delay-based lockstep**. Both games run the whole fight, and only
+  button presses travel between them: 11 buttons packed into 2 bytes per frame, sent as runs
+  (a held button costs 3 bytes however long it's held), only when something changes or every
+  third frame as a heartbeat. That's about 0.3 KB/s of game data each way (around 1.5 KB/s with
+  network headers). Inputs go straight between the two browsers over WebRTC when the routers
+  allow it, otherwise through the server.
+- Every frame each game waits until it has both players' inputs for that frame, so the two
+  fights stay identical. Your press is scheduled a few frames ahead (sized to the connection's
+  ping) so it has time to arrive. Random rolls during an online fight come from a seed both
+  games share (`seededRandom` in `src/core/rng.ts`); sounds keep their own randomness. Every two
+  seconds the games compare a checksum of the fight and show OUT OF SYNC if they ever differ.
+- **For fighter and stage code:** anything that changes the fight must only depend on the fight
+  itself and the fighters' controllers. Don't read the keyboard, the clock or whether a voice
+  line is still playing inside a fight step. `tests/online.test.ts` plays every fighter twice
+  from the same seed and fails if the two runs ever differ.
 
 ## Adding a fighter
 

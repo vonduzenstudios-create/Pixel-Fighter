@@ -18,6 +18,9 @@ import { BAR, CongaLine, drawParty } from './conga';
 import { PostMatchScene } from './postmatch';
 import { paintSet } from './sets';
 import { WhatsNewScene } from './whatsnew';
+import { LobbyScene, MatchStart, OnlineFightScene, onlineStage } from './online';
+import type { NetLink } from '../net/link';
+import { delayFor, Lockstep } from '../net/lockstep';
 
 export interface Settings {
   players: 1 | 2;
@@ -46,8 +49,11 @@ export function selectBg() {
 }
 
 // ------------------------------------------------------------------ Title
-/** Title menu pages: PLAY opens ONE PLAYER / VERSUS, OPTIONS holds CPU level, move list and what's new. */
-export type TitlePage = 'main' | 'play' | 'options';
+/**
+ * Title menu pages: PLAY opens ONE PLAYER / VERSUS, VERSUS opens ONLINE / LOCAL (two players on
+ * one computer), OPTIONS holds CPU level, move list and what's new.
+ */
+export type TitlePage = 'main' | 'play' | 'versus' | 'options';
 
 export class TitleScene implements Scene {
   t = 0;
@@ -70,6 +76,7 @@ export class TitleScene implements Scene {
 
   items(): string[] {
     if (this.page === 'play') return ['ONE PLAYER', 'VERSUS'];
+    if (this.page === 'versus') return ['ONLINE', 'LOCAL'];
     if (this.page === 'options') return [`CPU: ${DIFF_NAMES[this.app.settings.diff]}`, 'MOVE LIST', "WHAT'S NEW"];
     return ['PLAY', 'OPTIONS'];
   }
@@ -90,6 +97,7 @@ export class TitleScene implements Scene {
     }
     if (back || p.back) {
       if (this.page === 'main') this.menu = false;
+      else if (this.page === 'versus') (this.sel = 1), (this.page = 'play');
       else (this.sel = this.page === 'play' ? 0 : 1), (this.page = 'main');
       sfx.menuMove();
       return;
@@ -104,8 +112,12 @@ export class TitleScene implements Scene {
       this.page = this.sel === 0 ? 'play' : 'options';
       this.sel = 0;
     } else if (this.page === 'play') {
-      s.players = this.sel === 0 ? 1 : 2;
+      if (this.sel === 1) return void ((this.page = 'versus'), (this.sel = 0));
+      s.players = 1;
       this.app.go(new SelectScene(this.app));
+    } else if (this.page === 'versus') {
+      s.players = 2;
+      this.app.go(this.sel === 0 ? new LobbyScene(this.app) : new SelectScene(this.app));
     } else if (this.sel === 0) s.diff = ((s.diff + 1) % 3) as Difficulty;
     else if (this.sel === 1) this.app.go(new MoveListScene(this.app));
     else this.app.go(new WhatsNewScene(this.app));
@@ -136,7 +148,7 @@ export class TitleScene implements Scene {
     ctx.fillStyle = 'rgba(255,92,200,0.7)';
     ctx.fillRect(0, by, W, 1);
     // submenu name sits in the gap under the logo, clear of the dancers
-    if (this.page !== 'main') drawText(ctx, this.page === 'play' ? '- PLAY -' : '- OPTIONS -', W / 2, 100, '#5ce0ff', { align: 'center', outline: '#2a0030' });
+    if (this.page !== 'main') drawText(ctx, `- ${this.page.toUpperCase()} -`, W / 2, 100, '#5ce0ff', { align: 'center', outline: '#2a0030' });
     let x = W / 2 - total / 2;
     items.forEach((it, i) => {
       const on = i === this.sel;
@@ -189,13 +201,19 @@ export class SelectScene implements Scene {
   /** Both fighters are chosen and the screen waits for P1 to confirm. */
   ready = false;
   e = [new Edge(), new Edge()];
-  constructor(private app: App) {
+  /** Online: frames the host has waited with both fighters picked, and frames since the opponent left. */
+  readyT = 0;
+  goneT = 0;
+  /** With `net`, an online match: this player moves one cursor and the other arrives over the link. */
+  constructor(private app: App, private net?: NetLink) {
     const n = roster().length;
     this.cur = this.cur.map((c) => Math.min(c, n - 1));
+    // both start from the same spots, then replay any moves the other player already made
+    if (net) this.cur = [0, Math.min(3, n - 1)];
   }
 
   get two() {
-    return this.app.settings.players === 2;
+    return this.app.settings.players === 2 || !!this.net;
   }
   /** In 1 player mode P1 picks their fighter first, then the CPU's opponent. */
   get choosingCpu() {
@@ -222,6 +240,7 @@ export class SelectScene implements Scene {
     const n = roster().length;
     const back = this.app.back;
     this.app.back = false;
+    if (this.net) return this.updateOnline(this.net, n, back);
     if (this.ready) {
       // both fighters chosen: P1 confirms the matchup or backs out to change it
       const p = this.e[0].update(readPlayer(0, !two));
@@ -268,6 +287,69 @@ export class SelectScene implements Scene {
       }
     }
     if (this.picked[0] !== null && this.picked[1] !== null) this.ready = true;
+  }
+
+  /**
+   * Online: this player drives their own cursor and tells the other game about each move and pick.
+   * Once both have picked, the host waits a moment (either can still back out) and then starts the
+   * fight with a stage and a random seed both games will share.
+   */
+  private updateOnline(net: NetLink, n: number, back: boolean) {
+    if (!net.open || net.silent) {
+      if (this.goneT++ === 0) net.close('OPPONENT LEFT');
+      if (this.goneT > 120) this.app.go(TitleScene.at(this.app, 'versus', 0));
+      return;
+    }
+    const me = net.side, them = 1 - me;
+    for (const m of net.inbox.splice(0)) {
+      if (m.t === 'cur') this.cur[them] = m.i % n;
+      else if (m.t === 'pick') this.picked[them] = m.i;
+      else if (m.t === 'start' && me === 1) return this.startOnline(net, m as MatchStart);
+    }
+    const p = this.e[0].update(readPlayer(0, true));
+    if (this.picked[me] === null) {
+      if (confirm(p)) {
+        this.picked[me] = this.cur[me];
+        net.sendMsg({ t: 'pick', i: this.cur[me] });
+        sfx.menuPick();
+      } else if (p.back || back) {
+        net.close();
+        return this.app.go(TitleScene.at(this.app, 'versus', 0));
+      } else {
+        const was = this.cur[me];
+        this.move(me, p, n);
+        if (this.cur[me] !== was) net.sendMsg({ t: 'cur', i: this.cur[me] });
+      }
+    } else if (p.back || back) {
+      this.picked[me] = null;
+      net.sendMsg({ t: 'pick', i: null });
+      sfx.menuMove();
+    }
+    this.ready = this.picked[0] !== null && this.picked[1] !== null;
+    this.readyT = this.ready ? this.readyT + 1 : 0;
+    if (me === 0 && this.readyT > 90) {
+      const start: MatchStart = {
+        t: 'start', a: this.picked[0]!, b: this.picked[1]!,
+        stage: Math.floor(Math.random() * STAGES.length),
+        seed: (Math.random() * 2 ** 31) | 0,
+        delay: delayFor(net.rtt),
+        id: (matchCount = (matchCount + 1) & 255),
+      };
+      net.sendMsg(start);
+      this.startOnline(net, start);
+    }
+  }
+
+  private startOnline(net: NetLink, start: MatchStart) {
+    sfx.menuPick();
+    matchCount = start.id;
+    net.inbox = [];
+    // listen for the fight's packets right away: the other game may get through the splash first
+    const ls = new Lockstep((b) => net.sendBin(b), net.side, start.delay, start.id);
+    net.onBin = (b) => ls.receive(b);
+    const ch = roster();
+    const stage = onlineStage(start);
+    this.app.go(new VersusScene(this.app, ch[start.a], ch[start.b], stage, () => new OnlineFightScene(this.app, net, start, stage, ls)));
   }
 
   /** Is player pl's cursor shown (the CPU cursor appears once P1 has picked)? */
@@ -332,7 +414,8 @@ export class SelectScene implements Scene {
     ctx.fillRect(0, 0, W, 11);
     const head = this.choosingCpu ? 'CHOOSE YOUR OPPONENT' : this.ready ? 'READY TO FIGHT' : 'CHOOSE YOUR FIGHTER';
     drawText(ctx, head, 6, 2, '#fff', { grad: ['#fff4b0', '#ff7030'] });
-    drawText(ctx, this.two ? '1P VS 2P' : '1P VS CPU', W - 6, 2, '#9a90b8', { align: 'right' });
+    const mode = this.net ? `ONLINE: YOU ARE ${this.net.side ? '2P' : '1P'}` : this.two ? '1P VS 2P' : '1P VS CPU';
+    drawText(ctx, mode, W - 6, 2, '#9a90b8', { align: 'right' });
 
     // portrait grid
     const g = gridLayout(ch.length);
@@ -385,7 +468,13 @@ export class SelectScene implements Scene {
     ctx.fill();
     drawText(ctx, 'VS', W / 2, vy - 7, '#fff', { scale: 2, align: 'center', grad: ['#ffe0a0', '#e02010'], outline: '#000' });
 
-    if (this.ready) {
+    if (this.net && (this.goneT || this.ready)) {
+      const by = PANEL_Y + PANEL_H - 26;
+      ctx.fillStyle = 'rgba(0,0,0,0.82)';
+      ctx.fillRect(0, by, W, 20);
+      const msg = this.goneT ? this.net.reason : 'GET READY!';
+      drawText(ctx, msg, W / 2, by + 7, this.goneT ? '#ff8060' : '#ffe060', { align: 'center', outline: '#000' });
+    } else if (this.ready) {
       const by = PANEL_Y + PANEL_H - 26;
       ctx.fillStyle = 'rgba(0,0,0,0.82)';
       ctx.fillRect(0, by, W, 20);
@@ -397,6 +486,9 @@ export class SelectScene implements Scene {
     }
   }
 }
+
+/** Online match counter: tags each fight's packets so a rematch ignores the last one's stragglers. */
+let matchCount = 0;
 
 // ------------------------------------------------------------------ Stage select
 export class StageSelectScene implements Scene {
@@ -448,11 +540,12 @@ export class StageSelectScene implements Scene {
 // ------------------------------------------------------------------ Versus splash, then the fight
 export class VersusScene implements Scene {
   t = 0;
-  constructor(private app: App, private a: CharDef, private b: CharDef, private stage: Arena) {}
+  /** `next` builds the fight (an online one, say); by default a local FightScene. */
+  constructor(private app: App, private a: CharDef, private b: CharDef, private stage: Arena, private next?: () => Scene) {}
   update() {
     this.t++;
     if (this.t === 1) sfx.gong();
-    if (this.t >= 130) this.app.go(new FightScene(this.app, this.a, this.b, this.stage));
+    if (this.t >= 130) this.app.go(this.next?.() ?? new FightScene(this.app, this.a, this.b, this.stage));
   }
   draw(ctx: CanvasRenderingContext2D) {
     ctx.drawImage(selectBg(), 0, 0);
