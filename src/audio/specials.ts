@@ -76,6 +76,39 @@ export const FX: Record<string, () => void> = {
     tone({ type: 'sine', freq: 2400, to: 300, dur: 0.18, vol: 0.18 });
     noise({ dur: 0.05, vol: 0.2, type: 'highpass', freq: 2500 });
   },
+  // ---------------------------------------------------------------- the fried-chicken colonel
+  /** Startled hen: two quick nasal squawks. */
+  cluck() {
+    voice(620 * vary(0.1), 880, 0.07, 0.12, [900, 1900, 3200]);
+    voice(700 * vary(0.1), 520, 0.11, 0.12, [900, 1900, 3200], 0.09);
+  },
+  /** A spinning drumstick fluttering through the air. */
+  flutter() {
+    noise({ dur: 0.08, vol: 0.06, type: 'bandpass', freq: 1400 * vary(0.2), q: 3 });
+  },
+  /** Hot oil spitting: a hiss with popping droplets on top. */
+  sizzle() {
+    noise({ dur: 0.5, vol: 0.14, type: 'highpass', freq: 3800, to: 5200, attack: 0.02 });
+    const t = now();
+    for (let i = 0; i < 6; i++) noise({ dur: 0.012, vol: 0.12, type: 'bandpass', freq: 2500 + Math.random() * 3500, q: 6, at: t + Math.random() * 0.45 });
+  },
+  /** A tin of seasoning shaken twice. */
+  shaker() {
+    const t = now();
+    for (let i = 0; i < 2; i++) noise({ dur: 0.05, vol: 0.1, type: 'bandpass', freq: 6500 * vary(0.1), q: 2, at: t + i * 0.07 });
+  },
+  /** Cane tip rapping the floor: a woody knock with a little ring from the metal cap. */
+  caneTap() {
+    tone({ type: 'triangle', freq: 520 * vary(), to: 300, dur: 0.05, vol: 0.14 });
+    noise({ dur: 0.03, vol: 0.12, type: 'bandpass', freq: 2600 * vary(), q: 6 });
+    tone({ type: 'sine', freq: 3300 * vary(), dur: 0.12, vol: 0.02 });
+  },
+  /** Biting into a crisp crust. */
+  bite() {
+    const t = now();
+    for (let i = 0; i < 4; i++) noise({ dur: 0.03, vol: 0.16, type: 'bandpass', freq: 2400 + Math.random() * 1600, q: 3, at: t + i * 0.025 });
+    noise({ dur: 0.08, vol: 0.08, freq: 600, at: t + 0.08 });
+  },
   // ---------------------------------------------------------------- fire and holy
   /** A short sung chord as holy power gathers. */
   choir() {
@@ -330,6 +363,11 @@ export const MOVE_SOUNDS: Record<string, Record<string, MoveSounds>> = {
     rocketchair: { frames: { 1: 'servo' }, impact: 'metalCrash', blocked: 'clang' },
     radiation: { frames: { 1: 'geiger' }, impact: 'crackle' },
   },
+  colonel: {
+    proj_drumstick: { frames: { 1: 'paperFlap', 12: 'heave' } },
+    proj_grease: { frames: { 1: 'clang', 9: 'heave' } },
+    canethrash: { frames: { 0: 'caneTap', 1: 'warCry' }, impact: ['clack', 'caneTap'], blocked: 'clack' },
+  },
   jackson: {
     proj_fedora: { frames: { 2: 'shing' } },
     moonwalk: { frames: { 6: 'shuffle', 16: 'shuffle' }, impact: 'boneCrack' },
@@ -367,6 +405,8 @@ export const PROJ_SOUNDS: Partial<Record<ProjKind, ProjSounds>> = {
   hole: { travel: { every: 24, cue: 'drone' }, impact: 'gravityHit' },
   tree: { travel: { every: 8, cue: 'rumble' }, impact: 'woodBurst' },
   gift: { travel: { every: 12, cue: 'giftRustle' }, impact: ['confettiPop', 'paperSlap'], blocked: 'giftRustle', clash: 'confettiPop' },
+  drumstick: { launch: 'cluck', travel: { every: 12, cue: 'flutter' }, impact: ['crunch', 'splat'], blocked: 'crunch' },
+  grease: { launch: 'sizzle', impact: ['sizzle', 'flameBurst'], blocked: 'sizzle' },
 };
 
 /** Plays a cue: a sound name (special FX first, then the shared sfx), a list to layer, or a function. */

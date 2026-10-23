@@ -1062,7 +1062,7 @@ export class Fight {
     l.x = savedX;
     if (vat) ctx.drawImage(vat, 0, 0);
     else if (D.impaled) {
-      ctx.fillStyle = '#8a8290';
+      ctx.fillStyle = this.stage.stakeColor ?? '#8a8290';
       ctx.fillRect(127, D.y - 22, 2, 14);
       ctx.fillRect(128, D.y - 26, 1, 4);
       ctx.fillStyle = '#c01010';
