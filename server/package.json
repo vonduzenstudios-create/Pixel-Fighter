@@ -1,0 +1,17 @@
+{
+  "name": "pixel-fighter-server",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Matchmaking and relay server for Pixel Fighter online versus",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

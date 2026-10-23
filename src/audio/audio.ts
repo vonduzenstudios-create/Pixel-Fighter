@@ -1,4 +1,6 @@
 // Everything audible is synthesised with the Web Audio API: no samples.
+import { nativeRandom } from '../core/rng';
+
 let ctx: AudioContext | null = null;
 let master: GainNode, sfxBus: GainNode, musicBus: GainNode, voiceBus: GainNode;
 let noiseBuf: AudioBuffer;
@@ -36,7 +38,7 @@ export function initAudio() {
   master.connect(ctx.destination);
   noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
   const d = noiseBuf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  for (let i = 0; i < d.length; i++) d[i] = nativeRandom() * 2 - 1;
 }
 
 export function ac() {
@@ -124,7 +126,7 @@ export function noise(o: NoiseOpts) {
   src.connect(f);
   f.connect(g);
   g.connect(o.out ?? sfxBus);
-  src.start(t, Math.random() * 1.5);
+  src.start(t, nativeRandom() * 1.5);
   src.stop(t + o.dur + 0.05);
 }
 

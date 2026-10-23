@@ -58,6 +58,11 @@ export class Fight {
   startEdges = [new Edge(), new Edge()];
   /** Round 1 entrances: whose turn it is, its frame counter and the current subtitle. */
   entrance = { who: 0, t: 0, homes: [0, 0], caption: '' };
+  /**
+   * An online match: both computers run this same fight frame by frame, so its steps may only
+   * depend on the fighters' controllers (never on the keyboard, the clock or the speech synth).
+   */
+  lockstep = false;
 
   constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
@@ -228,8 +233,9 @@ export class Fight {
     this.t++;
     for (let i = 0; i < 2; i++) {
       if (!this.humans[i]) continue;
-      const e = this.startEdges[i].update(readPlayer(i as 0 | 1, !this.humans[1]));
-      if (e.start && (this.phase === 'fight' || this.paused)) this.paused = !this.paused;
+      // online, each side's buttons come from the shared input stream, and there is no pause
+      const e = this.startEdges[i].update(this.lockstep ? this.f[i].ctrl.read(this.f[i], this) : readPlayer(i as 0 | 1, !this.humans[1]));
+      if (e.start && !this.lockstep && (this.phase === 'fight' || this.paused)) this.paused = !this.paused;
       if (this.phase === 'entrance' && this.pt > 10 && (e.start || e.lp || e.hp || e.lk || e.hk)) this.endEntrances();
     }
     if (this.paused) return;
@@ -379,7 +385,8 @@ export class Fight {
     }
     // Hold the entrance until the line has finished, so the next voice never cuts it off. The
     // speech synth can report "not speaking" for a moment after speak(), hence the grace frames.
-    const talking = t < intro.speakAt + 20 || speaking();
+    // Online both games must move on at the same frame, so they wait a fixed time instead.
+    const talking = t < intro.speakAt + 20 || (this.lockstep ? t < intro.speakAt + 150 : speaking());
     if (t >= intro.dur && (!talking || t >= intro.dur + 240)) {
       this.settle(E.who);
       E.caption = '';
