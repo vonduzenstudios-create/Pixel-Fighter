@@ -8,6 +8,7 @@ export default {
   make() {
     const c = hawking();
     c.selectSet ??= SETS.cosmos;
+    c.homeStage ??= 'moon';
     return c;
   },
   moveSounds: {

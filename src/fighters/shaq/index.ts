@@ -8,6 +8,7 @@ export default {
   make() {
     const c = shaqDef();
     c.selectSet ??= SETS.court;
+    c.homeStage ??= 'hoops';
     return c;
   },
   moveSounds: {

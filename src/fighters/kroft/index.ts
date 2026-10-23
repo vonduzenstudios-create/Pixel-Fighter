@@ -8,6 +8,7 @@ export default {
   make() {
     const c = kroft();
     c.selectSet ??= SETS.tomb;
+    c.homeStage ??= 'blizzard';
     return c;
   },
   projectiles: PROJECTILES,

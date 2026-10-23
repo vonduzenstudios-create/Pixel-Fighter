@@ -8,6 +8,7 @@ export default {
   make() {
     const c = irwin();
     c.selectSet ??= SETS.outback;
+    c.homeStage ??= 'beach';
     return c;
   },
   moveSounds: {

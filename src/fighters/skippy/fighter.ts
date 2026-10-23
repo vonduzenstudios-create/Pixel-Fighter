@@ -10,23 +10,29 @@ import type { PortraitStyle } from '../../gfx/portrait';
 import { Painter } from '../../gfx/painter';
 import { darken, lighten } from '../../gfx/palette';
 import { FX } from '../../audio/specials';
-import { sfx } from '../../audio/sfx';
+import { say, sfx } from '../../audio/sfx';
 import { rand } from '../../core/rng';
 
-// Buster Giggleby: an original overgrown-kid fighter. Propeller beanie, striped sweater, short pants
-// and knee socks; he fights with his toys, his bicycle and a full-blown tantrum. His laugh is a
-// three-step giggle that ends in a snort. All lines are original.
+// Skippy Sprocket: an original overgrown-kid fighter. Propeller beanie, striped sweater, short pants
+// and knee socks; he fights with his toys, his bicycle and a full-blown tantrum. His signature laugh
+// is "Hee-HONK!": two quick giggles and a goose honk. All lines are original.
 
 const OUT = '#100810';
 
-export const BUSTER_LOOK: Look = {
+/** Spoken lines, each with a Kokoro clip in voice.json. */
+export const SKIPPY_LINES = {
+  intro: 'Ready or not, here I come! Hee-HONK!',
+  laugh: 'Hee-HONK!',
+};
+
+export const SKIPPY_LOOK: Look = {
   skin: '#f2c6a0', hair: '#c8602a', eye: '#2a3a6a', shirt: '#2a9a58', stripes: '#f0c828', pants: '#3a5ab0',
   boots: '#e8e4dc', hat: 'beanie', hatColor: '#d83030', hatTrim: '#2a6ad8', hairStyle: 'mop',
   shortPants: true, kneeSocks: '#f4f2ec', freckles: '#b86a40', belt: '#6a3a1a', buckle: '#e8c848',
 };
 /** Palette swap for mirror matches: the purple-and-orange Saturday sweater. */
-export const BUSTER_ALT: Look = {
-  ...BUSTER_LOOK, shirt: '#6a3aa8', stripes: '#f08a28', pants: '#2a2a34', hatColor: '#2a9a58', hatTrim: '#f08a28',
+export const SKIPPY_ALT: Look = {
+  ...SKIPPY_LOOK, shirt: '#6a3aa8', stripes: '#f08a28', pants: '#2a2a34', hatColor: '#2a9a58', hatTrim: '#f08a28',
   boots: '#d83030', kneeSocks: '#f0c828', hair: '#e8c070',
 };
 
@@ -279,7 +285,7 @@ const tantrum: Move = {
   },
 };
 
-export const BUSTER_SPECIALS: Special[] = [
+export const SKIPPY_SPECIALS: Special[] = [
   { name: 'Wind-Up Walker', cmd: [2, 3, 6], btn: 'p', text: 'D, DF, F + P', move: robotToss },
   { name: 'Streamer Bike Dash', cmd: [4, 6], btn: 'k', text: 'B, F + K', move: bikeDash },
   { name: 'Tantrum Flail', cmd: [4, 5, 4], btn: 'lp', mash: 'lp', text: 'MASH LP', move: tantrum },
@@ -289,9 +295,9 @@ export const BUSTER_SPECIALS: Special[] = [
 
 const entry = new WeakMap<Fighter, { face: 1 | -1; x0: number }>();
 
-/** Rides in on the bike ringing the bell, skids, ditches it and giggles. */
-export const BUSTER_INTRO: Intro = {
-  line: 'Ready or not, here I come! Hee hoo hoo!',
+/** Rides in on the bike ringing the bell, skids, ditches it and lets out his Hee-HONK. */
+export const SKIPPY_INTRO: Intro = {
+  line: SKIPPY_LINES.intro,
   speech: { pitch: 1.5, rate: 1.15 },
   speakAt: 76,
   dur: 150,
@@ -318,7 +324,7 @@ export const BUSTER_INTRO: Intro = {
         sfx.jump();
       }
       self.poseOverride = t < 70 ? P(STANCE, { t: -6, af: -160, ab: -150 }) : t < 132 ? ((t >> 3) % 2 ? GIGGLE : GIGGLE2) : null;
-      if (t === 72) FX.giggle();
+      if (t === 72) FX.heeHonk();
     }
   },
 };
@@ -389,7 +395,7 @@ function drawToyBox(dir: number, crank: number, spring: number, shake: number) {
  * Jack-in-the-Box Surprise: he cranks a toy box while it plays its little tune, the lid flies open
  * and a spring-loaded boxing glove uppercuts the loser's head clean off. Then he giggles about it.
  */
-function busterFatality(f: Fight, w: Fighter, l: Fighter, tt: number, D: any): boolean {
+function skippyFatality(f: Fight, w: Fighter, l: Fighter, tt: number, D: any): boolean {
   const ps = f.particles;
   const neck = () => ({ x: l.wx(l.skel.neck[0]), y: l.wy(l.skel.neck[1]) });
   if (tt === 0) {
@@ -402,7 +408,7 @@ function busterFatality(f: Fight, w: Fighter, l: Fighter, tt: number, D: any): b
   else w.x = l.x - dir * 44;
   if (tt < 20) {
     w.poseOverride = (tt >> 3) % 2 ? GIGGLE : GIGGLE2;
-    if (tt === 4) FX.giggle();
+    if (tt === 4) FX.heeHonk();
   }
   if (tt === 20) {
     ps.smoke(bx, 10, 8, '#e8e0d0');
@@ -454,7 +460,7 @@ function busterFatality(f: Fight, w: Fighter, l: Fighter, tt: number, D: any): b
     // jumping for joy, then the giggle
     w.poseOverride = tt < 210 ? ((tt >> 3) % 2 ? VICTORY : P(VICTORY, { af: -140, ab: -150, eb: -20, lf: -50, kf: 70 })) : (tt >> 3) % 2 ? GIGGLE : GIGGLE2;
     if (tt === 150) FX.bikeBell();
-    if (tt === 214) FX.giggle();
+    if (tt === 214 && !say(SKIPPY_LINES.laugh, SKIPPY_INTRO.speech)) FX.heeHonk();
   }
   if (tt >= 20 && tt < 290) {
     const shake = tt > 60 && tt < 118 ? Math.floor((tt - 60) / 20) : 0;
@@ -470,7 +476,7 @@ function busterFatality(f: Fight, w: Fighter, l: Fighter, tt: number, D: any): b
 // ------------------------------------------------------------------ portrait
 
 /** Win-screen extras: the propeller beanie, sweater stripes and freckles. */
-export const BUSTER_PORTRAIT: PortraitStyle = {
+export const SKIPPY_PORTRAIT: PortraitStyle = {
   skip: { hat: true },
   front(p, c) {
     const L = c.look;
@@ -506,21 +512,22 @@ export const BUSTER_PORTRAIT: PortraitStyle = {
 
 // ------------------------------------------------------------------ definition
 
-export function buster(): CharDef {
+export function skippy(): CharDef {
   return {
-    id: 'buster', name: 'Buster Giggleby', short: 'BUSTER', title: 'The Overgrown Kid', look: BUSTER_LOOK, alt: BUSTER_ALT,
-    specials: BUSTER_SPECIALS, voice: 210, props: {}, intro: BUSTER_INTRO, portrait: BUSTER_PORTRAIT,
+    id: 'skippy', name: 'Skippy Sprocket', short: 'SKIPPY', title: 'The Overgrown Kid', look: SKIPPY_LOOK, alt: SKIPPY_ALT,
+    specials: SKIPPY_SPECIALS, voice: 210, props: {}, intro: SKIPPY_INTRO, portrait: SKIPPY_PORTRAIT,
     finisher: { name: 'Jack-in-the-Box Surprise', cmd: [6, 4, 2], btn: 'lk', text: 'F, B, D + LK (close)', range: [0, 90] },
-    fatality: busterFatality,
+    fatality: skippyFatality,
     quotes: [
       'I WIN! I WIN! I WIN! NO TAKE-BACKSIES, {L}!',
       'FINDERS KEEPERS. YOU LOST YOUR TEETH, I FOUND THEM.',
       'YOU HAVE TO SAY "UNCLE" NOW. THOSE ARE THE RULES.',
       'MY ROBOT SAYS YOU NEED A NAP.',
+      'HEE-HONK! THAT IS THE SOUND OF YOU LOSING, {L}.',
       'RECESS IS OVER, {L}. YOU GO SIT IN THE CORNER.',
     ],
     quotesVs: {
-      bobross: 'I COLOURED OUTSIDE THE LINES ON YOUR FACE. HEE HOO!',
+      bobross: 'I COLOURED OUTSIDE THE LINES ON YOUR FACE. HEE-HONK!',
       hawking: 'I HAVE WHEELS TOO, BUT MINE HAVE STREAMERS.',
       lincoln: 'YOUR HAT IS TALLER BUT MINE HAS A PROPELLER.',
     },

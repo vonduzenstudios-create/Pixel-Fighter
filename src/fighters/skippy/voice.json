@@ -1,0 +1,10 @@
+{
+  "speakers": {
+    "skippy": { "voice": "am_santa", "speed": 1.12, "pitch": 1.28 }
+  },
+  "lines": [
+    { "file": "skippy-intro", "who": "skippy", "text": "Ready or not, here I come! Hee-HONK!", "spoken": "Ready or not, here I come! Hee hee, HONK!" },
+    { "file": "skippy-laugh", "who": "skippy", "text": "Hee-HONK!", "spoken": "Hee hee, HONK!" },
+    { "file": "ann-wins-skippy", "who": "announcer", "text": "Skippy Sprocket wins" }
+  ]
+}

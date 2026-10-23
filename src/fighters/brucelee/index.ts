@@ -7,6 +7,7 @@ export default {
   make() {
     const c = bruceLee();
     c.selectSet ??= SETS.dojo;
+    c.homeStage ??= 'dojo';
     return c;
   },
   moveSounds: {
