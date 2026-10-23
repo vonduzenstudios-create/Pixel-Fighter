@@ -23,7 +23,6 @@ import { ease, lerp, offscreenX, type Intro } from '../../game/intro';
 const LIMBS = { thigh: 36, shin: 38 };
 
 export const LEGS_LOOK: Look = {
-  parts: (L) => legsParts(L, KIT),
   skin: '#e8b48c', hair: '#c8401c', eye: '#2a6a3a', shirt: '#18a8b8', pants: '#e83888', boots: '#f4f0e8',
   hairStyle: 'long', jersey: { color: '#18a8b8', trim: '#ffd040', number: '11' }, wristband: '#ffd040',
   lips: '#c02050', earrings: '#ffd040', freckles: '#c07850',
@@ -32,7 +31,6 @@ export const LEGS_LOOK: Look = {
 export const LEGS_ALT: Look = {
   ...LEGS_LOOK, hair: '#e8c860', shirt: '#6a2aa8', pants: '#202028', boots: '#202028', wristband: '#40e0d0',
   jersey: { color: '#6a2aa8', trim: '#40e0d0', number: '11' }, lips: '#802070', earrings: '#d0d8e0',
-  parts: (L) => legsParts(L, ALT_KIT),
 };
 
 /** Colours for the parts the standard builder doesn't paint: pads, socks and skates. */
@@ -619,6 +617,7 @@ export function legsMcGee(): CharDef {
   return {
     id: 'legs', name: 'Legs McGee', short: 'LEGS', title: 'The Long Haul', look: LEGS_LOOK, alt: LEGS_ALT,
     specials: LEGS_SPECIALS, voice: 300, props: {}, reach: 70,
+    sprites: (L) => legsParts(L, L === LEGS_ALT ? ALT_KIT : KIT),
     normals: {
       jab: JAB, hp: HIGH, lk: LOW, hk: HIGH_KICK, roundhouse: ROUNDHOUSE, sweep: SWEEP,
       cp: CROUCH_POKE, ck: CROUCH_KICK, chk: CROUCH_HIGH, uppercut: SKY_KICK, jp: JUMP_STAB, jk: JUMP_KICK, throw: HOIST,
