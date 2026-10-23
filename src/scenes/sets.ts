@@ -6,8 +6,8 @@ import type { CharDef } from '../game/fighter';
  * to the box and stands the fighter on the floor afterwards. The same painter is used for
  * the small roster tiles and the big preview panels, so draw in terms of w, h, floor and u.
  *
- * A fighter can bring its own set with CharDef.selectSet; otherwise SET_FOR picks one by id,
- * and anything left over gets a spotlight backdrop tinted from its outfit.
+ * A fighter picks its set with CharDef.selectSet (set in its src/fighters/<id>/index.ts); one
+ * without gets a spotlight backdrop tinted from its outfit.
  */
 export interface SetGfx {
   w: number;
@@ -429,31 +429,6 @@ export const SETS: Record<string, SetPainter> = {
   },
 };
 
-/** Which set each fighter on the current roster stands in. New fighters can set CharDef.selectSet instead. */
-export const SET_FOR: Record<string, SetPainter> = {
-  lincoln: SETS.study,
-  tesla: SETS.lab,
-  joan: SETS.castle,
-  blackbeard: SETS.ship,
-  brucelee: SETS.dojo,
-  chuck: SETS.western,
-  ali: SETS.ring,
-  lumpsum: SETS.vault,
-  colonel: SETS.diner,
-  hawking: SETS.cosmos,
-  bobross: SETS.easel,
-  jackson: SETS.disco,
-  glare: SETS.runway,
-  oprah: SETS.talkshow,
-  ramsay: SETS.kitchen,
-  blaine: SETS.street,
-  buster: SETS.toyroom,
-  kingtut: SETS.tomb,
-  fieri: SETS.flames,
-  shaq: SETS.court,
-  irwin: SETS.outback,
-};
-
 /** Fallback for a fighter with no set yet: a spotlit backdrop in their outfit colours. */
 export const spotlightSet: SetPainter = (g, c) => {
   const main = c.look.coat ?? c.look.shirt;
@@ -467,7 +442,7 @@ export const spotlightSet: SetPainter = (g, c) => {
   g.r(0, g.floor, g.w, g.u, c.look.pants);
 };
 
-export const setFor = (c: CharDef): SetPainter => c.selectSet ?? SET_FOR[c.id] ?? spotlightSet;
+export const setFor = (c: CharDef): SetPainter => c.selectSet ?? spotlightSet;
 
 /** Paint a fighter's set into a box on ctx (clipped to the box). Returns the y of the fighter's feet. */
 export function paintSet(ctx: CanvasRenderingContext2D, c: CharDef, x: number, y: number, w: number, h: number, t: number) {

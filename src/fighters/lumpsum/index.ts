@@ -1,4 +1,5 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { lumpsum } from './fighter';
 import { LUMPSUM_INTRO } from './intro';
 import { PROJECTILES } from './projectiles';
@@ -8,6 +9,7 @@ export default {
   make() {
     const c = lumpsum();
     c.intro ??= LUMPSUM_INTRO;
+    c.selectSet ??= SETS.vault;
     return c;
   },
   moveSounds: {

@@ -113,7 +113,7 @@ needs to change: `npm test` checks that it registers and builds.
 
 | File | What goes in it |
 | --- | --- |
-| `index.ts` | Default-exports a `FighterModule` (`src/fighters/kit.ts`): `order` (select-screen position, lower first; pick a number not used yet), `make()` returning the `CharDef`, and optionally `moveSounds`, `projectiles` and `fx`. |
+| `index.ts` | Default-exports a `FighterModule` (`src/fighters/kit.ts`): `order` (select-screen position, lower first; pick a number not used yet), `make()` returning the `CharDef` (with `selectSet`, its character-select diorama from `SETS` in `src/scenes/sets.ts` or one of its own), and optionally `moveSounds`, `projectiles` and `fx`. |
 | `fighter.ts` | The `CharDef`: name, `Look` and alt colours, specials and finisher, props, `intro`, `portrait`, `quotes` / `quotesVs` taunts, optional `scale`, `fatality` and `fatalityDraw`. |
 | `intro.ts` | Optional round 1 entrance (`Intro`, see `src/game/intro.ts`). |
 | `projectiles.ts` | Optional `ProjDef`s by kind name: stats, sounds, `update`, `draw`, `onHit`. Kind names must be unique across fighters. |

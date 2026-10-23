@@ -1,10 +1,15 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { buster } from './fighter';
 import { PROJECTILES } from './projectiles';
 
 export default {
   order: 170,
-  make: buster,
+  make() {
+    const c = buster();
+    c.selectSet ??= SETS.toyroom;
+    return c;
+  },
   moveSounds: {
     proj_robot: { frames: { 2: 'windUp', 9: 'windUp' } },
     bikedash: { frames: { 2: 'bikeBell', 10: 'pedal', 18: 'pedal', 26: 'pedal' }, impact: 'bikeCrash', blocked: 'clang' },

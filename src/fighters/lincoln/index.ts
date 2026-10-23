@@ -1,10 +1,15 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { lincoln } from './fighter';
 import { PROJECTILES } from './projectiles';
 
 export default {
   order: 10,
-  make: lincoln,
+  make() {
+    const c = lincoln();
+    c.selectSet ??= SETS.study;
+    return c;
+  },
   moveSounds: {
     proj_hat: { frames: { 1: 'inhale' } },
     railsplit: { frames: { 1: 'heave', 6: 'creak' }, impact: 'chop', blocked: 'clack' },

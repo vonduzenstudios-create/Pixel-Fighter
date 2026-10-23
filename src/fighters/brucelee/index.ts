@@ -1,9 +1,14 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { bruceLee } from './fighter';
 
 export default {
   order: 50,
-  make: bruceLee,
+  make() {
+    const c = bruceLee();
+    c.selectSet ??= SETS.dojo;
+    return c;
+  },
   moveSounds: {
     inchpunch: { frames: { 1: 'chi' }, impact: 'boneCrack' },
     dragonkick: { frames: { 0: 'chi' }, impact: 'boneCrack' },

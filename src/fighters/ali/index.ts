@@ -1,4 +1,5 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { aliDef } from './fighter';
 import { ALI_INTRO } from './intro';
 
@@ -7,6 +8,7 @@ export default {
   make() {
     const c = aliDef();
     c.intro ??= ALI_INTRO;
+    c.selectSet ??= SETS.ring;
     return c;
   },
   moveSounds: {

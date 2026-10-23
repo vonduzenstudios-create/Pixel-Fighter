@@ -1,10 +1,15 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { ramsay } from './fighter';
 import { PROJECTILES } from './projectiles';
 
 export default {
   order: 150,
-  make: ramsay,
+  make() {
+    const c = ramsay();
+    c.selectSet ??= SETS.kitchen;
+    return c;
+  },
   moveSounds: {
     proj_steak: { frames: { 1: 'sizzle', 7: 'panClang' } },
     flambe: { frames: { 0: 'chefBark', 5: 'flambe', 16: 'fireCrackle' }, impact: 'flameBurst', blocked: 'fireCrackle' },

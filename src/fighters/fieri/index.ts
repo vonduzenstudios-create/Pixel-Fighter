@@ -1,10 +1,15 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { guyFieri } from './fighter';
 import { PROJECTILES } from './projectiles';
 
 export default {
   order: 190,
-  make: guyFieri,
+  make() {
+    const c = guyFieri();
+    c.selectSet ??= SETS.flames;
+    return c;
+  },
   moveSounds: {
     proj_burger: { frames: { 1: 'inhale', 9: 'sizzle' } },
     proj_ragtop: { frames: { 12: 'engineRev' } },

@@ -1,4 +1,5 @@
 import type { FighterModule } from '../kit';
+import { SETS } from '../../scenes/sets';
 import { bobRoss } from './fighter';
 import { BOB_ROSS_INTRO } from './intro';
 import { PROJECTILES } from './projectiles';
@@ -8,6 +9,7 @@ export default {
   make() {
     const c = bobRoss();
     c.intro ??= BOB_ROSS_INTRO;
+    c.selectSet ??= SETS.easel;
     return c;
   },
   moveSounds: {
