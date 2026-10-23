@@ -19,7 +19,7 @@ import { rand } from '../core/rng';
 
 export const RAMSAY_LOOK: Look = {
   skin: '#e8ae88', hair: '#e8c468', eye: '#3a5a8c', shirt: '#f4f2ec', pants: '#22222a', boots: '#121216',
-  hairStyle: 'spiky', chefCoat: '#2a2a34', apron: '#585e6c',
+  hairStyle: 'gelled', chefCoat: '#2a2a34', apron: '#585e6c',
 };
 /** Palette swap for mirror matches: black chef jacket, red apron. */
 export const RAMSAY_ALT: Look = { ...RAMSAY_LOOK, shirt: '#26262e', chefCoat: '#e8e4dc', apron: '#8a1a1e', hair: '#d8a850', pants: '#3a3a44' };

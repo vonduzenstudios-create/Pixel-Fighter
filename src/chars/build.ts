@@ -25,8 +25,10 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn' | 'horned' | 'fedora';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky';
-  beard?: 'chinstrap' | 'braided' | 'full' | 'goatee';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'mop' | 'feathered' | 'perm' | 'curls' | 'blowout' | 'spiky' | 'gelled';
+  beard?: 'chinstrap' | 'braided' | 'full' | 'goatee' | 'vandyke';
+  /** Facial hair colour when it differs from the hair (bleached spikes over a darker beard). */
+  beardColor?: string;
   beardRibbon?: string;
   mustache?: boolean;
   bowtie?: string;
@@ -62,6 +64,21 @@ export interface Look {
   chefCoat?: string;
   /** Waist apron over the hips and thighs. */
   apron?: string;
+  /** Hot-rod flames licking up the shirt hem and sleeves (flame colour; the tips are yellow). */
+  flames?: string;
+  /** Sunglasses parked on the back of the head (frame colour). */
+  shadesBack?: string;
+  /** Knee-length shorts: bare shins below a cuff of the pants colour. */
+  shorts?: boolean;
+}
+
+/** Hot-rod flames rising from a hem at y = base across [x0, x1]. */
+function flameHem(p: Painter, x0: number, x1: number, base: number, h: number, c: string) {
+  for (let x = x0, i = 0; x <= x1; x += 3, i++) {
+    const top = base - h + (i % 2 ? 2 : 0) + (i % 3 === 2 ? 1 : 0);
+    p.poly([[x - 1.6, base], [x + 0.5, top], [x + 1.6, base]], c, true);
+    p.poly([[x - 0.6, base], [x + 0.4, top + 3], [x + 0.8, base]], '#ffd040', true);
+  }
 }
 
 const OUT = '#100810';
@@ -138,6 +155,7 @@ function torso(L: Look): Painter {
   }
   if (L.sash) p.poly([[7, 21], [20, 21], [20, 23], [7, 23]], L.sash);
   if (L.bandolier) p.line(9, 6, 20, 21, L.bandolier), p.line(10, 6, 20, 20, L.bandolier);
+  if (L.flames && !L.coat) flameHem(p, 7, 20, 25, 9, L.flames);
   if (L.trunks) {
     p.ellipse(13, 30, 7.5, 4.5, L.trunks.color);
     p.poly([[7, 31], [19, 31], [19.5, 22], [6.5, 22]], L.trunks.color);
@@ -213,12 +231,19 @@ function head(L: Look): Painter {
   } else if (L.hairStyle === 'perm') {
     p.ellipse(10, 20.5, 9, 6, L.hair);
     p.rect(3, 22, 5, 9, L.hair);
-  } else if (L.hairStyle === 'spiky') {
+  } else if (L.hairStyle === 'gelled') {
     // short crop gelled up into spikes that lean forward
     p.ellipse(10, 24, 6.5, 3, L.hair);
     p.rect(4, 23, 4, 5, L.hair);
     for (const [x0, tx, ty, x1] of [[3.5, 5, 19.5, 7], [6, 9.5, 17, 10], [9.5, 13.5, 17.5, 13], [12.5, 17.5, 20.5, 16]])
       p.poly([[x0, 24], [tx, ty], [x1, 23.5]], L.hair);
+  } else if (L.hairStyle === 'spiky') {
+    // short sides with darker roots, frosted spikes standing straight up and raking forward
+    const root = L.beardColor ?? darken(L.hair, 0.35);
+    p.ellipse(9.5, 23.5, 7, 3.5, root);
+    p.rect(4, 23, 4, 6, root);
+    const spikes = [[[3, 25], [2, 16], [7, 22]], [[5, 23], [5.5, 12], [9, 21]], [[8, 22], [10, 10], [12, 21]], [[11, 21], [14.5, 11], [15, 22]], [[13.5, 22], [19, 16], [16.5, 25]]];
+    for (const s of spikes) p.poly(s, L.hair);
   } else {
     p.ellipse(10, 24.5, 6.5, 3.5, L.hair);
     p.rect(4, 24, 4, 6, L.hair);
@@ -251,6 +276,13 @@ function head(L: Look): Painter {
     p.line(2, 30, 3, 35, lighten(L.hair, 0.22));
   }
   if (L.mustache) p.poly([[13, 32], [17, 32], [17, 33.5], [12.5, 34]], L.hair);
+  if (L.hairStyle === 'spiky') for (const [x, y] of [[2, 16], [6, 13], [10, 11], [14, 12], [18, 16]]) p.set(x, y, lighten(L.hair, 0.5));
+  if (L.shadesBack) {
+    // wraparound shades worn backwards on the head, arms hooked over the ears
+    p.rect(2, 25, 3, 4, L.shadesBack);
+    p.set(3, 26, '#a8d8f0');
+    p.line(5, 26, 9, 27, L.shadesBack);
+  }
   if (L.beard === 'chinstrap') {
     p.poly([[6.5, 30], [8.5, 35], [11, 38], [15.5, 37.5], [16, 35.5], [12.5, 35.5], [9.5, 31], [8.5, 28.5]], L.hair);
   } else if (L.beard === 'full') {
@@ -271,6 +303,12 @@ function head(L: Look): Painter {
     // a neat tuft on the chin under the lip
     p.poly([[12.5, 35], [16.5, 35], [16, 38], [14, 40], [12.5, 38.5]], L.hair);
     p.set(14, 34, '#5a2a2a');
+  } else if (L.beard === 'vandyke') {
+    // chin beard joined to the mustache around the mouth
+    const g = L.beardColor ?? L.hair;
+    p.poly([[11, 34.5], [12.5, 32], [17.5, 32], [17.5, 36], [15.5, 39.5], [12.5, 39.5], [11, 37]], g);
+    p.rect(13, 34, 4, 1, '#5a2a2a');
+    p.line(13, 37, 15, 38, lighten(g, 0.25));
   }
   if (L.glasses) {
     p.rect(11, 26, 6, 4, L.glasses);
@@ -278,7 +316,7 @@ function head(L: Look): Painter {
     p.set(13, 27, '#ffffff');
     p.line(6, 27, 11, 27, L.glasses);
   }
-  if (L.hairStyle === 'spiky') {
+  if (L.hairStyle === 'gelled') {
     const hl = lighten(L.hair, 0.35);
     p.set(5, 20, hl), p.set(9, 18, hl), p.set(13, 18, hl), p.set(16, 20, hl);
   }
@@ -336,6 +374,7 @@ function upperArm(L: Look): Painter {
   const c = L.armor ? L.armor.metal : L.bareChest ? L.skin : L.coat ?? L.shirt;
   p.capsule(6, 3, 4.6, 6, 15, 3.6, c);
   if (L.bareChest) p.line(8, 5, 8, 11, lighten(L.skin, 0.15));
+  if (L.flames && !L.coat) flameHem(p, 3, 9, 18, 7, L.flames);
   if (L.armor) {
     p.ellipse(6, 4, 5.5, 4.5, lighten(L.armor.metal, 0.1));
     p.line(1, 7, 11, 7, L.armor.trim);
@@ -424,7 +463,11 @@ function shin(L: Look): Painter {
     return p;
   }
   const c = L.armor ? L.armor.metal : L.pants;
-  p.capsule(6, 2, 4.6, 6, 19, 3.6, c);
+  p.capsule(6, 2, 4.6, 6, 19, 3.6, L.shorts ? L.skin : c);
+  if (L.shorts) {
+    p.rect(1, 0, 10, 5, c);
+    p.line(1, 4, 10, 4, darken(c, 0.3));
+  }
   if (L.tallBoots) {
     p.capsule(6, 6, 4.4, 6, 19, 3.8, L.boots);
     p.rect(1, 5, 10, 3, lighten(L.boots, 0.2));
