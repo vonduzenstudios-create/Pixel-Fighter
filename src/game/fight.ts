@@ -529,6 +529,75 @@ export class Fight {
         if (tt >= 300) done();
         break;
       }
+      case 'chuck': {
+        // close in, a blur of boots, then one roundhouse that sends them into orbit
+        const kick = (k: number) =>
+          k % 2
+            ? AN.P(AN.STANCE, { lb: -128, kb: -4, fb: -40, t: -36, h: 10, af: -10, ef: -40, ab: 10, lf: 6, kf: 4 })
+            : AN.P(AN.STANCE, { lf: -120, kf: -4, ff: -30, t: -26, h: 10, af: -30, ef: -70, ab: 30 });
+        if (tt < 16) {
+          w.x += (l.x - w.facing * 30 - w.x) * 0.2;
+          w.poseOverride = AN.P(AN.STANCE, { af: -80, ef: -120, ab: -70, eb: -125, t: -4, h: -6 });
+        } else if (tt < 88) {
+          const k = Math.floor((tt - 16) / 4);
+          w.poseOverride = kick(k);
+          if ((tt - 16) % 4 === 1) {
+            const hy = rand(30, 70);
+            l.poseOverride = k % 2 ? AN.HIT_HIGH : AN.HIT_MID;
+            l.shake = 3;
+            this.particles.blood(l.x - w.facing * 4, hy, w.facing, 6, 1.1);
+            this.particles.sparks(l.x - w.facing * 6, hy, 2, '#ffffff');
+            sfx.hit(k % 3 === 0);
+            if (k % 4 === 0) sfx.whoosh();
+          }
+          if (tt === 40) sfx.scream();
+        } else if (tt < 100) {
+          w.poseOverride = AN.P(AN.STANCE, { t: 25, lb: -30, kb: 90, af: -20, ab: -60 });
+          l.poseOverride = AN.DIZZY;
+        } else if (tt === 100) {
+          w.poseOverride = kick(1);
+          sfx.whoosh(true);
+          sfx.hit(true);
+          sfx.cannon();
+          this.shake(16);
+          this.particles.blood(l.x, 50, w.facing, 50, 1.8);
+          D.fly = true;
+          l.vy = 7;
+          l.vx = w.facing * 2.2;
+          l.y = Math.max(l.y, 4);
+        }
+        if (D.fly) {
+          l.x += l.vx;
+          l.y += l.vy;
+          l.vy *= 1.02;
+          l.poseOverride = AN.P(AN.LAUNCHED, { rot: -(tt - 100) * 24 });
+          l.animT++;
+          if (tt % 2 === 0) this.particles.blood(l.x, l.y + 40, rand(-1, 1), 2);
+          if (l.y > 260) {
+            D.fly = false;
+            l.alpha = 0;
+            D.star = tt;
+            D.sx = Math.max(20, Math.min(W - 20, l.x - this.camX));
+            sfx.twinkle();
+          }
+        }
+        if (tt === 116) w.poseOverride = AN.P(AN.STANCE, { af: -70, ef: -125, ab: -60, eb: -125, t: 0, h: -10 });
+        if (D.star != null && tt === D.star + 80) {
+          // what goes up comes back down, in pieces
+          const hx = this.camX + D.sx;
+          this.particles.chunk(l.parts.head.img, l.parts.head.px, l.parts.head.py, hx, 230, 0, -2, 0.3);
+          for (let i = 0; i < 12; i++) this.particles.blood(hx + rand(-30, 30), 230, rand(-1, 1), 3, 0.3);
+        }
+        if (D.star != null && tt === D.star + 113) {
+          sfx.thud();
+          this.shake(4);
+        }
+        w.update(this);
+        w.computePose();
+        l.computePose();
+        if (tt >= 330) done();
+        break;
+      }
       case 'pit': {
         if (!this.pitView) {
           l.y += l.vy;
@@ -650,6 +719,18 @@ export class Fight {
     }
     this.particles.draw(ctx, cam);
     this.stage.drawFront(ctx, cam, this.t);
+    if (this.fatal?.kind === 'chuck' && this.fatal.data.star != null) {
+      const k = this.fatal.t - this.fatal.data.star;
+      if (k < 60) {
+        // twinkle where they left the atmosphere
+        const r = k < 10 ? k * 0.7 : Math.max(0, 7 - (k - 10) / 7);
+        const x = Math.round(this.fatal.data.sx), y = 44;
+        ctx.fillStyle = k % 6 < 3 ? '#ffffff' : '#fff0a0';
+        ctx.fillRect(x - Math.round(r * 2), y, Math.round(r * 4) + 1, 1);
+        ctx.fillRect(x, y - Math.round(r * 2), 1, Math.round(r * 4) + 1);
+        ctx.fillRect(x - Math.round(r / 2), y - Math.round(r / 2), Math.round(r) + 1, Math.round(r) + 1);
+      }
+    }
   }
 
   drawPit(ctx: CanvasRenderingContext2D) {

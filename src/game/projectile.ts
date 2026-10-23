@@ -6,7 +6,7 @@ import type { Fight } from './fight';
 import type { Effect, Level } from './types';
 import { rand } from '../core/rng';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'gust';
 
 let SPR: { hat: HTMLCanvasElement; keg: HTMLCanvasElement; cannon: HTMLCanvasElement; holy: HTMLCanvasElement; bolt: HTMLCanvasElement } | null = null;
 const spr = () =>
@@ -18,6 +18,7 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   holy: { dmg: 90, level: 'high', effect: 'knockdown', r: 7, speed: 3.6 },
   cannon: { dmg: 110, level: 'high', effect: 'knockdown', r: 6, speed: 3.0 },
   keg: { dmg: 90, level: 'low', effect: 'sweep', r: 8, speed: 2.8 },
+  gust: { dmg: 85, level: 'mid', effect: 'heavy', r: 8, speed: 5.0 },
 };
 
 export class Projectile {
@@ -56,6 +57,9 @@ export class Projectile {
         this.y = 8;
         if (this.t % 4 === 0) p.smoke(this.x - Math.sign(this.vx) * 6, 2, 1, '#5a4a3a');
         break;
+      case 'gust':
+        if (this.t % 3 === 0) p.smoke(this.x - Math.sign(this.vx) * 8, this.y + rand(-6, 6), 1, '#c8d4e0');
+        break;
     }
     this.x += this.vx;
     this.y += this.vy;
@@ -91,6 +95,19 @@ export class Projectile {
         ctx.drawImage(s.holy, -7, -7);
         ctx.fillStyle = '#fffbe0';
         pxCircle(ctx, -1, -1, 2);
+        break;
+      }
+      case 'gust': {
+        // crescent of kicked-up air: three nested arcs bowing toward the target
+        const d = Math.sign(this.vx), wob = Math.sin(this.t * 0.9);
+        for (let k = 0; k < 3; k++) {
+          ctx.fillStyle = k === 0 ? '#ffffff' : k === 1 ? '#c8e0f8' : '#7aa0c8';
+          const r = 10 - k * 2;
+          for (let a = -70; a <= 70; a += 10) {
+            const rad = (a * Math.PI) / 180;
+            ctx.fillRect(Math.round(d * (Math.cos(rad) * r - 6 - k * 3)), Math.round(Math.sin(rad) * (r + 2 + wob)), 2, 2);
+          }
+        }
         break;
       }
       case 'bolt': {

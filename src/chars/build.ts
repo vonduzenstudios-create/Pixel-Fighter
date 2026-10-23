@@ -21,8 +21,8 @@ export interface Look {
   hat?: 'stovepipe' | 'tricorn';
   hatColor?: string;
   hatTrim?: string;
-  hairStyle: 'short' | 'slick' | 'bob' | 'long';
-  beard?: 'chinstrap' | 'braided';
+  hairStyle: 'short' | 'slick' | 'bob' | 'long' | 'feathered';
+  beard?: 'chinstrap' | 'braided' | 'full';
   beardRibbon?: string;
   mustache?: boolean;
   bowtie?: string;
@@ -32,6 +32,10 @@ export interface Look {
   coil?: boolean;
   sash?: string;
   bandolier?: string;
+  /** Chest hair showing through an open collar. */
+  chestHair?: string;
+  /** Sleeves rolled to the elbow: bare forearms with a cuff of the sleeve colour. */
+  rolledSleeves?: boolean;
 }
 
 const OUT = '#100810';
@@ -75,6 +79,9 @@ function torso(L: Look): Painter {
     p.rect(7, 23, 13, 2, L.belt);
     if (L.buckle) p.rect(16, 23, 2, 2, L.buckle);
   }
+  if (L.chestHair) {
+    for (const [x, y] of [[17, 8], [18, 10], [17, 12], [19, 9], [18, 14], [19, 12], [17, 16]]) p.set(x, y, L.chestHair);
+  }
   if (L.sash) p.poly([[7, 21], [20, 21], [20, 23], [7, 23]], L.sash);
   if (L.bandolier) p.line(9, 6, 20, 21, L.bandolier), p.line(10, 6, 20, 20, L.bandolier);
   p.shade(0.2);
@@ -112,6 +119,13 @@ function head(L: Look): Painter {
   } else if (L.hairStyle === 'bob') {
     p.ellipse(10.5, 24.5, 7, 4, L.hair);
     p.rect(13, 23, 4, 3, L.hair);
+  } else if (L.hairStyle === 'feathered') {
+    // big swept-back feathered cut that covers the ears
+    p.ellipse(9.5, 24, 7.5, 4.5, L.hair);
+    p.poly([[3, 23], [8, 22], [9, 33], [5, 35], [2.5, 30]], L.hair);
+    p.poly([[11, 20], [16, 21.5], [16.5, 24], [12, 23.5]], L.hair);
+    p.line(5, 22, 12, 20.5, lighten(L.hair, 0.3));
+    p.line(4, 26, 6, 31, lighten(L.hair, 0.2));
   } else {
     p.ellipse(10, 24.5, 6.5, 3.5, L.hair);
     p.rect(4, 24, 4, 6, L.hair);
@@ -134,6 +148,12 @@ function head(L: Look): Painter {
     p.line(14, 36, 14, 42, br, true);
     if (L.beardRibbon) for (const [x, y] of [[11, 39], [14, 40], [12, 37]]) p.set(x, y, L.beardRibbon);
     p.set(15, 33, '#5a2a2a');
+  } else if (L.beard === 'full') {
+    // short, dense beard from sideburn to sideburn with a heavy mustache
+    p.poly([[7.5, 29], [9.5, 32], [12.5, 32.5], [17.5, 31.5], [17.5, 35.5], [15.5, 38.5], [11, 39], [7.5, 35.5]], L.hair);
+    p.poly([[12, 31.5], [17.5, 31], [17.5, 33], [12, 33]], darken(L.hair, 0.15));
+    p.line(9, 35, 14, 37, lighten(L.hair, 0.2));
+    p.line(14, 34, 16, 34, '#5a2a2a');
   }
   if (L.hat === 'stovepipe') {
     const c = L.hatColor ?? '#141218';
@@ -175,7 +195,11 @@ function foreArm(L: Look, front: boolean): Painter {
   const c = L.armor ? L.armor.metal : L.coat ?? L.shirt;
   p.capsule(6, 3, 3.9, 6, 12, 3.2, c);
   const cuff = L.coatTrim ?? (L.coat ? L.shirt : darken(c, 0.2));
-  p.rect(2, 11, 8, 2, cuff);
+  if (L.rolledSleeves) {
+    p.capsule(6, 3, 3.9, 6, 12, 3.2, L.skin);
+    p.rect(1.5, 1, 9, 4, c);
+    p.line(2, 4, 9, 4, darken(c, 0.25));
+  } else p.rect(2, 11, 8, 2, cuff);
   if (L.coil && front) {
     p.rect(2, 4, 8, 7, '#b5652a');
     for (let y = 4; y < 11; y += 2) p.line(2, y, 9, y, '#e8a050');

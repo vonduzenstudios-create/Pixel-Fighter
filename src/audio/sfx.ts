@@ -81,6 +81,11 @@ export const sfx = {
   scream() {
     voice(520, 160, 1.2, 0.3, [800, 1200, 2600]);
   },
+  twinkle() {
+    const c = ac();
+    if (!c) return;
+    for (const [i, f] of [1568, 2093, 2637, 3136].entries()) tone({ type: 'triangle', freq: f, dur: 0.18, vol: 0.12, at: c.currentTime + i * 0.06 });
+  },
   menuMove() {
     tone({ type: 'square', freq: 660, dur: 0.05, vol: 0.08 });
   },
