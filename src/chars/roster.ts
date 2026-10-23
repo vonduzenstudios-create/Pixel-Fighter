@@ -1,4 +1,5 @@
 import { buildParts, Look } from './build';
+import { bobRoss } from './bobross';
 import { axe, cutlass, nunchaku, sword } from '../gfx/props';
 import { lumpsum } from './lumpsum';
 import { A, P, STANCE, CROUCH, TUCK } from '../game/anims';
@@ -396,6 +397,7 @@ export function roster(): CharDef[] {
       finisher: { name: 'Three-Count Heel Drop', cmd: [4, 6, 4], btn: 'hk', text: 'B, F, B + HK (close)', range: [0, 60] },
     },
     lumpsum(),
+    bobRoss(),
   ];
   return cache;
 }
