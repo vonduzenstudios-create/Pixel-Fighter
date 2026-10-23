@@ -35,6 +35,8 @@ export class Fight {
   particles = new Particles();
   pitParticles = new Particles();
   toasty = new Toasty();
+  /** Width of the arena floor in world px. */
+  sw = STAGE_W;
   camX = (STAGE_W - W) / 2;
   shakeT = 0;
   hitstop = 0;
@@ -60,6 +62,8 @@ export class Fight {
   constructor(public f: [Fighter, Fighter], public stage: Arena, public humans: [boolean, boolean], public onDone: (winner: Fighter) => void) {
     f[0].opp = f[1];
     f[1].opp = f[0];
+    this.sw = stage.width ?? STAGE_W;
+    stage.reset?.();
     this.particles.floorY = 0;
     this.particles.gravScale = (stage.gravity ?? GRAV) / GRAV;
     this.pitParticles.floorY = -200;
@@ -90,7 +94,7 @@ export class Fight {
     if (Math.abs(d.x - a.x) > 34) return false;
     // leave room behind the thrower so the judo flip always swaps sides, even in a corner
     const room = 40;
-    a.x = a.facing === 1 ? Math.max(a.x, 14 + room) : Math.min(a.x, STAGE_W - 14 - room);
+    a.x = a.facing === 1 ? Math.max(a.x, 14 + room) : Math.min(a.x, this.sw - 14 - room);
     a.startMove(THROW, this);
     d.move = null;
     d.thrower = a;
@@ -107,8 +111,8 @@ export class Fight {
   // ------------------------------------------------------------- round flow
   resetRound() {
     this.toasty.reset();
-    this.f[0].resetRound(STAGE_W / 2 - 50);
-    this.f[1].resetRound(STAGE_W / 2 + 50);
+    this.f[0].resetRound(this.sw / 2 - 50);
+    this.f[1].resetRound(this.sw / 2 + 50);
     this.f[0].facing = 1;
     this.f[1].facing = -1;
     for (const f of this.f) f.locked = true;
@@ -116,7 +120,7 @@ export class Fight {
     this.particles.list = [];
     this.timer = 99;
     this.timerT = 0;
-    this.camX = (STAGE_W - W) / 2;
+    this.camX = (this.sw - W) / 2;
     this.phase = this.round === 1 ? 'entrance' : 'intro';
     this.pt = 0;
     this.winner = this.loser = null;
@@ -242,6 +246,7 @@ export class Fight {
       this.hitstop--;
       return;
     }
+    this.stage.update?.(this);
 
     switch (this.phase) {
       case 'entrance':
@@ -442,7 +447,7 @@ export class Fight {
     }
     // keep both fighters on screen together
     const lo = this.camX + 12, hi = this.camX + W - 12;
-    for (const f of this.f) if (f.state !== 'thrown') f.x = Math.max(Math.max(14, lo - 30), Math.min(Math.min(STAGE_W - 14, hi + 30), f.x));
+    for (const f of this.f) if (f.state !== 'thrown') f.x = Math.max(Math.max(14, lo - 30), Math.min(Math.min(this.sw - 14, hi + 30), f.x));
     const span = Math.abs(b.x - a.x);
     if (span > W - 28) {
       const mid = (a.x + b.x) / 2, half = (W - 28) / 2;
@@ -452,7 +457,7 @@ export class Fight {
 
   updateCamera() {
     const mid = (this.f[0].x + this.f[1].x) / 2;
-    const target = Math.max(0, Math.min(STAGE_W - W, mid - W / 2));
+    const target = Math.max(0, Math.min(this.sw - W, mid - W / 2));
     this.camX += (target - this.camX) * 0.18;
   }
 
@@ -813,14 +818,26 @@ export class Fight {
             if (D.y >= 150) {
               D.impaled = true;
               D.y = 150;
-              sfx.impale();
               sfx.scream();
               this.shake(10);
-              this.pitParticles.blood(128, H - 150, 1, 60, 1.6);
+              if (this.stage.pitFront) {
+                // a vat landing instead of spikes: a big splash of hot oil
+                sfx.explode();
+                sfx.fire();
+                this.pitParticles.sparks(128, H - 150, 30, '#ffd040');
+                this.pitParticles.smoke(128, H - 140, 12, '#d8d0c0');
+              } else {
+                sfx.impale();
+                this.pitParticles.blood(128, H - 150, 1, 60, 1.6);
+              }
             }
           } else {
             D.it++;
-            if (D.it % 6 === 0) this.pitParticles.blood(128 + rand(-8, 8), H - 152, rand(-1, 1), 2, 0.6);
+            if (this.stage.pitFront) {
+              if (D.it % 4 === 0) this.pitParticles.smoke(128 + rand(-24, 24), H - 150 + rand(-4, 4), 1, '#d8d0c0');
+              if (D.it % 10 === 0) this.pitParticles.sparks(128 + rand(-20, 20), H - 152, 2, '#ffe070');
+              if (D.it % 30 === 0) sfx.fire();
+            } else if (D.it % 6 === 0) this.pitParticles.blood(128 + rand(-8, 8), H - 152, rand(-1, 1), 2, 0.6);
             if (D.it > 150) done();
           }
         }
@@ -1020,7 +1037,8 @@ export class Fight {
     const D = this.fatal?.data ?? { y: 150, rot: -90, impaled: true };
     ctx.drawImage(this.stage.pit!, 0, 0);
     const l = this.loser!;
-    const pose = D.impaled ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
+    const vat = this.stage.pitFront;
+    const pose = D.impaled && !vat ? AN.P(AN.LIE, { rot: -100, h: 40, af: -60, ef: -20, ab: 60, lf: 30, kf: 40, lb: 40, kb: 50 }) : AN.P(AN.LAUNCHED, { rot: D.rot });
     l.hidden.clear();
     l.alpha = 1;
     l.tint = null;
@@ -1033,9 +1051,14 @@ export class Fight {
     const savedX = l.x;
     l.x = 128;
     l.G = 0;
-    l.draw(ctx, 0, Math.round(D.y));
+    // in a vat they slowly sink out of sight, still twitching
+    const sink = vat && D.impaled ? Math.min(60, (D.it ?? 0) * 0.5) : 0;
+    if (vat && D.impaled) l.poseOverride = AN.P(AN.LAUNCHED, { rot: 180 + Math.sin((D.it ?? 0) * 0.4) * 10 });
+    if (vat) l.computePose();
+    l.draw(ctx, 0, Math.round(D.y + sink));
     l.x = savedX;
-    if (D.impaled) {
+    if (vat) ctx.drawImage(vat, 0, 0);
+    else if (D.impaled) {
       ctx.fillStyle = '#8a8290';
       ctx.fillRect(127, D.y - 22, 2, 14);
       ctx.fillRect(128, D.y - 26, 1, 4);

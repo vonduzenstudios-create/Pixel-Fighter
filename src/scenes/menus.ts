@@ -1,4 +1,4 @@
-import { FLOOR, H, W } from '../core/consts';
+import { FLOOR, H, STAGE_W, W } from '../core/consts';
 import { Edge, readPlayer, RawInput } from '../core/input';
 import { drawText } from '../gfx/font';
 import { Painter } from '../gfx/painter';
@@ -290,7 +290,9 @@ export class StageSelectScene implements Scene {
 
   draw(ctx: CanvasRenderingContext2D) {
     const st = this.cur;
-    const cam = 128 + Math.sin(this.t * 0.01) * 110;
+    // pan across the whole floor, however wide the stage is
+    const half = ((st.width ?? STAGE_W) - W) / 2;
+    const cam = half + Math.sin(this.t * 0.01) * (half - 18);
     st.draw(ctx, cam, this.t);
     st.drawFront(ctx, cam, this.t);
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
