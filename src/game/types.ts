@@ -36,7 +36,7 @@ export interface Move {
   crouch?: boolean;
   /** Forward speed per frame (or a function of the move frame). */
   vx?: number | ((frame: number) => number);
-  prop?: 'axe' | 'sword' | 'cutlass' | null;
+  prop?: 'axe' | 'sword' | 'cutlass' | 'nunchaku' | null;
   propBehind?: boolean;
   onFrame?: (self: Fighter, fight: Fight, frame: number) => void;
   whoosh?: boolean;
