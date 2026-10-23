@@ -13,7 +13,7 @@ const FAR_W = W + Math.ceil((STAGE_W - W) * 0.25);
 const MID_W = W + Math.ceil((STAGE_W - W) * 0.55);
 const TORCH_X = [36, 184, 328, 476];
 
-function ridge(r: ReturnType<typeof rng>, w: number, base: number, amp: number, rough: number): number[] {
+export function ridge(r: ReturnType<typeof rng>, w: number, base: number, amp: number, rough: number): number[] {
   // midpoint displacement ridgeline
   let n = 1;
   while (n < w) n *= 2;
@@ -176,6 +176,7 @@ function bridge(): HTMLCanvasElement {
 
 export class Stage implements Arena {
   name = 'THE THORN GORGE';
+  blurb = 'UPPERCUT THEM INTO THE SPIKES';
   song = 'fight' as const;
   sky = sky();
   far = far();
