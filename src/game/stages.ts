@@ -7,6 +7,7 @@ import { BoatStage } from './boat';
 import { SkyscraperStage } from './skyscraper';
 import { MushroomStage } from './mushroom';
 import { BlizzardStage } from './blizzard';
+import { UndergroundStage } from './underground';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -39,6 +40,7 @@ export const STAGES: StageEntry[] = [
   { id: 'spire', name: 'THE DATA SPIRE', make: (b) => new SkyscraperStage(b) },
   { id: 'mushroom', name: 'THE SPOREWOOD', make: (b) => new MushroomStage(b) },
   { id: 'blizzard', name: 'THE HOWLING PASS', make: (b) => new BlizzardStage(b) },
+  { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
