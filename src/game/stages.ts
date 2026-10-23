@@ -11,6 +11,7 @@ import { BlizzardStage } from './blizzard';
 import { UndergroundStage } from './underground';
 import { BurgerStage } from './burger';
 import { FlavortownStage } from './flavortown';
+import { DojoStage } from './dojo';
 
 /** Anything the fight can be staged in. */
 export interface Arena {
@@ -34,6 +35,8 @@ export interface Arena {
   update?(f: Fight): void;
   /** Drawn over the victim in the uppercut-finish close-up; replaces the spike-impale finish. */
   pitFront?: HTMLCanvasElement;
+  /** Colour of the stake tip drawn through the victim in the pit finish; defaults to steel. */
+  stakeColor?: string;
   /** Optional vertical offset (screen px) for the floor, fighters and effects, e.g. a rocking deck. */
   bob?(t: number): number;
 }
@@ -54,6 +57,7 @@ export const STAGES: StageEntry[] = [
   { id: 'underground', name: 'THE UNDERDROME', make: (b) => new UndergroundStage(b) },
   { id: 'burger', name: "PATTY PETE'S", make: (b) => new BurgerStage(b) },
   { id: 'flavortown', name: 'FLAVORTOWN', make: (b) => new FlavortownStage(b) },
+  { id: 'dojo', name: 'IRONWOOD DOJO', make: (b) => new DojoStage(b) },
   { id: 'moon', name: 'SEA OF SILENCE', make: () => new MoonStage() },
 ];
 
