@@ -9,6 +9,7 @@ import type { Fight } from './fight';
 import type { Anim, Btn, Finisher, HitDef, Move, Special } from './types';
 import type { Look } from '../chars/build';
 import { chance } from '../core/rng';
+import { strengthOf } from '../audio/sfx';
 
 export interface CharDef {
   id: string;
@@ -326,7 +327,8 @@ export class Fighter {
   updateMove(f: Fight) {
     const m = this.move!;
     const fr = this.mf++;
-    if (m.active && fr === m.active[0] && m.whoosh) f.sfx('whoosh');
+    if (m.active && fr === m.active[0] && (m.whoosh || (m.hit && !m.hit.special)))
+      f.sfx('whoosh', m.hit ? strengthOf(m.hit.dmg) : 1, m.hit?.limb.startsWith('toe'));
     if (m.vx !== undefined) {
       const v = typeof m.vx === 'function' ? m.vx(fr) : m.vx;
       this.x += v * this.moveDir;
