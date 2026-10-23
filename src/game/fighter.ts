@@ -86,6 +86,8 @@ const BUFFER = 6;
 const CANCEL_LATE = 4;
 /** Frames a fighter stays squashed on landing before they can act. */
 const LAND_LAG = 3;
+/** Frames a knocked-down fighter stays on the floor before getting up. */
+const FLOOR_TIME = 14;
 
 /** Command step matching: a diagonal also counts for the cardinal directions beside it. */
 function dirMatches(got: number, want: number) {
@@ -382,9 +384,9 @@ export class Fighter {
       }
     } else if (s === 'lying') {
       this.vx *= 0.7;
-      if (this.t > 26 && this.hp > 0 && !this.locked) this.setState('getup', AN.GETUP);
+      if (this.t > FLOOR_TIME && this.hp > 0 && !this.locked) this.setState('getup', AN.GETUP);
     } else if (s === 'getup') {
-      if (this.t >= 26) {
+      if (this.t >= AN.animLength(AN.GETUP)) {
         this.juggle = 0;
         this.faceOpp();
         this.setState('idle', AN.IDLE);
@@ -683,10 +685,12 @@ export class Fighter {
     return [x0, Math.max(0, y0 - 2), x1, y1 + 2];
   }
 
-  canBlockNow(level: string) {
+  /** Can this fighter guard a hit at `level` right now? `crouchOnly` hits (uppercuts) need a low guard. */
+  canBlockNow(level: string, crouchOnly = false) {
     if (this.airborne || !BLOCKABLE.has(this.state)) return false;
     if (!(this.input.bl || this.holdingBack)) return false;
     const low = this.crouching || this.state === 'cblock' || this.state === 'crouch';
+    if (crouchOnly && !low) return false;
     return low ? level !== 'overhead' : level !== 'low';
   }
 
@@ -708,7 +712,8 @@ export class Fighter {
       this.startMove(ctr.move, f);
       return 'block';
     }
-    if (this.canBlockNow(hit.level)) {
+    // an uppercut comes up under a standing guard: only a crouching block stops it
+    if (this.canBlockNow(hit.level, !projectile && from.move?.id === 'uppercut')) {
       const low = this.crouching;
       this.setState('blockstun', low ? AN.CBLOCKSTUN : AN.BLOCKSTUN);
       this.stun = Math.round((hit.stun ?? 14) * 0.6);
@@ -830,8 +835,12 @@ export class Fighter {
     b.setTransform(1, 0, 0, 1, 0, 0);
     b.clearRect(0, 0, 200, 200);
     b.translate(BO, BO);
-    b.scale(this.facing * this.scale, this.scale);
     const m = this.move;
+    // a spinning move shows the fighter's back for a few frames, squeezed at the edges so it reads as a turn
+    const tn = this.state === 'attack' ? m?.turn : undefined;
+    const turned = !!tn && this.mf >= tn[0] && this.mf < tn[1];
+    const edge = !!tn && (this.mf === tn[0] - 1 || this.mf === tn[0] || this.mf === tn[1] - 1 || this.mf === tn[1]);
+    b.scale(this.facing * this.scale * (turned ? -1 : 1) * (edge ? 0.5 : 1), this.scale);
     const prop = m?.prop ? this.ch.props[m.prop] ?? null : this.propOverride;
     const parts = this.showBones ? { ...this.bones, chair: this.parts.chair, chairF: undefined } : this.parts;
     drawRig(b, parts, this.rawSkel, { hidden: this.hidden, prop, propBehind: m?.propBehind });

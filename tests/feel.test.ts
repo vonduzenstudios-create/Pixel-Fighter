@@ -25,7 +25,8 @@ function setup(gap = 30) {
   const dummy = ch.find((c) => c.id === 'lincoln')!;
   // the stick and buttons as held this frame, like a real pad (not a queue that waits for a reader)
   let held: In = {};
-  const ctrl = [{ read: () => ({ ...EMPTY, ...held }) }, { read: () => ({ ...EMPTY }) }];
+  let held2: In = {};
+  const ctrl = [{ read: () => ({ ...EMPTY, ...held }) }, { read: () => ({ ...EMPTY, ...held2 }) }];
   let fight!: InstanceType<typeof Fight>;
   seededRandom(1).run(() => {
     const arena = STAGES[0].make(bonesParts());
@@ -40,6 +41,8 @@ function setup(gap = 30) {
   fight.f[1].x = 200 + gap;
   fight.f[0].facing = 1;
   fight.f[1].facing = -1;
+  /** Hold these on the second fighter's pad (stick directions are screen directions). */
+  const hold2 = (i: In) => (held2 = i);
   const step = (i: In = {}) => {
     held = i;
     seededRandom(2).run(() => fight.update());
@@ -53,7 +56,7 @@ function setup(gap = 30) {
     }
     return n;
   };
-  return { fight, a: fight.f[0], b: fight.f[1], step, until };
+  return { fight, a: fight.f[0], b: fight.f[1], step, until, hold2 };
 }
 
 describe('game feel', () => {
@@ -123,5 +126,38 @@ describe('game feel', () => {
     step({ r: true, lp: true });
     for (let i = 0; i < 6; i++) step();
     expect(a.move?.id).toBe('ck');
+  });
+
+  it('lands the light punch in the gut and the heavy punch in the face, both chainable', () => {
+    const height: Record<string, number> = {};
+    for (const btn of ['lp', 'hp'] as const) {
+      const { a, b, step, until } = setup();
+      step({ [btn]: true });
+      until(() => b.state === 'hitstun');
+      height[btn] = a.strikePoint()!.y;
+      step({ [btn]: true });
+      until(() => a.hits === 0);
+      expect(a.move?.id).toBe(btn === 'lp' ? 'jab' : 'hp');
+    }
+    expect(height.lp).toBeLessThan(55); // belly height on a standard-size fighter
+    expect(height.hp).toBeGreaterThan(height.lp + 20);
+  });
+
+  it('only a crouching block stops an uppercut', () => {
+    for (const crouch of [false, true]) {
+      const { b, step, until, hold2 } = setup();
+      hold2({ r: true, d: crouch }); // holding back (away from Tesla)
+      step();
+      step({ d: true, hp: true });
+      if (!crouch) until(() => b.state === 'launched');
+      else for (let i = 0; i < 30; i++) step(), expect(b.state).not.toBe('launched');
+    }
+  });
+
+  it('gets a swept fighter back on their feet quickly', () => {
+    const { b, step, until } = setup();
+    step({ l: true, lk: true });
+    until(() => b.state === 'lying');
+    expect(until(() => b.state === 'idle')).toBeLessThanOrEqual(34);
   });
 });

@@ -124,11 +124,11 @@ export const TUMBLE = A([[P(LAUNCHED, { rot: 0 }), 6, 'lin'], [P(LAUNCHED, { rot
 export const LIE_ANIM = A([[LIE, 1]]);
 export const BOUNCE = A([[P(LIE, { rot: -80, t: 10, lf: -30, kf: 20 }), 3, 'out'], [P(LIE, { rot: -88, lf: -10, kf: 10 }), 3], [LIE, 6]], false, 1);
 export const GETUP = A([
-  [LIE, 4],
-  [{ rot: -30, t: 10, h: 0, lf: -95, kf: 110, lb: -80, kb: 120, af: 10, ef: -20, ab: 20, eb: -10 }, 8, 'out'],
-  [CROUCH, 6],
-  [P(STANCE, { t: 14, lf: -30, kf: 42, lb: 8, kb: 26 }), 4],
-  [STANCE, 4],
+  [LIE, 2],
+  [{ rot: -30, t: 10, h: 0, lf: -95, kf: 110, lb: -80, kb: 120, af: 10, ef: -20, ab: 20, eb: -10 }, 6, 'out'],
+  [CROUCH, 5],
+  [P(STANCE, { t: 14, lf: -30, kf: 42, lb: 8, kb: 26 }), 3],
+  [STANCE, 2],
 ]);
 export const DIZZY_ANIM = A([[DIZZY, 26], [P(DIZZY, { t: 12, h: 35, rx: 2, af: 18, ab: 10 }), 26]], true);
 export const VICTORY_ANIM = A([[P(STANCE, { t: 0 }), 8], [VICTORY, 10], [P(VICTORY, { ef: -40, t: -8 }), 30], [VICTORY, 30]]);
