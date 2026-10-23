@@ -290,11 +290,11 @@ export class Fighter {
     const d = this.dir;
     const dist = Math.abs(this.opp.x - this.x);
     let m: Move;
-    if (d <= 3) m = b === 'lp' ? MV.CROUCH_PUNCH : b === 'hp' ? MV.UPPERCUT : b === 'lk' ? MV.CROUCH_KICK : MV.SWEEP;
+    if (d <= 3) m = b === 'lp' ? MV.CROUCH_PUNCH : b === 'hp' ? MV.UPPERCUT : b === 'lk' ? MV.CROUCH_KICK : MV.CROUCH_HIGH_KICK;
     else if (d === 4) m = b === 'lk' ? MV.SWEEP : b === 'hk' ? MV.ROUNDHOUSE : b === 'lp' ? MV.JAB : MV.HIGH_PUNCH;
-    else if (d === 6 && (b === 'lp' || b === 'hp') && dist < 34) {
+    else if (d === 6 && b === 'lp' && dist < 34) {
       if (f.tryThrow(this)) return true;
-      m = b === 'lp' ? MV.JAB : MV.HIGH_PUNCH;
+      m = MV.JAB;
     } else m = b === 'lp' ? MV.JAB : b === 'hp' ? MV.HIGH_PUNCH : b === 'lk' ? MV.LOW_KICK : MV.HIGH_KICK;
     this.startMove(m, f);
     return true;
@@ -472,9 +472,10 @@ export class Fighter {
       this.y = Math.max(this.y, 1);
       this.setState(eff === 'launch' ? 'launched' : 'fall', eff === 'launch' ? AN.TUMBLE : AN.FALL);
     } else if (eff === 'launch') {
-      this.vy = 7.4;
+      const [up, out] = hit.lift ?? [7.4, 1.7];
+      this.vy = up;
       this.y = 1;
-      this.vx = away * 1.7;
+      this.vx = away * out;
       this.juggle = 1;
       this.setState('launched', AN.TUMBLE);
     } else if (eff === 'knockdown' || eff === 'sweep') {

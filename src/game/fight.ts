@@ -78,6 +78,9 @@ export class Fight {
     if (this.phase !== 'fight' || d.airborne) return false;
     if (!['idle', 'walkF', 'walkB', 'crouch', 'block', 'cblock', 'land', 'hitstun'].includes(d.state)) return false;
     if (Math.abs(d.x - a.x) > 34) return false;
+    // leave room behind the thrower so the judo flip always swaps sides, even in a corner
+    const room = 40;
+    a.x = a.facing === 1 ? Math.max(a.x, 14 + room) : Math.min(a.x, STAGE_W - 14 - room);
     a.startMove(THROW, this);
     d.move = null;
     d.thrower = a;
@@ -724,7 +727,8 @@ export class Fight {
     ctx.fillRect(0, 0, W, H);
     drawText(ctx, 'PAUSED', W / 2, 30, '#fff', { scale: 2, align: 'center', grad: ['#ffe890', '#d04010'], outline: '#000' });
     const list = this.humans[1] ? [this.f[0], this.f[1]] : [this.f[0]];
-    let y = 56;
+    const two = list.length > 1;
+    let y = two ? 48 : 56;
     for (const f of list) {
       drawText(ctx, f.ch.name, 16, y, '#e0c050');
       y += 11;
@@ -736,9 +740,13 @@ export class Fight {
       drawText(ctx, f.ch.finisher.name, 20, y, '#f66');
       y += 9;
       drawText(ctx, f.ch.finisher.text, W - 16, y, '#f99', { align: 'right' });
-      y += 14;
+      y += two ? 11 : 14;
     }
-    drawText(ctx, 'STAGE FINISH: UPPERCUT (D+HP) WHEN THEY ARE DAZED', W / 2, y, '#fa8', { align: 'center' });
+    drawText(ctx, 'D+HP UPPERCUT  B+HK ROUNDHOUSE', W / 2, y, '#8cf', { align: 'center' });
+    drawText(ctx, 'B+LK SWEEP  F+LP JUDO THROW', W / 2, y + 9, '#8cf', { align: 'center' });
+    drawText(ctx, 'D+LP / D+LK / D+HK CROUCH ATTACKS', W / 2, y + 18, '#8cf', { align: 'center' });
+    y += two ? 27 : 32;
+    drawText(ctx, 'PIT DROP: D+HP WHEN THEY ARE DAZED', W / 2, y, '#fa8', { align: 'center' });
     drawText(ctx, 'PRESS START TO RESUME', W / 2, H - 16, '#fff', { align: 'center' });
   }
 }
