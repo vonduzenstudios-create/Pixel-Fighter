@@ -10,13 +10,14 @@ import { drawMiniHole } from '../chars/hawking';
 import { drawSmolder } from '../chars/glare';
 import { drawTinRobot } from '../chars/buster';
 import { drawGift } from '../chars/oprah';
+import { drawCrystal } from '../chars/cleo';
 import { drawDrumstick, drawGrease } from '../chars/colonel';
 import { drawCard } from '../chars/blaine';
 import { drawBasketball } from '../chars/shaq';
 import { drawBurger, drawRagtop, updateBurger, updateRagtop } from '../chars/fieri';
 import { ANIMALS, drawAnimal, updateAnimal } from '../chars/irwin';
 
-export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball' | 'croc' | 'roo' | 'snake' | 'smolder' | 'card' | 'steak';
+export type ProjKind = 'hat' | 'bolt' | 'holy' | 'cannon' | 'keg' | 'cash' | 'aria' | 'gust' | 'paint' | 'tree' | 'fedora' | 'hole' | 'gift' | 'drumstick' | 'grease' | 'burger' | 'ragtop' | 'scarab' | 'sarcophagus' | 'robot' | 'bball' | 'croc' | 'roo' | 'snake' | 'smolder' | 'card' | 'steak' | 'crystal';
 
 const PAINTS = ['#123c78', '#2e7a34', '#f0c020', '#a01828', '#f4f0e8'];
 
@@ -44,6 +45,8 @@ const STATS: Record<ProjKind, { dmg: number; level: Level; effect: Effect; r: nu
   tree: { dmg: 95, level: 'low', effect: 'launch', r: 9, speed: 0 },
   smolder: { dmg: 80, level: 'high', effect: 'heavy', r: 7, speed: 6.4 },
   gift: { dmg: 80, level: 'high', effect: 'heavy', r: 7, speed: 4.2 },
+  // a crystal ball bowled along the floor: block it low
+  crystal: { dmg: 85, level: 'low', effect: 'sweep', r: 8, speed: 3.3 },
   drumstick: { dmg: 80, level: 'high', effect: 'heavy', r: 6, speed: 4.4 },
   // lobbed in an arc (vy set by the thrower), then burns on the floor where it lands
   grease: { dmg: 75, level: 'mid', effect: 'heavy', r: 7, speed: 2.6 },
@@ -127,6 +130,11 @@ export class Projectile {
       case 'gift':
         // a little trail of confetti behind the present
         if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 6, y: this.y + rand(-4, 4), vx: -this.vx * 0.1, vy: 0.4, grav: 0.05, life: 24, max: 24, size: 2, color: ['#f04878', '#f0c020', '#40b8f0', '#60d070'][(this.t / 3) % 4] });
+        break;
+      case 'crystal':
+        // rolls along the floor trailing glittering mist
+        this.y = 8;
+        if (this.t % 3 === 0) p.add({ kind: 'spark', x: this.x - Math.sign(this.vx) * 7, y: rand(4, 16), vx: -this.vx * 0.15, vy: rand(0.2, 0.8), life: 22, max: 22, size: 1, color: ['#b070f0', '#e0b0ff', '#ffffff'][(this.t / 3) % 3], floor: false });
         break;
       case 'card':
         this.y += Math.sin(this.t * 0.4) * 0.4;
@@ -346,6 +354,9 @@ export class Projectile {
         break;
       case 'grease':
         drawGrease(ctx, this.t, this.landed > 0);
+        break;
+      case 'crystal':
+        drawCrystal(ctx, this.t, Math.sign(this.vx) || 1);
         break;
       case 'card':
         drawCard(ctx, this.t);
