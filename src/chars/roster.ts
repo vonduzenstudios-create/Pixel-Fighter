@@ -11,6 +11,7 @@ import type { Pose } from '../gfx/rig';
 import { Projectile, ProjKind } from '../game/projectile';
 import type { Fighter } from '../game/fighter';
 import type { Fight } from '../game/fight';
+import { HAWKING_ALT, HAWKING_FINISHER, HAWKING_LOOK, hawkingSpecials } from './hawking';
 import { BLACKBEARD_INTRO, INTROS, JOAN_INTRO, LINCOLN_INTRO, TESLA_INTRO } from './intros';
 
 // Original takes on historical figures. Commands are relative to facing:
@@ -457,6 +458,10 @@ export function roster(): CharDef[] {
     },
     aliDef(),
     lumpsum(),
+    {
+      id: 'hawking', name: 'Stephen Hawking', short: 'HAWKING', title: 'Spacetime Bender', look: HAWKING_LOOK, alt: HAWKING_ALT,
+      specials: hawkingSpecials, voice: 120, props: {}, finisher: HAWKING_FINISHER,
+    },
     bobRoss(),
     {
       id: 'jackson', name: 'Michael Jackson', short: 'JACKSON', title: 'The Gloved One', look: JACKSON_LOOK, alt: JACKSON_ALT,

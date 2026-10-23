@@ -17,6 +17,7 @@ import { DEFAULT_INTRO, Intro } from './intro';
 import { Toasty } from './toasty';
 import { THROW } from './moves';
 import type { HitDef, Special } from './types';
+import { drawHawkingFatality, runHawkingFatality } from '../chars/hawking';
 
 type Phase = 'entrance' | 'intro' | 'fight' | 'ko' | 'finish' | 'fatal' | 'roundEnd' | 'matchEnd';
 
@@ -778,6 +779,9 @@ export class Fight {
         if (tt >= 280) done();
         break;
       }
+      case 'hawking':
+        runHawkingFatality(this, tt, tick, done);
+        break;
       case 'pit': {
         if (!this.pitView) {
           l.y += l.vy;
@@ -874,6 +878,8 @@ export class Fight {
           [P.head, s.neck], [P.torso, s.hip], [P.uarm, s.shF], [P.farm, s.elbowF], [P.uarmB, s.shB], [P.farmB, s.elbowB],
           [P.thigh, s.hipF], [P.shin, s.kneeF], [P.foot, s.ankleF], [P.thighB, s.hipB], [P.shinB, s.kneeB], [P.footB, s.ankleB],
         ];
+    const chair = P.chair ?? l.parts.chair;
+    if (!bitsOnly && chair) list.push([chair, s.hip]);
     for (const [part, at] of list)
       this.particles.chunk(part.img, part.px, part.py, l.wx(at[0]), l.wy(at[1]), rand(-1, 1) * force, rand(0.5, 1) * up, rand(-0.3, 0.3));
   }
@@ -996,6 +1002,7 @@ export class Fight {
       ctx.fillStyle = 'rgba(160,200,255,0.12)';
       ctx.fillRect(0, 0, W, H);
     }
+    if (this.fatal?.kind === 'hawking') drawHawkingFatality(ctx, this, cam);
     this.particles.draw(ctx, cam);
     ctx.restore();
     this.stage.drawFront(ctx, cam, this.t);

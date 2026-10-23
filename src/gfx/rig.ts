@@ -23,8 +23,10 @@ export interface PartSet {
   torso: Part; head: Part;
   uarm: Part; farm: Part; thigh: Part; shin: Part; foot: Part;
   uarmB: Part; farmB: Part; thighB: Part; shinB: Part; footB: Part;
+  /** Optional seat layers pinned to the hip (behind and in front of the torso). */
+  chair?: Part; chairF?: Part;
 }
-export type PartName = 'torso' | 'head' | 'armF' | 'armB' | 'legF' | 'legB';
+export type PartName = 'torso' | 'head' | 'armF' | 'armB' | 'legF' | 'legB' | 'chair';
 
 export const L = { torso: 24, uarm: 13, farm: 13, thigh: 18, shin: 18 };
 
@@ -39,7 +41,7 @@ export interface Skeleton {
   kneeB: V; ankleB: V; kneeF: V; ankleF: V;
   heelB: V; toeB: V; heelF: V; toeF: V;
   a: { torso: number; head: number; uarmB: number; farmB: number; uarmF: number; farmF: number;
-       thighB: number; shinB: number; thighF: number; shinF: number; footB: number; footF: number; prop: number };
+       thighB: number; shinB: number; thighF: number; shinF: number; footB: number; footF: number; prop: number; body: number };
 }
 
 /** Forward kinematics in local space (hip at origin, y down, facing right). */
@@ -65,7 +67,7 @@ export function fk(p: Pose): Skeleton {
     hip, hipB, hipF, sh, shB, shF, neck, headTop, elbowB, handB, elbowF, handF, kneeB, ankleB, kneeF, ankleF,
     heelB: fpt(ankleB, footB, -2), toeB: fpt(ankleB, footB, 9), heelF: fpt(ankleF, footF, -2), toeF: fpt(ankleF, footF, 9),
     a: { torso: t, head: headA, uarmB: uB, farmB: fB, uarmF: uF, farmF: fF, thighB: tB, shinB: sB, thighF: tF, shinF: sF,
-         footB, footF, prop: fF + g('pa') },
+         footB, footF, prop: fF + g('pa'), body: 0 },
   };
   if (rot) {
     const c = Math.cos(rot), sn = Math.sin(rot);
@@ -130,8 +132,10 @@ export function drawRig(ctx: CanvasRenderingContext2D, parts: PartSet, s: Skelet
     drawPart(ctx, parts.shin, s.kneeF, a.shinF);
     drawPart(ctx, parts.foot, s.ankleF, a.footF);
   }
+  if (parts.chair && !hid?.has('chair')) drawPart(ctx, parts.chair, s.hip, a.body);
   if (!hid?.has('torso')) drawPart(ctx, parts.torso, s.hip, a.torso);
   if (!hid?.has('head')) drawPart(ctx, parts.head, s.neck, a.head);
+  if (parts.chairF && !hid?.has('chair')) drawPart(ctx, parts.chairF, s.hip, a.body);
   if (o.prop && o.propBehind) drawPart(ctx, o.prop, s.handF, a.prop);
   if (!hid?.has('armF')) {
     drawPart(ctx, parts.uarm, s.shF, a.uarmF);
